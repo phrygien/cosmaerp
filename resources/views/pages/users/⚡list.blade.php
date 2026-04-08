@@ -76,7 +76,7 @@ new class extends Component
                 wire:model.live.debounce="search"
                 placeholder="Rechercher un utilisateur..."
                 icon="magnifying-glass"
-                class="w-72"
+                style="width: 350px;"
             />
 
             <flux:select wire:model.live="perPage" class="w-20">
@@ -165,12 +165,11 @@ new class extends Component
                             <flux:badge size="sm" color="amber" inset="top bottom">En attente</flux:badge>
                         @endif
                     </flux:table.cell>
-
-                    <!-- Rôles -->
+                    <!-- Roles -->
                     <flux:table.cell>
-                        <div class="flex flex-wrap gap-1">
+                        <div class="flex flex-wrap gap-2 py-3">
                             @forelse ($user->roles as $role)
-                                <flux:badge size="sm" color="purple" inset="top bottom">
+                                <flux:badge size="sm" color="purple" inset="top bottom" class="mb-2">
                                     {{ $role->name }}
                                 </flux:badge>
                             @empty
@@ -181,7 +180,7 @@ new class extends Component
 
                     <!-- Créé le -->
                     <flux:table.cell class="text-zinc-400 text-sm whitespace-nowrap">
-                        {{ $user->created_at->format('d/m/Y') }}
+                        {{ $user->created_at->translatedFormat('d F Y') }}
                     </flux:table.cell>
 
                     <!-- Actions -->

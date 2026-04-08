@@ -31,13 +31,24 @@
             <flux:sidebar.group
                 expandable
                 icon="rectangle-stack"
+                heading="Catalogues"
+                class="grid"
+                :expanded="request()->routeIs('catalogue.*')"
+            >
+                <flux:sidebar.item href="{{ route('catalogue.marques') }}" wire:navigate>{{ __('Marques') }}</flux:sidebar.item>
+                <flux:sidebar.item href="{{ route('catalogue.categories') }}" wire:navigate>{{ __('Categories') }}</flux:sidebar.item>
+                <flux:sidebar.item href="{{ route('catalogue.parkod') }}" wire:navigate>{{ __('PARKOD') }}</flux:sidebar.item>
+            </flux:sidebar.group>
+
+            <flux:sidebar.group
+                expandable
+                icon="users"
                 heading="Plateformes"
                 class="grid"
-                :expanded="request()->routeIs('plateformes.*')"
+                :expanded="request()->routeIs('fournisseurs.*')"
             >
-                <flux:sidebar.item href="#">{{ __('Marques') }}</flux:sidebar.item>
-                <flux:sidebar.item href="#">{{ __('Categories') }}</flux:sidebar.item>
-                <flux:sidebar.item href="#">{{ __('PARKOD') }}</flux:sidebar.item>
+                <flux:sidebar.item href="#">{{ __('Tous les fournisseurs') }}</flux:sidebar.item>
+                <flux:sidebar.item href="#">{{ __('Creer nouvelle fournisseur') }}</flux:sidebar.item>
             </flux:sidebar.group>
 
         </flux:sidebar.nav>

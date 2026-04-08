@@ -80,9 +80,9 @@ new class extends Component
         <div class="flex items-center gap-3">
             <flux:input
                 wire:model.live.debounce="search"
-                placeholder="Rechercher un rôle..."
+                placeholder="Rechercher une role..."
                 icon="magnifying-glass"
-                class="w-72"
+                style="width: 350px;"
             />
 
             <flux:select wire:model.live="perPage" class="w-20">

@@ -78,7 +78,7 @@ new class extends Component {
                     wire:model.live.debounce="search"
                     placeholder="Rechercher une permission..."
                     icon="magnifying-glass"
-                    class="w-82"
+                    style="width: 350px;"
                 />
             </div>
 
@@ -150,9 +150,9 @@ new class extends Component {
                     </flux:table.cell>
 
                     <flux:table.cell>
-                        <div class="flex flex-wrap gap-1">
+                        <div class="flex flex-wrap gap-2 py-1">
                             @forelse ($permission->roles as $role)
-                                <flux:badge size="sm" color="blue" inset="top bottom">
+                                <flux:badge size="sm" color="blue" class="mb-1">
                                     {{ $role->name }}
                                 </flux:badge>
                             @empty
