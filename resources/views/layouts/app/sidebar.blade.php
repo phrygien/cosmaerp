@@ -16,6 +16,19 @@
                         {{ __('Dashboard') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
+
+                <flux:sidebar.group :heading="__('Administrateur')" class="grid">
+                    <flux:sidebar.item icon="key" :href="route('permissions')" :current="request()->routeIs('permissions')" wire:navigate>
+                        {{ __('Permissions') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="shield-check" :href="route('roles')" :current="request()->routeIs('roles')" wire:navigate>
+                        {{ __('Roles') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="user" :href="route('users')" :current="request()->routeIs('users')" wire:navigate>
+                        {{ __('Utilisateurs') }}
+                    </flux:sidebar.item>
+                </flux:sidebar.group>
+
             </flux:sidebar.nav>
 
             <flux:spacer />

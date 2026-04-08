@@ -23,7 +23,7 @@ class CheckRole
         }
 
         if (!$request->user()->hasRole($roles)) {
-            abort(403, "Accès refusé : rôle insuffisant.");
+            abort(403, "Accès refusé : rôle insuffisant");
         }
 
         return $next($request);
