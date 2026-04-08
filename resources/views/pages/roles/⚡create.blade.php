@@ -87,7 +87,7 @@ new class extends Component
 ?>
 
 <div>
-    <flux:modal name="create-role" class="md:w-2xl" :dismissible="false">
+    <flux:modal name="create-role" class="md:w-[600px]" :dismissible="false">
         <div class="space-y-5">
 
             <!-- Header -->

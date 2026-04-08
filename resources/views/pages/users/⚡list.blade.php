@@ -1,13 +1,232 @@
 <?php
-
 use Livewire\Component;
+use Livewire\WithPagination;
+use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
+use App\Models\User;
 
 new class extends Component
 {
-    //
+    use WithPagination;
+
+    public string $sortBy        = 'name';
+    public string $sortDirection = 'asc';
+    public string $search        = '';
+    public int    $perPage       = 10;
+
+    public function sort(string $column): void
+    {
+        if ($this->sortBy === $column) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortBy        = $column;
+            $this->sortDirection = 'asc';
+        }
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedPerPage(): void
+    {
+        $this->resetPage();
+    }
+
+    #[On('user-created')]
+    #[On('user-updated')]
+    #[On('user-deleted')]
+    public function refresh(): void
+    {
+        unset($this->users);
+        $this->resetPage();
+    }
+
+    public function edit(int $id): void
+    {
+        $this->dispatch('edit-user', id: $id);
+    }
+
+    public function confirmDelete(int $id): void
+    {
+        $this->dispatch('delete-user', id: $id);
+    }
+
+    #[Computed]
+    public function users()
+    {
+        return User::query()
+            ->withCount('roles')
+            ->when($this->search, fn($query) =>
+            $query->where('name', 'like', "%{$this->search}%")
+                ->orWhere('email', 'like', "%{$this->search}%")
+            )
+            ->orderBy($this->sortBy, $this->sortDirection)
+            ->paginate($this->perPage);
+    }
 };
 ?>
 
 <div>
-    {{-- Simplicity is the essence of happiness. - Cedric Bledsoe --}}
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+            <flux:input
+                wire:model.live.debounce="search"
+                placeholder="Rechercher un utilisateur..."
+                icon="magnifying-glass"
+                class="w-72"
+            />
+
+            <flux:select wire:model.live="perPage" class="w-20">
+                <flux:select.option value="5">5</flux:select.option>
+                <flux:select.option value="10">10</flux:select.option>
+                <flux:select.option value="25">25</flux:select.option>
+                <flux:select.option value="50">50</flux:select.option>
+            </flux:select>
+        </div>
+
+        <flux:modal.trigger name="create-user">
+            <flux:button variant="primary">
+                Ajouter un utilisateur
+            </flux:button>
+        </flux:modal.trigger>
+    </div>
+
+    <!-- Table -->
+    <flux:table :paginate="$this->users" variant="bordered">
+        <flux:table.columns>
+            <flux:table.column
+                sortable
+                :sorted="$sortBy === 'name'"
+                :direction="$sortDirection"
+                wire:click="sort('name')"
+            >
+                Utilisateur
+            </flux:table.column>
+
+            <flux:table.column
+                sortable
+                :sorted="$sortBy === 'email'"
+                :direction="$sortDirection"
+                wire:click="sort('email')"
+            >
+                Email
+            </flux:table.column>
+
+            <flux:table.column
+                sortable
+                :sorted="$sortBy === 'status'"
+                :direction="$sortDirection"
+                wire:click="sort('status')"
+            >
+                Statut
+            </flux:table.column>
+
+            <flux:table.column>Rôles</flux:table.column>
+
+            <flux:table.column
+                sortable
+                :sorted="$sortBy === 'created_at'"
+                :direction="$sortDirection"
+                wire:click="sort('created_at')"
+            >
+                Créé le
+            </flux:table.column>
+
+            <flux:table.column></flux:table.column>
+        </flux:table.columns>
+
+        <flux:table.rows>
+            @forelse ($this->users as $user)
+                <flux:table.row :key="$user->id">
+
+                    <!-- Utilisateur -->
+                    <flux:table.cell>
+                        <div class="flex items-center gap-3">
+                            <flux:avatar size="sm" name="{{ $user->name }}" />
+                            <div>
+                                <p class="text-sm font-medium">{{ $user->name }}</p>
+                            </div>
+                        </div>
+                    </flux:table.cell>
+
+                    <!-- Email -->
+                    <flux:table.cell class="text-zinc-400 text-sm">
+                        {{ $user->email }}
+                    </flux:table.cell>
+
+                    <!-- Statut -->
+                    <flux:table.cell>
+                        @if ($user->email_verified_at)
+                            <flux:badge size="sm" color="green" inset="top bottom">Vérifié</flux:badge>
+                        @else
+                            <flux:badge size="sm" color="amber" inset="top bottom">En attente</flux:badge>
+                        @endif
+                    </flux:table.cell>
+
+                    <!-- Rôles -->
+                    <flux:table.cell>
+                        <div class="flex flex-wrap gap-1">
+                            @forelse ($user->roles as $role)
+                                <flux:badge size="sm" color="purple" inset="top bottom">
+                                    {{ $role->name }}
+                                </flux:badge>
+                            @empty
+                                <span class="text-zinc-400 text-sm">Aucun rôle</span>
+                            @endforelse
+                        </div>
+                    </flux:table.cell>
+
+                    <!-- Créé le -->
+                    <flux:table.cell class="text-zinc-400 text-sm whitespace-nowrap">
+                        {{ $user->created_at->format('d/m/Y') }}
+                    </flux:table.cell>
+
+                    <!-- Actions -->
+                    <flux:table.cell>
+                        <flux:dropdown>
+                            <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom" />
+                            <flux:menu>
+                                <flux:menu.item icon="pencil" wire:click="edit({{ $user->id }})">
+                                    Modifier
+                                </flux:menu.item>
+                                <flux:menu.separator />
+                                <flux:menu.item icon="trash" variant="danger" wire:click="confirmDelete({{ $user->id }})">
+                                    Supprimer
+                                </flux:menu.item>
+                            </flux:menu>
+                        </flux:dropdown>
+                    </flux:table.cell>
+
+                </flux:table.row>
+
+            @empty
+                <flux:table.row>
+                    <flux:table.cell colspan="6">
+                        <div class="flex flex-col items-center justify-center py-12 text-center">
+                            <flux:icon name="users" class="text-zinc-400 mb-3" style="width: 40px; height: 40px;" />
+                            <p class="text-zinc-400 font-medium text-sm">
+                                @if ($search)
+                                    Aucun utilisateur trouvé pour "{{ $search }}"
+                                @else
+                                    Aucun utilisateur enregistré
+                                @endif
+                            </p>
+                            @if ($search)
+                                <flux:button variant="ghost" size="sm" wire:click="$set('search', '')" class="mt-3">
+                                    Réinitialiser la recherche
+                                </flux:button>
+                            @endif
+                        </div>
+                    </flux:table.cell>
+                </flux:table.row>
+            @endforelse
+        </flux:table.rows>
+    </flux:table>
+
+    <livewire:pages::users.create />
+    <livewire:pages::users.edit />
+    <livewire:pages::users.delete />
 </div>

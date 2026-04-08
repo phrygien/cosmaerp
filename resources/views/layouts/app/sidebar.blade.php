@@ -21,11 +21,11 @@
                 icon="adjustments-horizontal"
                 heading="Administration"
                 class="grid"
-                :expanded="request()->routeIs('permissions', 'roles', 'brand-guidelines')"
+                :expanded="request()->routeIs('permissions', 'roles', 'users', 'brand-guidelines')"
             >
                 <flux:sidebar.item href="{{ route('permissions') }}" wire:navigate>{{ __('Permissions') }}</flux:sidebar.item>
                 <flux:sidebar.item href="{{ route('roles') }}" wire:navigate>{{ __('Roles') }}</flux:sidebar.item>
-                <flux:sidebar.item href="#">{{ __('Utilisateurs') }}</flux:sidebar.item>
+                <flux:sidebar.item href="{{ route('users') }}" wire:navigate>{{ __('Utilisateurs') }}</flux:sidebar.item>
             </flux:sidebar.group>
 
             <flux:sidebar.group
