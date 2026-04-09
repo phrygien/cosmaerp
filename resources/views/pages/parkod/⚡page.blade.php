@@ -16,5 +16,5 @@ new class extends Component
         </flux:subheading>
     </div>
 
-    <livewire:pages::marques.list />
+    <livewire:pages::parkod.import />
 </div>
