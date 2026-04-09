@@ -94,27 +94,22 @@ new class extends Component
 
     public function toggleState($id): void
     {
-        // Définir l'ID du produit en cours de mise à jour
         $this->updatingProductId = $id;
 
         try {
             DB::beginTransaction();
 
-            // Chercher le produit par son ID
             $product = Product::findOrFail($id);
             $oldState = $product->state;
             $newState = $oldState == 1 ? 0 : 1;
 
-            // Mettre à jour l'état
             $product->state = $newState;
             $product->save();
 
             DB::commit();
 
-            // Rafraîchir la propriété computed
             unset($this->products);
 
-            // Dispatch des événements
             $this->dispatch('product-state-updated', id: $id, state: $newState);
 
             // Afficher le toast de succès
@@ -127,14 +122,12 @@ new class extends Component
         } catch (\Exception $e) {
             DB::rollBack();
 
-            // Afficher le toast d'erreur
             Flux::toast(
                 heading: 'Erreur',
                 text: "Impossible de modifier l'état du produit: " . $e->getMessage(),
                 variant: 'danger'
             );
         } finally {
-            // Réinitialiser l'ID du produit en cours de mise à jour
             $this->updatingProductId = null;
         }
     }
