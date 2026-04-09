@@ -160,6 +160,7 @@ new class extends Component {
 
         $this->result = ['new' => $new, 'update' => $update];
         $this->reset(['attachments', 'ready', 'preview']);
+        $this->dispatch('parkod-imported');
 
         \Flux\Flux::toast(
             heading: 'Importation PARKOD',
@@ -281,16 +282,6 @@ new class extends Component {
                 @endforeach
             </div>
         </div>
-    @endif
-
-    <!-- Résultat import -->
-    @if(!empty($result))
-        <flux:callout variant="success" icon="check-circle">
-            <flux:callout.heading>Importation terminée</flux:callout.heading>
-            <flux:callout.text>
-                {{ $result['new'] }} produit(s) créé(s) &bull; {{ $result['update'] }} produit(s) mis à jour
-            </flux:callout.text>
-        </flux:callout>
     @endif
 
 </div>

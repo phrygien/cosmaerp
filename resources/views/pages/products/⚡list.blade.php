@@ -62,6 +62,7 @@ new class extends Component
     #[On('product-created')]
     #[On('product-updated')]
     #[On('product-deleted')]
+    #[On('parkod-imported')]
     public function refresh(): void
     {
         unset($this->products);
@@ -195,9 +196,9 @@ new class extends Component
             </flux:select>
         </div>
 
-        <flux:modal.trigger name="create-product">
-            <flux:button variant="primary" class="w-full sm:w-auto">
-                Ajouter un produit
+        <flux:modal.trigger name="importer-parkod">
+            <flux:button variant="primary" class="w-full sm:w-auto" icon="arrow-up-on-square-stack">
+                Importer un fichier PARKOD
             </flux:button>
         </flux:modal.trigger>
     </div>
@@ -371,7 +372,7 @@ new class extends Component
                     </flux:table.cell>
 
                     <!-- Actions -->
-                    <flux:table.cell>
+{{--                    <flux:table.cell>
                         <flux:dropdown>
                             <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom" />
                             <flux:menu>
@@ -384,7 +385,7 @@ new class extends Component
                                 </flux:menu.item>
                             </flux:menu>
                         </flux:dropdown>
-                    </flux:table.cell>
+                    </flux:table.cell>--}}
 
                 </flux:table.row>
 
@@ -412,4 +413,5 @@ new class extends Component
         </flux:table.rows>
     </flux:table>
 
+    <livewire:pages::products.parkod />
 </div>
