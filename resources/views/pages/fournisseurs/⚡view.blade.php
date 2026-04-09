@@ -26,7 +26,7 @@ new class extends Component
     <flux:breadcrumbs class="mb-5">
         <flux:breadcrumbs.item href="#" separator="slash">{{ __('Home') }}</flux:breadcrumbs.item>
         <flux:breadcrumbs.item href="{{ route('fournisseurs') }}" wire:navigate separator="slash">{{ __('Liste fournisseur') }}</flux:breadcrumbs.item>
-        <flux:breadcrumbs.item separator="slash">{{ $fournisseur->name }}</flux:breadcrumbs.item>
+        <flux:breadcrumbs.item separator="slash"><span class="text-pink-500">{{ $fournisseur->name }}</span></flux:breadcrumbs.item>
     </flux:breadcrumbs>
 
     <!-- Infos fournisseur -->
@@ -111,7 +111,9 @@ new class extends Component
             <flux:subheading>Liste des produits liés à ce fournisseur.</flux:subheading>
         </div>
 
-        <livewire:pages::fournisseurs.product-fournisseur :fournisseur-id="$fournisseur->id" />
+        <flux:card>
+            <livewire:pages::fournisseurs.product-fournisseur :fournisseur-id="$fournisseur->id" />
+        </flux:card>
     </div>
 
 </div>
