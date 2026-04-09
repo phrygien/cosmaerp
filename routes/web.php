@@ -19,6 +19,7 @@ Route::group(["middleware" => ["auth", "verified"], "prefix" => 'catalogue'], fu
     Route::livewire('/marques', "pages::marques.page")->name("catalogue.marques");
     Route::livewire('/categories', "pages::categories.page")->name("catalogue.categories");
     Route::livewire('/parkod', "pages::parkod.page")->name("catalogue.parkod");
+    Route::livewire('/products', 'pages::products.page')->name("catalogue.products");
 });
 
 require __DIR__ . "/settings.php";

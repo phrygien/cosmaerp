@@ -38,6 +38,7 @@
                 <flux:sidebar.item href="{{ route('catalogue.marques') }}" wire:navigate>{{ __('Marques') }}</flux:sidebar.item>
                 <flux:sidebar.item href="{{ route('catalogue.categories') }}" wire:navigate>{{ __('Categories') }}</flux:sidebar.item>
                 <flux:sidebar.item href="{{ route('catalogue.parkod') }}" wire:navigate>{{ __('PARKOD') }}</flux:sidebar.item>
+                <flux:sidebar.item href="{{ route('catalogue.products') }}" wire:navigate>{{ __('Produits') }}</flux:sidebar.item>
             </flux:sidebar.group>
 
             <flux:sidebar.group
