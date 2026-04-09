@@ -7,7 +7,24 @@ use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['product_code', 'marque_code', 'categorie_code', 'ligne_code', 'type_id', 'designation_variant', 'article', 'ref_fabri_n_1', 'EAN', 'pght_parkod', 'tva', 'devise', 'hs_code', 'statut_parkod', 'state'])]
+#[Fillable([
+    'product_code',
+    'marque_code',
+    'categorie_code',
+    'ligne_code',
+    'type_id',
+    'designation',
+    'designation_variant',
+    'article',
+    'ref_fabri_n_1',
+    'EAN',
+    'pght_parkod',
+    'tva',
+    'devise',
+    'hs_code',
+    'statut_parkod',
+    'state'
+])]
 #[Table('product')]
 class Product extends Model
 {
