@@ -8,36 +8,29 @@ use Livewire\Attributes\On;
 new class extends Component {
     use WithPagination;
 
-    public string $sortBy = "name";
+    public string $sortBy        = "name";
     public string $sortDirection = "asc";
-    public string $search = "";
-    public int $perPage = 10;
+    public string $search        = "";
+    public int    $perPage       = 10;
 
     public function sort(string $column): void
     {
         if ($this->sortBy === $column) {
-            $this->sortDirection =
-                $this->sortDirection === "asc" ? "desc" : "asc";
+            $this->sortDirection = $this->sortDirection === "asc" ? "desc" : "asc";
         } else {
-            $this->sortBy = $column;
+            $this->sortBy        = $column;
             $this->sortDirection = "asc";
         }
     }
 
-    public function updatedSearch(): void
-    {
-        $this->resetPage();
-    }
-
-    public function updatedPerPage(): void
-    {
-        $this->resetPage();
-    }
+    public function updatedSearch(): void  { $this->resetPage(); }
+    public function updatedPerPage(): void { $this->resetPage(); }
 
     #[On("permission-created")]
-    public function refreshPermissions(): void
+    #[On("permission-updated")]
+    public function refresh(): void
     {
-        unset($this->permissions); // reset le computed
+        unset($this->permissions);
         $this->resetPage();
     }
 
@@ -46,22 +39,14 @@ new class extends Component {
         $this->dispatch("edit-permission", id: $id);
     }
 
-    #[On("permission-updated")]
-    public function refreshOnUpdated(): void
-    {
-        unset($this->permissions);
-    }
-
     #[Computed]
     public function permissions()
     {
         return Permission::query()
             ->with("roles")
-            ->when(
-                $this->search,
-                fn($query) => $query
-                    ->where("name", "like", "%{$this->search}%")
-                    ->orWhere("group", "like", "%{$this->search}%"),
+            ->when($this->search, fn($query) =>
+            $query->where("name", "like", "%{$this->search}%")
+                ->orWhere("group", "like", "%{$this->search}%")
             )
             ->orderBy($this->sortBy, $this->sortDirection)
             ->paginate($this->perPage);
@@ -71,18 +56,17 @@ new class extends Component {
 
 <div class="mt-5">
 
-    <div class="flex items-center justify-between mb-4">
-        <div class="flex items-center gap-3">
-            <div>
-                <flux:input
-                    wire:model.live.debounce="search"
-                    placeholder="Rechercher une permission..."
-                    icon="magnifying-glass"
-                    style="width: 350px;"
-                />
-            </div>
+    <!-- Header -->
+    <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <flux:input
+                wire:model.live.debounce="search"
+                placeholder="Rechercher une permission..."
+                icon="magnifying-glass"
+                class="w-full sm:w-80"
+            />
 
-            <flux:select wire:model.live="perPage" class="w-20">
+            <flux:select wire:model.live="perPage" class="w-full sm:w-20">
                 <flux:select.option value="5">5</flux:select.option>
                 <flux:select.option value="10">10</flux:select.option>
                 <flux:select.option value="25">25</flux:select.option>
@@ -91,13 +75,13 @@ new class extends Component {
         </div>
 
         <flux:modal.trigger name="create-permission">
-            <flux:button variant="primary">
+            <flux:button variant="primary" class="w-full sm:w-auto">
                 Ajouter une permission
             </flux:button>
         </flux:modal.trigger>
     </div>
 
-    <flux:table :paginate="$this->permissions">
+    <flux:table :paginate="$this->permissions" variant="bordered">
         <flux:table.columns>
             <flux:table.column
                 sortable
@@ -113,6 +97,7 @@ new class extends Component {
                 :sorted="$sortBy === 'slug'"
                 :direction="$sortDirection"
                 wire:click="sort('slug')"
+                class="hidden sm:table-cell"
             >
                 Slug
             </flux:table.column>
@@ -122,11 +107,14 @@ new class extends Component {
                 :sorted="$sortBy === 'group'"
                 :direction="$sortDirection"
                 wire:click="sort('group')"
+                class="hidden md:table-cell"
             >
                 Groupe
             </flux:table.column>
 
-            <flux:table.column>Rôles</flux:table.column>
+            <flux:table.column class="hidden lg:table-cell">
+                Rôles
+            </flux:table.column>
 
             <flux:table.column></flux:table.column>
         </flux:table.columns>
@@ -135,24 +123,48 @@ new class extends Component {
             @forelse ($this->permissions as $permission)
                 <flux:table.row :key="$permission->id">
 
-                    <flux:table.cell variant="strong">
-                        {{ $permission->name }}
+                    <!-- Nom -->
+                    <flux:table.cell>
+                        <p class="font-medium text-sm">{{ $permission->name }}</p>
+                        <!-- Slug visible en mobile uniquement -->
+                        <p class="mt-0.5 sm:hidden">
+                            <flux:badge size="sm" color="zinc" inset="top bottom">
+                                {{ $permission->slug }}
+                            </flux:badge>
+                        </p>
+                        <!-- Groupe visible en mobile/tablet uniquement -->
+                        <p class="text-xs text-zinc-400 mt-0.5 md:hidden">
+                            {{ $permission->group ?? '—' }}
+                        </p>
+                        <!-- Rôles visibles en mobile/tablet/desktop uniquement -->
+                        <div class="flex flex-wrap gap-1 mt-1 lg:hidden">
+                            @forelse ($permission->roles as $role)
+                                <flux:badge size="sm" color="blue" inset="top bottom">
+                                    {{ $role->name }}
+                                </flux:badge>
+                            @empty
+                                <span class="text-zinc-400 text-xs">Aucun rôle</span>
+                            @endforelse
+                        </div>
                     </flux:table.cell>
 
-                    <flux:table.cell class="whitespace-nowrap">
+                    <!-- Slug caché en mobile -->
+                    <flux:table.cell class="hidden sm:table-cell whitespace-nowrap">
                         <flux:badge size="sm" color="zinc" inset="top bottom">
                             {{ $permission->slug }}
                         </flux:badge>
                     </flux:table.cell>
 
-                    <flux:table.cell>
+                    <!-- Groupe caché en mobile/tablet -->
+                    <flux:table.cell class="hidden md:table-cell text-zinc-400">
                         {{ $permission->group ?? '—' }}
                     </flux:table.cell>
 
-                    <flux:table.cell>
-                        <div class="flex flex-wrap gap-2 py-1">
+                    <!-- Rôles cachés en mobile/tablet/desktop -->
+                    <flux:table.cell class="hidden lg:table-cell">
+                        <div class="flex flex-wrap gap-1">
                             @forelse ($permission->roles as $role)
-                                <flux:badge size="sm" color="blue" class="mb-1">
+                                <flux:badge size="sm" color="blue" inset="top bottom">
                                     {{ $role->name }}
                                 </flux:badge>
                             @empty
@@ -161,6 +173,7 @@ new class extends Component {
                         </div>
                     </flux:table.cell>
 
+                    <!-- Actions -->
                     <flux:table.cell>
                         <flux:dropdown>
                             <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom" />
@@ -179,7 +192,6 @@ new class extends Component {
                 </flux:table.row>
 
             @empty
-                <!-- Empty state -->
                 <flux:table.row>
                     <flux:table.cell colspan="5">
                         <div class="flex flex-col items-center justify-center py-12 text-center">

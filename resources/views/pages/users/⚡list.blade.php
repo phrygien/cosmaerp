@@ -25,8 +25,8 @@ new class extends Component
         }
     }
 
-    public function updatedSearch(): void { $this->resetPage(); }
-    public function updatedPerPage(): void { $this->resetPage(); }
+    public function updatedSearch(): void      { $this->resetPage(); }
+    public function updatedPerPage(): void     { $this->resetPage(); }
     public function updatedShowTrashed(): void { $this->resetPage(); }
 
     #[On('user-created')]
@@ -69,6 +69,7 @@ new class extends Component
         return User::query()
             ->when($this->showTrashed, fn($q) => $q->onlyTrashed())
             ->withCount('roles')
+            ->with('roles')
             ->when($this->search, fn($query) =>
             $query->where('name', 'like', "%{$this->search}%")
                 ->orWhere('email', 'like', "%{$this->search}%")
@@ -81,16 +82,16 @@ new class extends Component
 
 <div>
     <!-- Header -->
-    <div class="flex items-center justify-between mb-4">
-        <div class="flex items-center gap-3">
+    <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
             <flux:input
                 wire:model.live.debounce="search"
                 placeholder="Rechercher un utilisateur..."
                 icon="magnifying-glass"
-                style="width: 350px;"
+                class="w-full sm:w-80"
             />
 
-            <flux:select wire:model.live="perPage" class="w-20">
+            <flux:select wire:model.live="perPage" class="w-full sm:w-20">
                 <flux:select.option value="5">5</flux:select.option>
                 <flux:select.option value="10">10</flux:select.option>
                 <flux:select.option value="25">25</flux:select.option>
@@ -103,13 +104,14 @@ new class extends Component
                     :variant="$showTrashed ? 'primary' : 'ghost'"
                     icon="trash"
                     wire:click="$toggle('showTrashed')"
+                    class="w-full sm:w-auto"
                 />
             </flux:tooltip>
         </div>
 
         @if (!$showTrashed)
             <flux:modal.trigger name="create-user">
-                <flux:button variant="primary">
+                <flux:button variant="primary" class="w-full sm:w-auto">
                     Ajouter un utilisateur
                 </flux:button>
             </flux:modal.trigger>
@@ -118,8 +120,8 @@ new class extends Component
 
     <!-- Bandeau trashed -->
     @if ($showTrashed)
-        <div class="flex items-center gap-2 mb-4 px-4 py-2.5 rounded-lg bg-red-500/10 border border-red-500/20">
-            <flux:icon name="exclamation-triangle" class="text-red-400" style="width: 16px; height: 16px;" />
+        <div class="flex items-start gap-2 mb-4 px-4 py-2.5 rounded-lg bg-red-500/10 border border-red-500/20">
+            <flux:icon name="exclamation-triangle" class="text-red-400 shrink-0 mt-0.5" style="width: 16px; height: 16px;" />
             <p class="text-sm text-red-400">
                 Vous consultez les utilisateurs supprimés. Vous pouvez les restaurer ou les supprimer définitivement.
             </p>
@@ -143,6 +145,7 @@ new class extends Component
                 :sorted="$sortBy === 'email'"
                 :direction="$sortDirection"
                 wire:click="sort('email')"
+                class="hidden md:table-cell"
             >
                 Email
             </flux:table.column>
@@ -156,19 +159,20 @@ new class extends Component
                 Statut
             </flux:table.column>
 
-            <flux:table.column>Rôles</flux:table.column>
+            <flux:table.column class="hidden lg:table-cell">Rôles</flux:table.column>
 
             <flux:table.column
                 sortable
                 :sorted="$sortBy === 'created_at'"
                 :direction="$sortDirection"
                 wire:click="sort('created_at')"
+                class="hidden sm:table-cell"
             >
                 Créé le
             </flux:table.column>
 
             @if ($showTrashed)
-                <flux:table.column>Supprimé le</flux:table.column>
+                <flux:table.column class="hidden sm:table-cell">Supprimé le</flux:table.column>
             @endif
 
             <flux:table.column></flux:table.column>
@@ -182,14 +186,20 @@ new class extends Component
                     <flux:table.cell>
                         <div class="flex items-center gap-3">
                             <flux:avatar size="sm" name="{{ $user->name }}" />
-                            <div>
-                                <p class="text-sm font-medium">{{ $user->name }}</p>
+                            <div class="min-w-0">
+                                <p class="text-sm font-medium truncate">{{ $user->name }}</p>
+                                <!-- Email visible en mobile uniquement -->
+                                <p class="text-xs text-zinc-400 truncate md:hidden">{{ $user->email }}</p>
+                                <!-- Date visible en mobile uniquement -->
+                                <p class="text-xs text-zinc-400 sm:hidden">
+                                    {{ $user->created_at->translatedFormat('d F Y') }}
+                                </p>
                             </div>
                         </div>
                     </flux:table.cell>
 
-                    <!-- Email -->
-                    <flux:table.cell class="text-zinc-400 text-sm">
+                    <!-- Email cachée en mobile -->
+                    <flux:table.cell class="hidden md:table-cell text-zinc-400 text-sm">
                         {{ $user->email }}
                     </flux:table.cell>
 
@@ -202,11 +212,11 @@ new class extends Component
                         @endif
                     </flux:table.cell>
 
-                    <!-- Rôles -->
-                    <flux:table.cell>
-                        <div class="flex flex-wrap gap-2 py-3">
+                    <!-- Rôles cachés en mobile/tablet -->
+                    <flux:table.cell class="hidden lg:table-cell">
+                        <div class="flex flex-wrap gap-1">
                             @forelse ($user->roles as $role)
-                                <flux:badge size="sm" color="purple" inset="top bottom" class="mb-2">
+                                <flux:badge size="sm" color="purple" inset="top bottom">
                                     {{ $role->name }}
                                 </flux:badge>
                             @empty
@@ -215,14 +225,14 @@ new class extends Component
                         </div>
                     </flux:table.cell>
 
-                    <!-- Créé le -->
-                    <flux:table.cell class="text-zinc-400 text-sm whitespace-nowrap">
+                    <!-- Créé le caché en mobile -->
+                    <flux:table.cell class="hidden sm:table-cell text-zinc-400 text-sm whitespace-nowrap">
                         {{ $user->created_at->translatedFormat('d F Y') }}
                     </flux:table.cell>
 
-                    <!-- Supprimé le -->
+                    <!-- Supprimé le caché en mobile -->
                     @if ($showTrashed)
-                        <flux:table.cell class="text-red-400 text-sm whitespace-nowrap">
+                        <flux:table.cell class="hidden sm:table-cell text-red-400 text-sm whitespace-nowrap">
                             {{ $user->deleted_at->translatedFormat('d F Y') }}
                         </flux:table.cell>
                     @endif
@@ -246,11 +256,11 @@ new class extends Component
                             <flux:dropdown>
                                 <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom" />
                                 <flux:menu>
-                                    <flux:menu.item wire:click="edit({{ $user->id }})">
+                                    <flux:menu.item icon="pencil" wire:click="edit({{ $user->id }})">
                                         Modifier
                                     </flux:menu.item>
                                     <flux:menu.separator />
-                                    <flux:menu.item variant="danger" wire:click="confirmDelete({{ $user->id }})">
+                                    <flux:menu.item icon="trash" variant="danger" wire:click="confirmDelete({{ $user->id }})">
                                         Supprimer
                                     </flux:menu.item>
                                 </flux:menu>

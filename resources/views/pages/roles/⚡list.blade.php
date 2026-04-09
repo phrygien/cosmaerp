@@ -24,18 +24,12 @@ new class extends Component
         }
     }
 
-    public function updatedSearch(): void
-    {
-        $this->resetPage();
-    }
-
-    public function updatedPerPage(): void
-    {
-        $this->resetPage();
-    }
+    public function updatedSearch(): void { $this->resetPage(); }
+    public function updatedPerPage(): void { $this->resetPage(); }
 
     #[On('role-created')]
     #[On('role-updated')]
+    #[On('role-deleted')]
     public function refresh(): void
     {
         unset($this->roles);
@@ -45,13 +39,6 @@ new class extends Component
     public function edit(int $id): void
     {
         $this->dispatch('edit-role', id: $id);
-    }
-
-    #[On('role-deleted')]
-    public function refreshOnDelete(): void
-    {
-        unset($this->roles);
-        $this->resetPage();
     }
 
     public function confirmDelete(int $id): void
@@ -76,16 +63,16 @@ new class extends Component
 
 <div>
     <!-- Header -->
-    <div class="flex items-center justify-between mb-4">
-        <div class="flex items-center gap-3">
+    <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
             <flux:input
                 wire:model.live.debounce="search"
-                placeholder="Rechercher une role..."
+                placeholder="Rechercher un rôle..."
                 icon="magnifying-glass"
-                style="width: 350px;"
+                class="w-full sm:w-80"
             />
 
-            <flux:select wire:model.live="perPage" class="w-20">
+            <flux:select wire:model.live="perPage" class="w-full sm:w-20">
                 <flux:select.option value="5">5</flux:select.option>
                 <flux:select.option value="10">10</flux:select.option>
                 <flux:select.option value="25">25</flux:select.option>
@@ -94,7 +81,7 @@ new class extends Component
         </div>
 
         <flux:modal.trigger name="create-role">
-            <flux:button variant="primary">
+            <flux:button variant="primary" class="w-full sm:w-auto">
                 Ajouter un rôle
             </flux:button>
         </flux:modal.trigger>
@@ -117,15 +104,22 @@ new class extends Component
                 :sorted="$sortBy === 'slug'"
                 :direction="$sortDirection"
                 wire:click="sort('slug')"
+                class="hidden sm:table-cell"
             >
                 Slug
             </flux:table.column>
 
-            <flux:table.column>Description</flux:table.column>
+            <flux:table.column class="hidden lg:table-cell">
+                Description
+            </flux:table.column>
 
-            <flux:table.column>Permissions</flux:table.column>
+            <flux:table.column class="hidden md:table-cell">
+                Permissions
+            </flux:table.column>
 
-            <flux:table.column>Utilisateurs</flux:table.column>
+            <flux:table.column class="hidden md:table-cell">
+                Utilisateurs
+            </flux:table.column>
 
             <flux:table.column></flux:table.column>
         </flux:table.columns>
@@ -134,40 +128,64 @@ new class extends Component
             @forelse ($this->roles as $role)
                 <flux:table.row :key="$role->id">
 
-                    <flux:table.cell variant="strong">
-                        {{ $role->name }}
+                    <!-- Nom -->
+                    <flux:table.cell>
+                        <p class="font-medium text-sm">{{ $role->name }}</p>
+                        <!-- Slug visible en mobile uniquement -->
+                        <p class="text-xs mt-0.5 sm:hidden">
+                            <flux:badge size="sm" color="zinc" inset="top bottom">
+                                {{ $role->slug }}
+                            </flux:badge>
+                        </p>
+                        <!-- Permissions + Utilisateurs visibles en mobile/tablet uniquement -->
+                        <div class="flex gap-1 mt-1 md:hidden">
+                            <flux:badge size="sm" color="purple" inset="top bottom">
+                                {{ $role->permissions_count }} perm.
+                            </flux:badge>
+                            <flux:badge size="sm" color="green" inset="top bottom">
+                                {{ $role->users_count }} util.
+                            </flux:badge>
+                        </div>
                     </flux:table.cell>
 
-                    <flux:table.cell>
+                    <!-- Slug caché en mobile -->
+                    <flux:table.cell class="hidden sm:table-cell">
                         <flux:badge size="sm" color="zinc" inset="top bottom">
                             {{ $role->slug }}
                         </flux:badge>
                     </flux:table.cell>
 
-                    <flux:table.cell class="text-zinc-400">
+                    <!-- Description cachée en mobile/tablet -->
+                    <flux:table.cell class="hidden lg:table-cell text-zinc-400">
                         {{ $role->description ?? '—' }}
                     </flux:table.cell>
 
-                    <flux:table.cell>
+                    <!-- Permissions cachées en mobile -->
+                    <flux:table.cell class="hidden md:table-cell">
                         <flux:badge size="sm" color="purple" inset="top bottom">
                             {{ $role->permissions_count }} permission{{ $role->permissions_count > 1 ? 's' : '' }}
                         </flux:badge>
                     </flux:table.cell>
 
-                    <flux:table.cell>
+                    <!-- Utilisateurs cachés en mobile -->
+                    <flux:table.cell class="hidden md:table-cell">
                         <flux:badge size="sm" color="green" inset="top bottom">
                             {{ $role->users_count }} utilisateur{{ $role->users_count > 1 ? 's' : '' }}
                         </flux:badge>
                     </flux:table.cell>
 
+                    <!-- Actions -->
                     <flux:table.cell>
-
-                        <flux:dropdown class="float-end">
-                            <flux:button icon:trailing="chevron-down">Options</flux:button>
-
+                        <flux:dropdown>
+                            <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom" />
                             <flux:menu>
-                                <flux:menu.item wire:click="edit({{ $role->id }})">Metre a jour</flux:menu.item>
-                                <flux:menu.item variant="danger" wire:click="confirmDelete({{ $role->id }})">Supprimer</flux:menu.item>
+                                <flux:menu.item icon="pencil" wire:click="edit({{ $role->id }})">
+                                    Modifier
+                                </flux:menu.item>
+                                <flux:menu.separator />
+                                <flux:menu.item icon="trash" variant="danger" wire:click="confirmDelete({{ $role->id }})">
+                                    Supprimer
+                                </flux:menu.item>
                             </flux:menu>
                         </flux:dropdown>
                     </flux:table.cell>
