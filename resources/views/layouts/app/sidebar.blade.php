@@ -41,16 +41,10 @@
                 <flux:sidebar.item href="{{ route('catalogue.products') }}" wire:navigate>{{ __('Produits') }}</flux:sidebar.item>
             </flux:sidebar.group>
 
-            <flux:sidebar.group
-                expandable
-                icon="users"
-                heading="Plateformes"
-                class="grid"
-                :expanded="request()->routeIs('fournisseurs.*')"
-            >
-                <flux:sidebar.item href="#">{{ __('Tous les fournisseurs') }}</flux:sidebar.item>
-                <flux:sidebar.item href="#">{{ __('Creer nouvelle fournisseur') }}</flux:sidebar.item>
-            </flux:sidebar.group>
+            <flux:sidebar.item icon="users" :href="route('fournisseurs')" :current="request()->routeIs('fournisseurs')" wire:navigate>
+                {{ __('Fournisseurs') }}
+            </flux:sidebar.item>
+
 
         </flux:sidebar.nav>
 

@@ -8,7 +8,22 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Table('fournisseur')]
-#[Fillable(['name', 'date_creation', 'code', 'raison_social', 'adresse_siege', 'code_postal', 'ville', 'telephone', 'fax', 'mail', 'adresse_retour', 'code_postal_retour', 'ville_retour', 'state'])]
+#[Fillable([
+    'name',
+    'date_creation',
+    'code',
+    'raison_social',
+    'adresse_siege',
+    'code_postal',
+    'ville',
+    'telephone',
+    'fax',
+    'mail',
+    'adresse_retour',
+    'code_postal_retour',
+    'ville_retour',
+    'state'
+])]
 class Fournisseur extends Model
 {
     public function commandes(): HasMany
