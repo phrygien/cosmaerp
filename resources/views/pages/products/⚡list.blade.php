@@ -8,6 +8,8 @@ use Livewire\Attributes\Url;
 use App\Models\Product;
 use App\Models\Marque;
 use App\Models\Category;
+use Illuminate\Support\Facades\DB;
+use Flux\Flux;
 
 new class extends Component
 {
@@ -34,6 +36,9 @@ new class extends Component
     #[Url(as: 'categorie', except: '')]
     public string $filterCategorie = '';
 
+    // Propriété pour suivre l'ID du produit en cours de mise à jour
+    public $updatingProductId = null;
+
     public function sort(string $column): void
     {
         if ($this->sortBy === $column) {
@@ -50,7 +55,7 @@ new class extends Component
     public function updatedFilterMarque(): void
     {
         $this->resetPage();
-        $this->filterCategorie = ''; // Reset category when marque changes
+        $this->filterCategorie = '';
     }
     public function updatedFilterCategorie(): void { $this->resetPage(); }
 
@@ -65,20 +70,73 @@ new class extends Component
         $this->resetPage();
     }
 
-    public function edit(string $code): void
+    public function edit($id): void
     {
-        $this->dispatch('edit-product', code: $code);
+        $this->dispatch('edit-product', id: $id);
     }
 
-    public function confirmDelete(string $code): void
+    public function confirmDelete($id): void
     {
-        $this->dispatch('delete-product', code: $code);
+        $this->dispatch('delete-product', id: $id);
     }
 
     public function resetFilters(): void
     {
         $this->reset(['search', 'filterState', 'filterMarque', 'filterCategorie', 'perPage']);
         $this->resetPage();
+
+        Flux::toast(
+            heading: 'Filtres réinitialisés',
+            text: 'Tous les filtres ont été réinitialisés avec succès',
+            variant: 'info'
+        );
+    }
+
+    public function toggleState($id): void
+    {
+        // Définir l'ID du produit en cours de mise à jour
+        $this->updatingProductId = $id;
+
+        try {
+            DB::beginTransaction();
+
+            // Chercher le produit par son ID
+            $product = Product::findOrFail($id);
+            $oldState = $product->state;
+            $newState = $oldState == 1 ? 0 : 1;
+
+            // Mettre à jour l'état
+            $product->state = $newState;
+            $product->save();
+
+            DB::commit();
+
+            // Rafraîchir la propriété computed
+            unset($this->products);
+
+            // Dispatch des événements
+            $this->dispatch('product-state-updated', id: $id, state: $newState);
+
+            // Afficher le toast de succès
+            Flux::toast(
+                heading: $newState == 1 ? 'Produit activé' : 'Produit désactivé',
+                text: "Le produit \"{$product->designation}\" a été " . ($newState == 1 ? "activé" : "désactivé") . " avec succès",
+                variant: 'success'
+            );
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            // Afficher le toast d'erreur
+            Flux::toast(
+                heading: 'Erreur',
+                text: "Impossible de modifier l'état du produit: " . $e->getMessage(),
+                variant: 'danger'
+            );
+        } finally {
+            // Réinitialiser l'ID du produit en cours de mise à jour
+            $this->updatingProductId = null;
+        }
     }
 
     #[Computed]
@@ -116,7 +174,6 @@ new class extends Component
             ->with('marque')
             ->orderBy('name');
 
-        // Filtrer les catégories par marque sélectionnée
         if ($this->filterMarque !== '') {
             $query->where('marque_code', $this->filterMarque);
         }
@@ -146,8 +203,8 @@ new class extends Component
         </div>
 
         <flux:modal.trigger name="create-product">
-            <flux:button variant="primary" class="w-full sm:w-auto" icon="arrow-up-on-square-stack">
-                Importer PARKOD
+            <flux:button variant="primary" class="w-full sm:w-auto">
+                Ajouter un produit
             </flux:button>
         </flux:modal.trigger>
     </div>
@@ -232,12 +289,7 @@ new class extends Component
                 Type
             </flux:table.column>
 
-            <flux:table.column
-                sortable
-                :sorted="$sortBy === 'state'"
-                :direction="$sortDirection"
-                wire:click="sort('state')"
-            >
+            <flux:table.column class="text-center">
                 État
             </flux:table.column>
 
@@ -246,8 +298,7 @@ new class extends Component
 
         <flux:table.rows>
             @forelse ($this->products as $product)
-                <flux:table.row :key="$product->code">
-
+                <flux:table.row :key="$product->id" wire:key="product-{{ $product->id }}">
                     <!-- Article -->
                     <flux:table.cell>
                         <flux:badge size="sm" color="zinc" inset="top bottom">
@@ -274,6 +325,7 @@ new class extends Component
                             @if($product->type)
                                 <div>Type: {{ $product->type->name ?? 'N/A' }}</div>
                             @endif
+                            <div>État: {{ $product->state == 1 ? 'Actif' : 'Inactif' }}</div>
                         </div>
                     </flux:table.cell>
 
@@ -292,13 +344,37 @@ new class extends Component
                         <span class="text-sm">{{ $product->type?->name ?? '-' }}</span>
                     </flux:table.cell>
 
-                    <!-- État -->
-                    <flux:table.cell>
-                        @if ($product->state == 1)
-                            <flux:badge size="sm" color="green" inset="top bottom">Actif</flux:badge>
-                        @else
-                            <flux:badge size="sm" color="red" inset="top bottom">Inactif</flux:badge>
-                        @endif
+                    <!-- État avec Toggle -->
+                    <flux:table.cell class="text-center">
+                        <div class="flex items-center justify-center">
+                            <!-- Afficher le loading seulement pour cette ligne -->
+                            @if($updatingProductId === $product->id)
+                                <div class="flex items-center justify-center">
+                                    <svg class="animate-spin h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </div>
+                            @else
+                                <button
+                                    wire:click="toggleState({{ $product->id }})"
+                                    type="button"
+                                    role="switch"
+                                    aria-checked="{{ $product->state == 1 ? 'true' : 'false' }}"
+                                    class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 hover:opacity-80"
+                                    style="background-color: {{ $product->state == 1 ? '#22c55e' : '#d1d5db' }}"
+                                >
+                                    <span
+                                        class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                                        style="transform: translateX({{ $product->state == 1 ? '24px' : '4px' }})"
+                                    />
+                                </button>
+                            @endif
+                        </div>
+
+                        <span class="sr-only">
+                            {{ $product->state == 1 ? 'Actif' : 'Inactif' }}
+                        </span>
                     </flux:table.cell>
 
                     <!-- Actions -->
@@ -306,11 +382,11 @@ new class extends Component
                         <flux:dropdown>
                             <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom" />
                             <flux:menu>
-                                <flux:menu.item icon="pencil" wire:click="edit('{{ $product->code }}')">
+                                <flux:menu.item icon="pencil" wire:click="edit({{ $product->id }})">
                                     Modifier
                                 </flux:menu.item>
                                 <flux:menu.separator />
-                                <flux:menu.item icon="trash" variant="danger" wire:click="confirmDelete('{{ $product->code }}')">
+                                <flux:menu.item icon="trash" variant="danger" wire:click="confirmDelete({{ $product->id }})">
                                     Supprimer
                                 </flux:menu.item>
                             </flux:menu>
