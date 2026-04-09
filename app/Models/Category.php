@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable(['code', 'name', 'marque_code', 'state'])]
-#[Table('categorie', incrementing: false)]
+#[Table('categorie', incrementing: false, key: 'code')]
 class Category extends Model
 {
     public function marque(): BelongsTo
