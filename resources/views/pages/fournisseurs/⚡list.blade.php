@@ -332,6 +332,14 @@ new class extends Component
                         <flux:dropdown>
                             <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom" />
                             <flux:menu>
+                                <flux:menu.item
+                                    icon="eye"
+                                    wire:navigate
+                                    :href="route('fournisseurs.view', $fournisseur->id)"
+                                >
+                                    Voir les détails
+                                </flux:menu.item>
+                                <flux:menu.separator />
                                 <flux:menu.item icon="pencil" wire:click="edit({{ $fournisseur->id }})">
                                     Modifier
                                 </flux:menu.item>

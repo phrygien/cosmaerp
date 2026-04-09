@@ -13,6 +13,7 @@ Route::middleware(["auth", "verified"])->group(function () {
     Route::livewire("/users", "pages::users.page")->name("users");
 
     Route::livewire("/fournisseurs", "pages::fournisseurs.page")->name("fournisseurs");
+    Route::livewire("/fournisseurs/{fournisseur}", "pages::fournisseurs.view")->name("fournisseurs.view");
 
 });
 
@@ -23,7 +24,5 @@ Route::group(["middleware" => ["auth", "verified"], "prefix" => 'catalogue'], fu
     Route::livewire('/parkod', "pages::parkod.page")->name("catalogue.parkod");
     Route::livewire('/products', 'pages::products.page')->name("catalogue.products");
 });
-
-
 
 require __DIR__ . "/settings.php";
