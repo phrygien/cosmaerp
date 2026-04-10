@@ -93,7 +93,7 @@ new class extends Component
         <div class="p-6 space-y-6">
 
             {{-- ── Header ──────────────────────────────────────────────────── --}}
-            <div class="border-b border-zinc-200 dark:border-zinc-700 pb-4">
+            <div class="dark:border-zinc-700 pb-4">
                 <flux:heading size="lg">Modifier le produit fournisseur</flux:heading>
                 <flux:text class="mt-1 text-zinc-500">
                     Modifiez le prix, la taxe ou l'état de l'association.
@@ -189,7 +189,7 @@ new class extends Component
             @endif
 
             {{-- ── Actions ─────────────────────────────────────────────────── --}}
-            <div class="flex gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-700">
+            <div class="flex gap-3 pt-4 dark:border-zinc-700">
                 <flux:spacer />
                 <flux:button
                     variant="ghost"

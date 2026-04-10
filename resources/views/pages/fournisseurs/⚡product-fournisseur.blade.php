@@ -20,6 +20,7 @@ new class extends Component
     public int    $perPage         = 10;
     public string $filterMarque    = '';
     public string $filterCategorie = '';
+    public string $filterEan       = '';
     public array $updatingStates = [];
 
     public function mount(int $fournisseurId): void
@@ -41,12 +42,14 @@ new class extends Component
     public function updatedPerPage(): void         { $this->resetPage(); }
     public function updatedFilterMarque(): void    { $this->resetPage(); }
     public function updatedFilterCategorie(): void { $this->resetPage(); }
+    public function updatedFilterEan(): void       { $this->resetPage(); }
 
     public function resetFilters(): void
     {
         $this->search          = '';
         $this->filterMarque    = '';
         $this->filterCategorie = '';
+        $this->filterEan       = '';
         $this->resetPage();
 
         Flux::toast(
@@ -133,7 +136,7 @@ new class extends Component
     #[Computed]
     public function hasActiveFilters(): bool
     {
-        return $this->search !== '' || $this->filterMarque !== '' || $this->filterCategorie !== '';
+        return $this->search !== '' || $this->filterMarque !== '' || $this->filterCategorie !== '' || $this->filterEan !== '';
     }
 
     #[Computed]
@@ -148,6 +151,7 @@ new class extends Component
                 ->orWhere('product_code', 'like', "%{$this->search}%")
                 ->orWhere('article',      'like', "%{$this->search}%")
                 ->orWhere('ref_fabri_n_1','like', "%{$this->search}%")
+                ->orWhere('EAN',          'like', "%{$this->search}%")
             )
             )
             ->when($this->filterMarque, fn($q) =>
@@ -158,6 +162,11 @@ new class extends Component
             ->when($this->filterCategorie, fn($q) =>
             $q->whereHas('product', fn($p) =>
             $p->where('categorie_code', $this->filterCategorie)
+            )
+            )
+            ->when($this->filterEan, fn($q) =>
+            $q->whereHas('product', fn($p) =>
+            $p->where('EAN', 'like', "%{$this->filterEan}%")
             )
             )
             ->orderBy($this->sortBy, $this->sortDirection)
@@ -201,6 +210,13 @@ new class extends Component
                     </flux:select.option>
                 @endforeach
             </flux:select>
+
+            <flux:input
+                wire:model.live.debounce="filterEan"
+                placeholder="Filtrer par EAN..."
+                icon="qr-code"
+                class="w-full sm:w-48"
+            />
 
             <flux:select wire:model.live="perPage" class="w-full sm:w-20">
                 <flux:select.option value="5">5</flux:select.option>
@@ -250,6 +266,12 @@ new class extends Component
                     {{ $this->categories->firstWhere('code', $this->filterCategorie)?->name }}
                 </flux:badge>
             @endif
+            @if($this->filterEan)
+                <flux:badge size="sm" color="purple" class="gap-1">
+                    <flux:icon name="qr-code" class="size-3" />
+                    EAN: {{ $this->filterEan }}
+                </flux:badge>
+            @endif
         </div>
     @endif
 
@@ -263,6 +285,10 @@ new class extends Component
                 wire:click="sort('product_id')"
             >
                 Produit
+            </flux:table.column>
+
+            <flux:table.column class="hidden lg:table-cell">
+                EAN
             </flux:table.column>
 
             <flux:table.column class="hidden md:table-cell">
@@ -309,8 +335,14 @@ new class extends Component
                             {{ $produit->product?->designation ?? '—' }}
                         </p>
                         <p class="text-xs text-zinc-400 mt-0.5">
-                            {{ $produit->product?->product_code ?? '—' }}
+                            Code: {{ $produit->product?->product_code ?? '—' }}
                         </p>
+                        <!-- EAN visible sur mobile -->
+                        @if($produit->product?->EAN)
+                            <p class="text-xs text-zinc-400 mt-0.5 lg:hidden">
+                                EAN: {{ $produit->product->EAN }}
+                            </p>
+                        @endif
                         <p class="text-xs text-zinc-400 mt-0.5 md:hidden">
                             Réf: {{ $produit->product?->ref_fabri_n_1 ?? '—' }}
                         </p>
@@ -329,6 +361,17 @@ new class extends Component
                         <p class="text-xs text-zinc-400 mt-0.5 sm:hidden">
                             Taxe: {{ $produit->tax ?? '—' }}%
                         </p>
+                    </flux:table.cell>
+
+                    <!-- EAN -->
+                    <flux:table.cell class="hidden lg:table-cell">
+                        @if($produit->product?->EAN)
+                            <flux:badge size="sm" color="purple" inset="top bottom" class="font-mono">
+                                {{ $produit->product->EAN }}
+                            </flux:badge>
+                        @else
+                            <span class="text-zinc-400 text-sm">—</span>
+                        @endif
                     </flux:table.cell>
 
                     <!-- Référence -->
@@ -416,7 +459,7 @@ new class extends Component
 
             @empty
                 <flux:table.row>
-                    <flux:table.cell colspan="7">
+                    <flux:table.cell colspan="8">
                         <div class="flex flex-col items-center justify-center py-12 text-center">
                             <flux:icon name="shopping-bag" class="text-zinc-400 mb-3" style="width: 40px; height: 40px;" />
                             <p class="text-zinc-400 font-medium text-sm">
@@ -439,5 +482,5 @@ new class extends Component
     </flux:table>
 
     <livewire:pages::fournisseurs.product-fournisseur.create :fournisseur-id="$fournisseurId" />
-    <livewire:pages::fournisseurs.product-fournisseur.edit/>
+    <livewire:pages::fournisseurs.product-fournisseur.edit />
 </div>
