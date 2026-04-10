@@ -429,7 +429,6 @@ new class extends Component
                 <flux:table.row
                     :key="$fournisseur->id"
                     wire:key="fournisseur-{{ $fournisseur->id }}"
-                    class="{{ in_array((string)$fournisseur->id, $selectedIds) ? 'bg-indigo-50/50 dark:bg-indigo-950/20' : '' }}"
                 >
                     <!-- Checkbox -->
                     <flux:table.cell>
