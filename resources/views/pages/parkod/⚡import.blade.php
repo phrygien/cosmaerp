@@ -280,13 +280,15 @@ new class extends Component {
             <span wire:loading wire:target="import">Importation...</span>
         </flux:button>
 
-        <flux:button
-            variant="danger"
-            wire:click="cancel"
-            class="flex-1 lg:flex-none"
-        >
-            Annuler
-        </flux:button>
+        @if($ready || !empty($result))
+            <flux:button
+                variant="danger"
+                wire:click="cancel"
+                class="flex-1 lg:flex-none"
+            >
+                Annuler
+            </flux:button>
+        @endif
     </div>
 
     @if(!empty($preview))
