@@ -66,7 +66,6 @@ new class extends Component
         $this->modal('create-role')->close();
 
         \Flux\Flux::toast(
-            heading: 'Rôle créé',
             text: "Le rôle a été enregistré avec succès",
             variant: 'success'
         );

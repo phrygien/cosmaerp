@@ -30,6 +30,11 @@ new class extends Component
 
         $this->dispatch('role-deleted');
         $this->modal('delete-role')->close();
+
+        \Flux\Flux::toast(
+            text: "Rôle supprimé avec succès",
+            variant: 'success'
+        );
     }
 };
 ?>

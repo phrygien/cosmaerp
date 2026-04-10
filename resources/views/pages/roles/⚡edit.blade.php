@@ -84,7 +84,6 @@ new class extends Component
         $this->modal('edit-role')->close();
 
         \Flux\Flux::toast(
-            heading: 'Rôle mis à jour',
             text: "La mise à jour du rôle a été effectuée avec succès",
             variant: 'success'
         );
