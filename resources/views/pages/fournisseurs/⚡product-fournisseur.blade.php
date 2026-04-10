@@ -276,7 +276,7 @@ new class extends Component
     @endif
 
     <!-- Table -->
-    <flux:table :paginate="$this->produits" variant="bordered">
+    <flux:table :paginate="$this->produits" variant="bordered" class="mt-5">
         <flux:table.columns>
             <flux:table.column
                 sortable
@@ -483,4 +483,5 @@ new class extends Component
 
     <livewire:pages::fournisseurs.product-fournisseur.create :fournisseur-id="$fournisseurId" />
     <livewire:pages::fournisseurs.product-fournisseur.edit />
+    <livewire:pages::fournisseurs.product-fournisseur.delete />
 </div>
