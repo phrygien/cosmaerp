@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['name', 'state'])]
-#[Table(name: 'type')]
+#[Table(name: 'type', incrementing: false, key: 'id')]
 class Type extends Model
 {
     public function products(): HasMany

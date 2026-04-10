@@ -13,7 +13,7 @@ new class extends Component {
 
     use WithFileUploads;
 
-    #[Validate(['attachments.*' => 'file|mimes:txt,csv|max:51200'])]
+    #[Validate(['attachments.*' => 'file|mimes:txt|max:51200'])]
     public array $attachments = [];
 
     public bool  $uploading   = false;
@@ -185,7 +185,7 @@ new class extends Component {
             type="file"
             wire:model="attachments"
             multiple
-            accept=".txt,.csv"
+            accept=".txt"
             class="block w-full text-sm text-zinc-700 dark:text-zinc-300
                    file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0
                    file:text-sm file:font-medium
