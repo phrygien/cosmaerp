@@ -21,6 +21,28 @@ new class extends Component {
     public array $preview     = [];
     public array $result      = [];
 
+    private function isValidRow(array $row): bool
+    {
+        if (count($row) < 27) {
+            return false;
+        }
+
+        if (trim($row[0]) !== '01') {
+            return false;
+        }
+
+        if (trim($row[1]) === '') {
+            return false;
+        }
+
+        $validStatuts = ['S', 'C', 'P', 'M', 'N', 'E', 'V', 'F'];
+        if (!in_array(strtoupper(trim($row[23])), $validStatuts, true)) {
+            return false;
+        }
+
+        return true;
+    }
+
     public function updatedAttachments(): void
     {
         $this->validate();
@@ -29,7 +51,7 @@ new class extends Component {
         $this->result  = [];
     }
 
-    public function preview(): void
+    public function generatePreview(): void
     {
         if (empty($this->attachments)) {
             return;
@@ -39,21 +61,29 @@ new class extends Component {
             'S' => 0, 'C' => 0, 'P' => 0, 'M' => 0,
             'N' => 0, 'E' => 0, 'V' => 0, 'F' => 0,
         ];
+        $errors = 0;
 
         foreach ($this->attachments as $file) {
             $lines = explode("\n", file_get_contents($file->getRealPath()));
 
             foreach ($lines as $line) {
                 if (trim($line) === '') continue;
-                $row          = explode(';', $line);
-                $code_winparf = strtoupper(trim($row[23] ?? ''));
+
+                $row = explode(';', $line);
+
+                if (!$this->isValidRow($row)) {
+                    $errors++;
+                    continue;
+                }
+
+                $code_winparf = strtoupper(trim($row[23]));
                 if (isset($status[$code_winparf])) {
                     $status[$code_winparf]++;
                 }
             }
         }
 
-        $this->preview = $status;
+        $this->preview = array_merge($status, ['errors' => $errors]);
     }
 
     public function import(): void
@@ -64,6 +94,7 @@ new class extends Component {
 
         $new    = 0;
         $update = 0;
+        $errors = 0;
 
         foreach ($this->attachments as $file) {
             $lines = explode("\n", file_get_contents($file->getRealPath()));
@@ -72,6 +103,11 @@ new class extends Component {
                 if (trim($line) === '') continue;
 
                 $row = explode(';', $line);
+
+                if (!$this->isValidRow($row)) {
+                    $errors++;
+                    continue;
+                }
 
                 $ean               = trim($row[1]  ?? '');
                 $code_marque       = trim($row[2]  ?? '');
@@ -158,13 +194,13 @@ new class extends Component {
             }
         }
 
-        $this->result = ['new' => $new, 'update' => $update];
+        $this->result = ['new' => $new, 'update' => $update, 'errors' => $errors];
         $this->reset(['attachments', 'ready', 'preview']);
         $this->dispatch('parkod-imported');
 
         \Flux\Flux::toast(
             heading: 'Importation PARKOD',
-            text: "{$new} produit(s) créé(s), {$update} mis à jour",
+            text: "{$new} produit(s) créé(s), {$update} mis à jour, {$errors} ligne(s) ignorée(s)",
             variant: 'success'
         );
     }
@@ -222,14 +258,14 @@ new class extends Component {
     <div class="flex flex-row gap-2">
         <flux:button
             variant="primary"
-            wire:click="preview"
+            wire:click="generatePreview"
             wire:loading.attr="disabled"
-            wire:target="preview"
+            wire:target="generatePreview"
             :disabled="!$ready"
             class="flex-1 lg:flex-none"
         >
-            <span wire:loading.remove wire:target="preview">Prévisualiser</span>
-            <span wire:loading wire:target="preview">Analyse...</span>
+            <span wire:loading.remove wire:target="generatePreview">Prévisualiser</span>
+            <span wire:loading wire:target="generatePreview">Analyse...</span>
         </flux:button>
 
         <flux:button
@@ -253,35 +289,44 @@ new class extends Component {
         </flux:button>
     </div>
 
-    <!-- Prévisualisation -->
     @if(!empty($preview))
         <div class="rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden">
-            <div class="px-4 py-3 bg-zinc-50 dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700">
+            <div class="px-6 py-4 bg-zinc-50 dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700">
                 <flux:heading size="sm">Résumé de l'analyse</flux:heading>
             </div>
-            <div class="grid grid-cols-2 sm:grid-cols-4 divide-zinc-200 dark:divide-zinc-700"
-                 style="border-collapse: collapse;">
-                @foreach([
-                    'N' => ['label' => 'Nouveaux',  'color' => 'text-green-600 dark:text-green-400',  'bg' => 'bg-green-50  dark:bg-green-900/10'],
-                    'M' => ['label' => 'Modifiés',  'color' => 'text-blue-600  dark:text-blue-400',   'bg' => 'bg-blue-50   dark:bg-blue-900/10'],
-                    'S' => ['label' => 'Supprimés', 'color' => 'text-red-600   dark:text-red-400',    'bg' => 'bg-red-50    dark:bg-red-900/10'],
-                    'C' => ['label' => 'Catalogue', 'color' => 'text-zinc-600  dark:text-zinc-400',   'bg' => ''],
-                    'P' => ['label' => 'P',         'color' => 'text-zinc-600  dark:text-zinc-400',   'bg' => ''],
-                    'E' => ['label' => 'E',         'color' => 'text-zinc-600  dark:text-zinc-400',   'bg' => ''],
-                    'V' => ['label' => 'V',         'color' => 'text-zinc-600  dark:text-zinc-400',   'bg' => ''],
-                    'F' => ['label' => 'F',         'color' => 'text-zinc-600  dark:text-zinc-400',   'bg' => ''],
-                ] as $key => $info)
-                    <div class="flex flex-col items-center justify-center px-4 py-5 gap-1 border border-zinc-200 dark:border-zinc-700 {{ $info['bg'] }}">
-                        <span class="text-2xl font-bold {{ $info['color'] }}">
-                            {{ $preview[$key] ?? 0 }}
-                        </span>
-                        <span class="text-xs text-zinc-500 dark:text-zinc-400">
-                            {{ $info['label'] }}
-                        </span>
-                    </div>
-                @endforeach
+
+            <div class="p-4">
+                <flux:table>
+                    <flux:table.columns>
+                        <flux:table.column>Code</flux:table.column>
+                        <flux:table.column>Libellé</flux:table.column>
+                        <flux:table.column>Nombre de lignes</flux:table.column>
+                    </flux:table.columns>
+                    <flux:table.rows>
+                        @foreach([
+                            'N'      => ['label' => 'Nouveaux',  'color' => 'green'],
+                            'M'      => ['label' => 'Modifiés',  'color' => 'blue'],
+                            'S'      => ['label' => 'Supprimés', 'color' => 'red'],
+                            'C'      => ['label' => 'Catalogue', 'color' => 'zinc'],
+                            'P'      => ['label' => 'P',         'color' => 'zinc'],
+                            'E'      => ['label' => 'E',         'color' => 'zinc'],
+                            'V'      => ['label' => 'V',         'color' => 'zinc'],
+                            'F'      => ['label' => 'F',         'color' => 'zinc'],
+                            'errors' => ['label' => 'Erreurs',   'color' => 'orange'],
+                        ] as $key => $info)
+                            <flux:table.row>
+                                <flux:table.cell class="py-3 px-4">
+                                    <flux:badge color="{{ $info['color'] }}" size="sm" inset="top bottom">
+                                        {{ $key }}
+                                    </flux:badge>
+                                </flux:table.cell>
+                                <flux:table.cell class="py-3 px-4">{{ $info['label'] }}</flux:table.cell>
+                                <flux:table.cell class="py-3 px-4" variant="strong">{{ $preview[$key] ?? 0 }}</flux:table.cell>
+                            </flux:table.row>
+                        @endforeach
+                    </flux:table.rows>
+                </flux:table>
             </div>
         </div>
     @endif
-
 </div>
