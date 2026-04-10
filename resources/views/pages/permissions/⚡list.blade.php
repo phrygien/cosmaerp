@@ -28,6 +28,7 @@ new class extends Component {
 
     #[On("permission-created")]
     #[On("permission-updated")]
+    #[On('permission-deleted')]
     public function refresh(): void
     {
         unset($this->permissions);
@@ -37,6 +38,11 @@ new class extends Component {
     public function edit(int $id): void
     {
         $this->dispatch("edit-permission", id: $id);
+    }
+
+    public function confirmDelete(int $id): void
+    {
+        $this->dispatch('delete-permission', id: $id);
     }
 
     #[Computed]
@@ -182,7 +188,7 @@ new class extends Component {
                                     Modifier
                                 </flux:menu.item>
                                 <flux:menu.separator />
-                                <flux:menu.item icon="trash" variant="danger">
+                                <flux:menu.item icon="trash" variant="danger" wire:click="confirmDelete({{ $permission->id }})">
                                     Supprimer
                                 </flux:menu.item>
                             </flux:menu>
@@ -217,4 +223,5 @@ new class extends Component {
 
     <livewire:pages::permissions.create />
     <livewire:pages::permissions.edit />
+    <livewire:pages::permissions.delete />
 </div>

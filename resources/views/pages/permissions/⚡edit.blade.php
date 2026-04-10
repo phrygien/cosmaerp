@@ -48,6 +48,11 @@ new class extends Component {
 
         $this->dispatch("permission-updated");
         $this->modal("edit-permission")->close();
+
+        \Flux\Flux::toast(
+            text: "Permission mise à jour avec succès",
+            variant: 'success'
+        );
     }
 };
 ?>

@@ -31,6 +31,11 @@ new class extends Component {
 
         $this->dispatch("permission-created");
         $this->dispatch("close-modal", name: "create-permission");
+
+        \Flux\Flux::toast(
+            text: "Permissions créées avec succès",
+            variant: 'success'
+        );
     }
 };
 ?>
