@@ -2,16 +2,30 @@
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Computed;
-use App\Models\Permission;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Url;
+use App\Models\Permission;
+use Flux\Flux;
 
 new class extends Component {
     use WithPagination;
 
+    #[Url(as: 'tri')]
     public string $sortBy        = "name";
+
+    #[Url(as: 'ordre')]
     public string $sortDirection = "asc";
+
+    #[Url(as: 'q', except: '')]
     public string $search        = "";
+
+    #[Url(as: 'groupe', except: '')]
+    public string $filterGroup   = "";
+
+    #[Url(as: 'par_page', except: 10)]
     public int    $perPage       = 10;
+
+    public bool $showFilters = false;
 
     public function sort(string $column): void
     {
@@ -23,8 +37,26 @@ new class extends Component {
         }
     }
 
-    public function updatedSearch(): void  { $this->resetPage(); }
-    public function updatedPerPage(): void { $this->resetPage(); }
+    public function updatedSearch(): void      { $this->resetPage(); }
+    public function updatedPerPage(): void     { $this->resetPage(); }
+    public function updatedFilterGroup(): void { $this->resetPage(); }
+
+    public function toggleFilters(): void
+    {
+        $this->showFilters = ! $this->showFilters;
+    }
+
+    public function resetFilters(): void
+    {
+        $this->reset(['search', 'filterGroup', 'perPage']);
+        $this->resetPage();
+
+        Flux::toast(
+            heading: 'Filtres réinitialisés',
+            text: 'Tous les filtres ont été réinitialisés avec succès',
+            variant: 'info'
+        );
+    }
 
     #[On("permission-created")]
     #[On("permission-updated")]
@@ -32,6 +64,7 @@ new class extends Component {
     public function refresh(): void
     {
         unset($this->permissions);
+        unset($this->stats);
         $this->resetPage();
     }
 
@@ -46,6 +79,33 @@ new class extends Component {
     }
 
     #[Computed]
+    public function stats()
+    {
+        return [
+            'total'  => Permission::count(),
+            'groups' => Permission::whereNotNull('group')->distinct('group')->count('group'),
+            'no_role' => Permission::doesntHave('roles')->count(),
+        ];
+    }
+
+    #[Computed]
+    public function activeFiltersCount(): int
+    {
+        return collect([$this->filterGroup])
+            ->filter(fn($v) => $v !== '')
+            ->count();
+    }
+
+    #[Computed]
+    public function groups()
+    {
+        return Permission::whereNotNull('group')
+            ->distinct()
+            ->orderBy('group')
+            ->pluck('group');
+    }
+
+    #[Computed]
     public function permissions()
     {
         return Permission::query()
@@ -53,6 +113,10 @@ new class extends Component {
             ->when($this->search, fn($query) =>
             $query->where("name", "like", "%{$this->search}%")
                 ->orWhere("group", "like", "%{$this->search}%")
+                ->orWhere("slug", "like", "%{$this->search}%")
+            )
+            ->when($this->filterGroup, fn($query) =>
+            $query->where("group", $this->filterGroup)
             )
             ->orderBy($this->sortBy, $this->sortDirection)
             ->paginate($this->perPage);
@@ -60,17 +124,70 @@ new class extends Component {
 };
 ?>
 
-<div class="mt-5">
+<div>
+    <flux:breadcrumbs class="mb-5">
+        <flux:breadcrumbs.item href="#">Permissions</flux:breadcrumbs.item>
+        <flux:breadcrumbs.item>Liste</flux:breadcrumbs.item>
+    </flux:breadcrumbs>
 
-    <!-- Header -->
-    <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
-        <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <flux:input
-                wire:model.live.debounce="search"
-                placeholder="Rechercher une permission..."
-                icon="magnifying-glass"
-                class="w-full sm:w-80"
-            />
+    <!-- Heading + bouton -->
+    <div class="flex items-center justify-between mb-6">
+        <flux:heading size="xl" level="1">{{ __('Permissions') }}</flux:heading>
+
+        <flux:modal.trigger name="create-permission">
+            <flux:button variant="primary" class="w-full sm:w-auto">
+                Ajouter une permission
+            </flux:button>
+        </flux:modal.trigger>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <flux:card class="p-5">
+            <p class="text-sm text-zinc-500">Total Permissions</p>
+            <p class="text-3xl font-bold mt-1">{{ $this->stats['total'] }}</p>
+        </flux:card>
+
+        <flux:card class="p-5">
+            <p class="text-sm text-zinc-500">Groupes distincts</p>
+            <p class="text-3xl font-bold mt-1 text-blue-500">{{ $this->stats['groups'] }}</p>
+        </flux:card>
+
+        <flux:card class="p-5">
+            <p class="text-sm text-zinc-500">Sans rôle assigné</p>
+            <p class="text-3xl font-bold mt-1 text-zinc-400">{{ $this->stats['no_role'] }}</p>
+        </flux:card>
+    </div>
+
+    <flux:card class="p-5">
+
+        <!-- En-tête tableau : recherche | toggle filtres | per page -->
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
+            <div class="flex items-center gap-2">
+                <flux:input
+                    wire:model.live.debounce="search"
+                    placeholder="Rechercher une permission..."
+                    icon="magnifying-glass"
+                    class="w-full sm:w-80"
+                />
+
+                <!-- Bouton toggle filtres avec badge compteur -->
+                <div class="relative">
+                    <flux:button
+                        wire:click="toggleFilters"
+                        :variant="$showFilters ? 'primary' : 'ghost'"
+                        icon="funnel"
+                        size="sm"
+                    >
+                        Filtres
+                    </flux:button>
+                    @if($this->activeFiltersCount > 0)
+                        <span class="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center w-4 h-4 text-[10px] font-bold leading-none text-white bg-red-500 rounded-full">
+                            {{ $this->activeFiltersCount }}
+                        </span>
+                    @endif
+                </div>
+            </div>
 
             <flux:select wire:model.live="perPage" class="w-full sm:w-20">
                 <flux:select.option value="5">5</flux:select.option>
@@ -80,14 +197,30 @@ new class extends Component {
             </flux:select>
         </div>
 
-        <flux:modal.trigger name="create-permission">
-            <flux:button variant="primary" class="w-full sm:w-auto">
-                Ajouter une permission
-            </flux:button>
-        </flux:modal.trigger>
-    </div>
+        <!-- Panneau de filtres (togglable) -->
+        @if($showFilters)
+            <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 mb-4 bg-zinc-50 dark:bg-zinc-800/50">
+                <div class="flex items-center justify-between mb-3">
+                    <p class="text-sm font-medium text-zinc-700 dark:text-zinc-300">Filtres</p>
+                    @if($this->activeFiltersCount > 0)
+                        <flux:button wire:click="resetFilters" variant="ghost" size="xs" class="text-red-500 hover:text-red-600">
+                            Réinitialiser
+                        </flux:button>
+                    @endif
+                </div>
 
-    <flux:card class="p-5">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
+                    <flux:select wire:model.live="filterGroup" class="w-full sm:w-56">
+                        <flux:select.option value="">Tous les groupes</flux:select.option>
+                        @foreach ($this->groups as $group)
+                            <flux:select.option value="{{ $group }}">{{ $group }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                </div>
+            </div>
+        @endif
+
+        <!-- Table -->
         <flux:table :paginate="$this->permissions" variant="bordered">
             <flux:table.columns>
                 <flux:table.column
@@ -128,7 +261,7 @@ new class extends Component {
 
             <flux:table.rows>
                 @forelse ($this->permissions as $permission)
-                    <flux:table.row :key="$permission->id">
+                    <flux:table.row :key="$permission->id" wire:key="permission-{{ $permission->id }}">
 
                         <!-- Nom -->
                         <flux:table.cell>
@@ -143,7 +276,7 @@ new class extends Component {
                             <p class="text-xs text-zinc-400 mt-0.5 md:hidden">
                                 {{ $permission->group ?? '—' }}
                             </p>
-                            <!-- Rôles visibles en mobile/tablet/desktop uniquement -->
+                            <!-- Rôles visibles en mobile/tablet uniquement -->
                             <div class="flex flex-wrap gap-1 mt-1 lg:hidden">
                                 @forelse ($permission->roles as $role)
                                     <flux:badge size="sm" color="blue" inset="top bottom">
@@ -204,15 +337,15 @@ new class extends Component {
                             <div class="flex flex-col items-center justify-center py-12 text-center">
                                 <flux:icon name="shield-exclamation" class="text-zinc-400 mb-3" style="width: 40px; height: 40px;" />
                                 <p class="text-zinc-400 font-medium text-sm">
-                                    @if ($search)
-                                        Aucune permission trouvée pour "{{ $search }}"
+                                    @if ($search || $filterGroup)
+                                        Aucune permission trouvée pour ces filtres
                                     @else
                                         Aucune permission enregistrée
                                     @endif
                                 </p>
-                                @if ($search)
-                                    <flux:button variant="ghost" size="sm" wire:click="$set('search', '')" class="mt-3">
-                                        Réinitialiser la recherche
+                                @if ($search || $filterGroup)
+                                    <flux:button variant="ghost" size="sm" wire:click="resetFilters" class="mt-3">
+                                        Réinitialiser les filtres
                                     </flux:button>
                                 @endif
                             </div>
@@ -221,7 +354,6 @@ new class extends Component {
                 @endforelse
             </flux:table.rows>
         </flux:table>
-
     </flux:card>
 
     <livewire:pages::permissions.create />
