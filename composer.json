@@ -14,7 +14,6 @@
         "laravel/framework": "^13.0",
         "laravel/scout": "*",
         "laravel/tinker": "^3.0",
-        "livewire/blaze": "*",
         "livewire/flux": "^2.12.0",
         "livewire/livewire": "^4.1",
         "typesense/typesense-php": "*"
