@@ -6,6 +6,8 @@ use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
 use App\Models\Category;
 use App\Models\Marque;
+use Flux\Flux;
+use Illuminate\Support\Facades\DB;
 
 new class extends Component
 {
@@ -29,6 +31,8 @@ new class extends Component
     #[Url(as: 'par_page', except: 10)]
     public int    $perPage       = 10;
 
+    public $updatingCategoryId = null;
+
     public function sort(string $column): void
     {
         if ($this->sortBy === $column) {
@@ -43,6 +47,45 @@ new class extends Component
     public function updatedPerPage(): void     { $this->resetPage(); }
     public function updatedFilterState(): void { $this->resetPage(); }
     public function updatedFilterMarque(): void { $this->resetPage(); }
+
+    public function toggleState(string $code): void
+    {
+        $this->updatingCategoryId = $code;
+
+        try {
+            DB::beginTransaction();
+
+            $category = Category::findOrFail($code);
+            $oldState = $category->state;
+            $newState = $oldState == 1 ? 0 : 1;
+
+            $category->state = $newState;
+            $category->save();
+
+            DB::commit();
+
+            unset($this->categories);
+
+            $this->dispatch('category-updated');
+
+            Flux::toast(
+                heading: $newState == 1 ? 'Catégorie activée' : 'Catégorie désactivée',
+                text: "La catégorie \"{$category->name}\" a été " . ($newState == 1 ? 'activée' : 'désactivée') . ' avec succès',
+                variant: 'success'
+            );
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Flux::toast(
+                heading: 'Erreur',
+                text: "Impossible de modifier l'état de la catégorie : " . $e->getMessage(),
+                variant: 'danger'
+            );
+        } finally {
+            $this->updatingCategoryId = null;
+        }
+    }
 
     #[On('category-created')]
     #[On('category-updated')]
@@ -67,6 +110,12 @@ new class extends Component
     {
         $this->reset(['search', 'filterState', 'filterMarque', 'perPage']);
         $this->resetPage();
+
+        Flux::toast(
+            heading: 'Filtres réinitialisés',
+            text: 'Tous les filtres ont été réinitialisés avec succès',
+            variant: 'info'
+        );
     }
 
     #[Computed]
@@ -149,7 +198,7 @@ new class extends Component
         @endif
     </div>
 
-    <flux:card clas="p-5">
+    <flux:card class="p-5">
         <!-- Table -->
         <flux:table :paginate="$this->categories" variant="bordered">
             <flux:table.columns>
@@ -175,12 +224,7 @@ new class extends Component
                     Marque
                 </flux:table.column>
 
-                <flux:table.column
-                    sortable
-                    :sorted="$sortBy === 'state'"
-                    :direction="$sortDirection"
-                    wire:click="sort('state')"
-                >
+                <flux:table.column class="text-center">
                     État
                 </flux:table.column>
 
@@ -189,7 +233,7 @@ new class extends Component
 
             <flux:table.rows>
                 @forelse ($this->categories as $category)
-                    <flux:table.row :key="$category->code">
+                    <flux:table.row :key="$category->code" wire:key="category-{{ $category->code }}">
 
                         <!-- Code -->
                         <flux:table.cell>
@@ -218,13 +262,31 @@ new class extends Component
                             @endif
                         </flux:table.cell>
 
-                        <!-- État -->
-                        <flux:table.cell>
-                            @if ($category->state == 1)
-                                <flux:badge size="sm" color="green" inset="top bottom">Actif</flux:badge>
-                            @else
-                                <flux:badge size="sm" color="red" inset="top bottom">Inactif</flux:badge>
-                            @endif
+                        <!-- État avec Toggle -->
+                        <flux:table.cell class="text-center">
+                            <div class="flex items-center justify-center">
+                                @if($updatingCategoryId === $category->code)
+                                    <svg class="animate-spin h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                                    </svg>
+                                @else
+                                    <button
+                                        wire:click="toggleState('{{ $category->code }}')"
+                                        type="button"
+                                        role="switch"
+                                        aria-checked="{{ $category->state == 1 ? 'true' : 'false' }}"
+                                        class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 hover:opacity-80"
+                                        style="background-color: {{ $category->state == 1 ? '#22c55e' : '#d1d5db' }}"
+                                    >
+                                        <span
+                                            class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                                            style="transform: translateX({{ $category->state == 1 ? '24px' : '4px' }})"
+                                        />
+                                    </button>
+                                @endif
+                            </div>
+                            <span class="sr-only">{{ $category->state == 1 ? 'Actif' : 'Inactif' }}</span>
                         </flux:table.cell>
 
                         <!-- Actions -->

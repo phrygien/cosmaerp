@@ -5,6 +5,8 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
 use App\Models\Marque;
+use Flux\Flux;
+use Illuminate\Support\Facades\DB;
 
 new class extends Component
 {
@@ -25,6 +27,8 @@ new class extends Component
     #[Url(as: 'par_page', except: 10)]
     public int    $perPage       = 10;
 
+    public $updatingMarqueId = null;
+
     public function sort(string $column): void
     {
         if ($this->sortBy === $column) {
@@ -38,6 +42,45 @@ new class extends Component
     public function updatedSearch(): void      { $this->resetPage(); }
     public function updatedPerPage(): void     { $this->resetPage(); }
     public function updatedFilterState(): void { $this->resetPage(); }
+
+    public function toggleState(string $code): void
+    {
+        $this->updatingMarqueId = $code;
+
+        try {
+            DB::beginTransaction();
+
+            $marque = Marque::findOrFail($code);
+            $oldState = $marque->state;
+            $newState = $oldState == 1 ? 0 : 1;
+
+            $marque->state = $newState;
+            $marque->save();
+
+            DB::commit();
+
+            unset($this->marques);
+
+            $this->dispatch('marque-updated');
+
+            Flux::toast(
+                heading: $newState == 1 ? 'Marque activée' : 'Marque désactivée',
+                text: "La marque \"{$marque->name}\" a été " . ($newState == 1 ? 'activée' : 'désactivée') . ' avec succès',
+                variant: 'success'
+            );
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Flux::toast(
+                heading: 'Erreur',
+                text: "Impossible de modifier l'état de la marque : " . $e->getMessage(),
+                variant: 'danger'
+            );
+        } finally {
+            $this->updatingMarqueId = null;
+        }
+    }
 
     #[On('marque-created')]
     #[On('marque-updated')]
@@ -62,6 +105,12 @@ new class extends Component
     {
         $this->reset(['search', 'filterState', 'perPage']);
         $this->resetPage();
+
+        Flux::toast(
+            heading: 'Filtres réinitialisés',
+            text: 'Tous les filtres ont été réinitialisés avec succès',
+            variant: 'info'
+        );
     }
 
     #[Computed]
@@ -69,7 +118,7 @@ new class extends Component
     {
         return Marque::query()
             ->withCount('categories')
-            ->when($this->search,      fn($q) => $q->search($this->search))
+            ->when($this->search, fn($q) => $q->search($this->search))
             ->when($this->filterState !== '', fn($q) => $q->byState($this->filterState))
             ->orderBy($this->sortBy, $this->sortDirection)
             ->paginate($this->perPage);
@@ -118,7 +167,7 @@ new class extends Component
         @endif
     </div>
 
-    <flux:card clas="p-5">
+    <flux:card class="p-5">
 
         <!-- Table -->
         <flux:table :paginate="$this->marques" variant="bordered">
@@ -141,23 +190,16 @@ new class extends Component
                     Nom
                 </flux:table.column>
 
-                <flux:table.column
-                    sortable
-                    :sorted="$sortBy === 'state'"
-                    :direction="$sortDirection"
-                    wire:click="sort('state')"
-                >
-                    État
-                </flux:table.column>
-
                 <flux:table.column class="hidden sm:table-cell">Catégories</flux:table.column>
+
+                <flux:table.column class="text-center">État</flux:table.column>
 
                 <flux:table.column></flux:table.column>
             </flux:table.columns>
 
             <flux:table.rows>
                 @forelse ($this->marques as $marque)
-                    <flux:table.row :key="$marque->code">
+                    <flux:table.row :key="$marque->code" wire:key="marque-{{ $marque->code }}">
 
                         <!-- Code -->
                         <flux:table.cell>
@@ -175,20 +217,38 @@ new class extends Component
                             </p>
                         </flux:table.cell>
 
-                        <!-- État -->
-                        <flux:table.cell>
-                            @if ($marque->state == 1)
-                                <flux:badge size="sm" color="green" inset="top bottom">Actif</flux:badge>
-                            @else
-                                <flux:badge size="sm" color="red" inset="top bottom">Inactif</flux:badge>
-                            @endif
-                        </flux:table.cell>
-
                         <!-- Catégories cachée en mobile -->
                         <flux:table.cell class="hidden sm:table-cell">
                             <flux:badge size="sm" color="blue" inset="top bottom">
                                 {{ $marque->categories_count }} catégorie{{ $marque->categories_count > 1 ? 's' : '' }}
                             </flux:badge>
+                        </flux:table.cell>
+
+                        <!-- État avec Toggle -->
+                        <flux:table.cell class="text-center">
+                            <div class="flex items-center justify-center">
+                                @if($updatingMarqueId === $marque->code)
+                                    <svg class="animate-spin h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                                    </svg>
+                                @else
+                                    <button
+                                        wire:click="toggleState('{{ $marque->code }}')"
+                                        type="button"
+                                        role="switch"
+                                        aria-checked="{{ $marque->state == 1 ? 'true' : 'false' }}"
+                                        class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 hover:opacity-80"
+                                        style="background-color: {{ $marque->state == 1 ? '#22c55e' : '#d1d5db' }}"
+                                    >
+                                        <span
+                                            class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                                            style="transform: translateX({{ $marque->state == 1 ? '24px' : '4px' }})"
+                                        />
+                                    </button>
+                                @endif
+                            </div>
+                            <span class="sr-only">{{ $marque->state == 1 ? 'Actif' : 'Inactif' }}</span>
                         </flux:table.cell>
 
                         <!-- Actions -->
