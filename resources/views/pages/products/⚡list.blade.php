@@ -224,16 +224,8 @@ new class extends Component
 
     <!-- Filtres -->
     <div class="flex flex-col gap-3 mb-4">
-        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            @if ($search || $filterState !== '' || $filterMarque !== '' || $filterCategorie !== '' || $perPage !== 10)
-                <flux:button variant="danger" size="sm" wire:click="resetFilters" icon="arrow-path" class="w-full sm:w-auto">
-                    Réinitialiser
-                </flux:button>
-            @endif
-        </div>
-
-        <!-- Filtres marque / catégorie -->
-        <div class="flex flex-col gap-2 sm:flex-row">
+        <!-- Filtres marque / catégorie avec bouton sur la même ligne -->
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
             <flux:select wire:model.live="filterMarque" placeholder="Toutes les marques" class="w-full sm:w-64">
                 <flux:select.option value="">Toutes les marques</flux:select.option>
                 @foreach ($this->marquesList as $marque)
@@ -260,9 +252,15 @@ new class extends Component
                 <flux:radio label="Actif"   value="1" />
                 <flux:radio label="Inactif" value="0" />
             </flux:radio.group>
+
+            <!-- Bouton Réinitialiser - affiché uniquement si des filtres sont appliqués -->
+            @if($filterMarque !== '' || $filterCategorie !== '' || $filterState !== '' || $search !== '')
+                <flux:button wire:click="resetFilters" variant="danger" size="sm" class="whitespace-nowrap">
+                    Réinitialiser
+                </flux:button>
+            @endif
         </div>
     </div>
-
     <flux:card class="p-5 mt-5">
         <!-- Table -->
         <flux:table :paginate="$this->products" variant="bordered">
