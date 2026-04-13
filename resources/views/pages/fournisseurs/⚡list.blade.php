@@ -27,6 +27,8 @@ new class extends Component
     #[Url(as: 'par_page', except: 10)]
     public int    $perPage       = 10;
 
+    public bool $showFilters = false;
+
     public $updatingSupplierId = null;
 
     // Bulk selection
@@ -68,12 +70,18 @@ new class extends Component
         $this->selectAll   = false;
     }
 
+    public function toggleFilters(): void
+    {
+        $this->showFilters = ! $this->showFilters;
+    }
+
     #[On('fournisseur-created')]
     #[On('fournisseur-updated')]
     #[On('fournisseur-deleted')]
     public function refresh(): void
     {
         unset($this->fournisseurs);
+        unset($this->stats);
         $this->resetPage();
         $this->clearSelection();
     }
@@ -117,6 +125,7 @@ new class extends Component
             DB::commit();
 
             unset($this->fournisseurs);
+            unset($this->stats);
 
             $this->dispatch('fournisseur-state-updated', id: $id, state: $newState);
             $this->dispatch('fournisseur-updated');
@@ -151,6 +160,7 @@ new class extends Component
             DB::commit();
 
             unset($this->fournisseurs);
+            unset($this->stats);
             $this->clearSelection();
             $this->dispatch('fournisseur-updated');
 
@@ -179,6 +189,7 @@ new class extends Component
             DB::commit();
 
             unset($this->fournisseurs);
+            unset($this->stats);
             $this->clearSelection();
             $this->dispatch('fournisseur-updated');
 
@@ -221,6 +232,7 @@ new class extends Component
             DB::commit();
 
             unset($this->fournisseurs);
+            unset($this->stats);
             $this->clearSelection();
             $this->dispatch('fournisseur-deleted');
 
@@ -262,6 +274,24 @@ new class extends Component
     }
 
     #[Computed]
+    public function stats()
+    {
+        return [
+            'total'    => Fournisseur::count(),
+            'active'   => Fournisseur::where('state', 1)->count(),
+            'inactive' => Fournisseur::where('state', 0)->count(),
+        ];
+    }
+
+    #[Computed]
+    public function activeFiltersCount(): int
+    {
+        return collect([$this->filterState])
+            ->filter(fn($v) => $v !== '')
+            ->count();
+    }
+
+    #[Computed]
     public function fournisseurs()
     {
         return Fournisseur::query()
@@ -282,23 +312,14 @@ new class extends Component
 ?>
 
 <div>
-    <!-- Header -->
-    <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
-        <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <flux:input
-                wire:model.live.debounce="search"
-                placeholder="Rechercher un fournisseur..."
-                icon="magnifying-glass"
-                class="w-full sm:w-80"
-            />
+    <flux:breadcrumbs class="mb-5">
+        <flux:breadcrumbs.item href="#">Fournisseur</flux:breadcrumbs.item>
+        <flux:breadcrumbs.item>Liste</flux:breadcrumbs.item>
+    </flux:breadcrumbs>
 
-            <flux:select wire:model.live="perPage" class="w-full sm:w-20">
-                <flux:select.option value="5">5</flux:select.option>
-                <flux:select.option value="10">10</flux:select.option>
-                <flux:select.option value="25">25</flux:select.option>
-                <flux:select.option value="50">50</flux:select.option>
-            </flux:select>
-        </div>
+    <!-- Heading + bouton -->
+    <div class="flex items-center justify-between mb-6">
+        <flux:heading size="xl" level="1">{{ __('Fournisseurs') }}</flux:heading>
 
         <flux:modal.trigger name="create-fournisseur">
             <flux:button variant="primary" class="w-full sm:w-auto">
@@ -307,22 +328,25 @@ new class extends Component
         </flux:modal.trigger>
     </div>
 
-    <!-- Filtres -->
-    <div class="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">
-        <flux:radio.group wire:model.live="filterState" variant="segmented">
-            <flux:radio label="Tous" value="" />
-            <flux:radio label="Actif" value="1" />
-            <flux:radio label="Inactif" value="0" />
-        </flux:radio.group>
+    <!-- Stat Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <flux:card class="p-5">
+            <p class="text-sm text-zinc-500">Total Fournisseurs</p>
+            <p class="text-3xl font-bold mt-1">{{ $this->stats['total'] }}</p>
+        </flux:card>
 
-        @if ($search || $filterState !== '' || $perPage !== 10)
-            <flux:button variant="danger" size="sm" wire:click="resetFilters" icon="arrow-path" class="w-full sm:w-auto">
-                Réinitialiser
-            </flux:button>
-        @endif
+        <flux:card class="p-5">
+            <p class="text-sm text-zinc-500">Fournisseurs Actifs</p>
+            <p class="text-3xl font-bold mt-1 text-green-500">{{ $this->stats['active'] }}</p>
+        </flux:card>
+
+        <flux:card class="p-5">
+            <p class="text-sm text-zinc-500">Fournisseurs Inactifs</p>
+            <p class="text-3xl font-bold mt-1 text-zinc-400">{{ $this->stats['inactive'] }}</p>
+        </flux:card>
     </div>
 
-    <!-- Barre d'actions bulk avec wire:transition -->
+    <!-- Barre d'actions bulk -->
     @if (!empty($selectedIds))
         <div
             wire:transition
@@ -371,6 +395,65 @@ new class extends Component
     @endif
 
     <flux:card class="p-5">
+
+        <!-- En-tête tableau : recherche | toggle filtres | per page -->
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
+            <div class="flex items-center gap-2">
+                <flux:input
+                    wire:model.live.debounce="search"
+                    placeholder="Rechercher un fournisseur..."
+                    icon="magnifying-glass"
+                    class="w-full sm:w-80"
+                />
+
+                <!-- Bouton toggle filtres avec badge compteur -->
+                <div class="relative">
+                    <flux:button
+                        wire:click="toggleFilters"
+                        :variant="$showFilters ? 'primary' : 'ghost'"
+                        icon="funnel"
+                        size="sm"
+                    >
+                        Filtres
+                    </flux:button>
+                    @if($this->activeFiltersCount > 0)
+                        <span class="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center w-4 h-4 text-[10px] font-bold leading-none text-white bg-red-500 rounded-full">
+                            {{ $this->activeFiltersCount }}
+                        </span>
+                    @endif
+                </div>
+            </div>
+
+            <flux:select wire:model.live="perPage" class="w-full sm:w-20">
+                <flux:select.option value="5">5</flux:select.option>
+                <flux:select.option value="10">10</flux:select.option>
+                <flux:select.option value="25">25</flux:select.option>
+                <flux:select.option value="50">50</flux:select.option>
+            </flux:select>
+        </div>
+
+        <!-- Panneau de filtres (togglable) -->
+        @if($showFilters)
+            <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 mb-4 bg-zinc-50 dark:bg-zinc-800/50">
+                <div class="flex items-center justify-between mb-3">
+                    <p class="text-sm font-medium text-zinc-700 dark:text-zinc-300">Filtres</p>
+                    @if($this->activeFiltersCount > 0)
+                        <flux:button wire:click="resetFilters" variant="ghost" size="xs" class="text-red-500 hover:text-red-600">
+                            Réinitialiser
+                        </flux:button>
+                    @endif
+                </div>
+
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
+                    <flux:radio.group wire:model.live="filterState" variant="segmented">
+                        <flux:radio label="Tous"    value=""  />
+                        <flux:radio label="Actif"   value="1" />
+                        <flux:radio label="Inactif" value="0" />
+                    </flux:radio.group>
+                </div>
+            </div>
+        @endif
+
         <!-- Table -->
         <flux:table :paginate="$this->fournisseurs" variant="bordered">
             <flux:table.columns>
@@ -571,6 +654,7 @@ new class extends Component
         </flux:table>
 
     </flux:card>
+
     <livewire:pages::fournisseurs.create />
     <livewire:pages::fournisseurs.edit />
     <livewire:pages::fournisseurs.delete />
