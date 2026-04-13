@@ -3,17 +3,33 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Url;
 use App\Models\User;
+use Flux\Flux;
 
 new class extends Component
 {
     use WithPagination;
 
+    #[Url(as: 'tri')]
     public string $sortBy        = 'name';
+
+    #[Url(as: 'ordre')]
     public string $sortDirection = 'asc';
+
+    #[Url(as: 'q', except: '')]
     public string $search        = '';
+
+    #[Url(as: 'statut', except: '')]
+    public string $filterStatus  = '';
+
+    #[Url(as: 'par_page', except: 10)]
     public int    $perPage       = 10;
+
+    #[Url(as: 'supprimes', except: false)]
     public bool   $showTrashed   = false;
+
+    public bool $showFilters = false;
 
     public function sort(string $column): void
     {
@@ -25,9 +41,27 @@ new class extends Component
         }
     }
 
-    public function updatedSearch(): void      { $this->resetPage(); }
-    public function updatedPerPage(): void     { $this->resetPage(); }
-    public function updatedShowTrashed(): void { $this->resetPage(); }
+    public function updatedSearch(): void       { $this->resetPage(); }
+    public function updatedPerPage(): void      { $this->resetPage(); }
+    public function updatedShowTrashed(): void  { $this->resetPage(); }
+    public function updatedFilterStatus(): void { $this->resetPage(); }
+
+    public function toggleFilters(): void
+    {
+        $this->showFilters = ! $this->showFilters;
+    }
+
+    public function resetFilters(): void
+    {
+        $this->reset(['search', 'filterStatus', 'perPage', 'showTrashed']);
+        $this->resetPage();
+
+        Flux::toast(
+            heading: 'Filtres réinitialisés',
+            text: 'Tous les filtres ont été réinitialisés avec succès',
+            variant: 'info'
+        );
+    }
 
     #[On('user-created')]
     #[On('user-updated')]
@@ -36,6 +70,7 @@ new class extends Component
     public function refresh(): void
     {
         unset($this->users);
+        unset($this->stats);
         $this->resetPage();
     }
 
@@ -64,6 +99,26 @@ new class extends Component
     }
 
     #[Computed]
+    public function stats()
+    {
+        return [
+            'total'    => User::count(),
+            'active'   => User::where('status', 'enable')->count(),
+            'inactive' => User::where('status', '!=', 'enable')->count(),
+            'trashed'  => User::onlyTrashed()->count(),
+        ];
+    }
+
+    #[Computed]
+    public function activeFiltersCount(): int
+    {
+        return collect([$this->filterStatus])
+                ->filter(fn($v) => $v !== '')
+                ->count()
+            + ($this->showTrashed ? 1 : 0);
+    }
+
+    #[Computed]
     public function users()
     {
         return User::query()
@@ -74,6 +129,9 @@ new class extends Component
             $query->where('name', 'like', "%{$this->search}%")
                 ->orWhere('email', 'like', "%{$this->search}%")
             )
+            ->when($this->filterStatus !== '', fn($query) =>
+            $query->where('status', $this->filterStatus)
+            )
             ->orderBy($this->sortBy, $this->sortDirection)
             ->paginate($this->perPage);
     }
@@ -81,33 +139,14 @@ new class extends Component
 ?>
 
 <div>
-    <!-- Header -->
-    <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
-        <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <flux:input
-                wire:model.live.debounce="search"
-                placeholder="Rechercher un utilisateur..."
-                icon="magnifying-glass"
-                class="w-full sm:w-80"
-            />
+    <flux:breadcrumbs class="mb-5">
+        <flux:breadcrumbs.item href="#">Utilisateur</flux:breadcrumbs.item>
+        <flux:breadcrumbs.item>List</flux:breadcrumbs.item>
+    </flux:breadcrumbs>
 
-            <flux:select wire:model.live="perPage" class="w-full sm:w-20">
-                <flux:select.option value="5">5</flux:select.option>
-                <flux:select.option value="10">10</flux:select.option>
-                <flux:select.option value="25">25</flux:select.option>
-                <flux:select.option value="50">50</flux:select.option>
-            </flux:select>
-
-            <!-- Toggle trashed -->
-            <flux:tooltip :content="$showTrashed ? 'Masquer les supprimés' : 'Voir les supprimés'">
-                <flux:button
-                    :variant="$showTrashed ? 'primary' : 'ghost'"
-                    icon="trash"
-                    wire:click="$toggle('showTrashed')"
-                    class="w-full sm:w-auto"
-                />
-            </flux:tooltip>
-        </div>
+    <!-- Heading + bouton -->
+    <div class="flex items-center justify-between mb-6">
+        <flux:heading size="xl" level="1">{{ __('Utilisateurs') }}</flux:heading>
 
         @if (!$showTrashed)
             <flux:modal.trigger name="create-user">
@@ -116,6 +155,29 @@ new class extends Component
                 </flux:button>
             </flux:modal.trigger>
         @endif
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="grid grid-cols-4 gap-4 mb-6">
+        <flux:card class="p-5">
+            <p class="text-sm text-zinc-500">Total Utilisateurs</p>
+            <p class="text-3xl font-bold mt-1">{{ $this->stats['total'] }}</p>
+        </flux:card>
+
+        <flux:card class="p-5">
+            <p class="text-sm text-zinc-500">Actifs</p>
+            <p class="text-3xl font-bold mt-1 text-green-500">{{ $this->stats['active'] }}</p>
+        </flux:card>
+
+        <flux:card class="p-5">
+            <p class="text-sm text-zinc-500">Inactifs</p>
+            <p class="text-3xl font-bold mt-1 text-zinc-400">{{ $this->stats['inactive'] }}</p>
+        </flux:card>
+
+        <flux:card class="p-5">
+            <p class="text-sm text-zinc-500">Supprimés</p>
+            <p class="text-3xl font-bold mt-1 text-red-400">{{ $this->stats['trashed'] }}</p>
+        </flux:card>
     </div>
 
     <!-- Bandeau trashed -->
@@ -129,6 +191,78 @@ new class extends Component
     @endif
 
     <flux:card class="p-5">
+
+        <!-- En-tête tableau : recherche | toggle filtres | per page -->
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
+            <div class="flex items-center gap-2">
+                <flux:input
+                    wire:model.live.debounce="search"
+                    placeholder="Rechercher un utilisateur..."
+                    icon="magnifying-glass"
+                    class="w-full sm:w-80"
+                />
+
+                <!-- Bouton toggle filtres avec badge compteur -->
+                <div class="relative">
+                    <flux:button
+                        wire:click="toggleFilters"
+                        :variant="$showFilters ? 'primary' : 'ghost'"
+                        icon="funnel"
+                        size="sm"
+                    >
+                        Filtres
+                    </flux:button>
+                    @if($this->activeFiltersCount > 0)
+                        <span class="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center w-4 h-4 text-[10px] font-bold leading-none text-white bg-red-500 rounded-full">
+                            {{ $this->activeFiltersCount }}
+                        </span>
+                    @endif
+                </div>
+            </div>
+
+            <flux:select wire:model.live="perPage" class="w-full sm:w-20">
+                <flux:select.option value="5">5</flux:select.option>
+                <flux:select.option value="10">10</flux:select.option>
+                <flux:select.option value="25">25</flux:select.option>
+                <flux:select.option value="50">50</flux:select.option>
+            </flux:select>
+        </div>
+
+        <!-- Panneau de filtres (togglable) -->
+        @if($showFilters)
+            <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 mb-4 bg-zinc-50 dark:bg-zinc-800/50">
+                <div class="flex items-center justify-between mb-3">
+                    <p class="text-sm font-medium text-zinc-700 dark:text-zinc-300">Filtres</p>
+                    @if($this->activeFiltersCount > 0)
+                        <flux:button wire:click="resetFilters" variant="ghost" size="xs" class="text-red-500 hover:text-red-600">
+                            Réinitialiser
+                        </flux:button>
+                    @endif
+                </div>
+
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
+                    <!-- Filtre statut -->
+                    <flux:radio.group wire:model.live="filterStatus" variant="segmented">
+                        <flux:radio label="Tous"      value=""         />
+                        <flux:radio label="Actifs"    value="enable"   />
+                        <flux:radio label="Inactifs"  value="disable"  />
+                    </flux:radio.group>
+
+                    <!-- Toggle supprimés -->
+                    <flux:tooltip :content="$showTrashed ? 'Masquer les supprimés' : 'Voir les supprimés'">
+                        <flux:button
+                            :variant="$showTrashed ? 'danger' : 'ghost'"
+                            icon="trash"
+                            size="sm"
+                            wire:click="$toggle('showTrashed')"
+                        >
+                            {{ $showTrashed ? 'Masquer les supprimés' : 'Voir les supprimés' }}
+                        </flux:button>
+                    </flux:tooltip>
+                </div>
+            </div>
+        @endif
+
         <!-- Table -->
         <flux:table :paginate="$this->users" variant="bordered">
             <flux:table.columns>
@@ -181,7 +315,7 @@ new class extends Component
 
             <flux:table.rows>
                 @forelse ($this->users as $user)
-                    <flux:table.row :key="$user->id" class="{{ $showTrashed ? 'opacity-60' : '' }}">
+                    <flux:table.row :key="$user->id" wire:key="user-{{ $user->id }}" class="{{ $showTrashed ? 'opacity-60' : '' }}">
 
                         <!-- Utilisateur -->
                         <flux:table.cell>
@@ -281,17 +415,15 @@ new class extends Component
                                     style="width: 40px; height: 40px;"
                                 />
                                 <p class="text-zinc-400 font-medium text-sm">
-                                    @if ($search)
-                                        Aucun utilisateur trouvé pour "{{ $search }}"
-                                    @elseif ($showTrashed)
-                                        Aucun utilisateur supprimé
+                                    @if ($search || $filterStatus !== '' || $showTrashed)
+                                        Aucun utilisateur trouvé pour ces filtres
                                     @else
                                         Aucun utilisateur enregistré
                                     @endif
                                 </p>
-                                @if ($search)
-                                    <flux:button variant="ghost" size="sm" wire:click="$set('search', '')" class="mt-3">
-                                        Réinitialiser la recherche
+                                @if ($search || $filterStatus !== '')
+                                    <flux:button variant="ghost" size="sm" wire:click="resetFilters" class="mt-3">
+                                        Réinitialiser les filtres
                                     </flux:button>
                                 @endif
                             </div>
