@@ -263,145 +263,147 @@ new class extends Component
         </div>
     </div>
 
-    <!-- Table -->
-    <flux:table :paginate="$this->products" variant="bordered">
-        <flux:table.columns>
-            <flux:table.column
-                sortable
-                :sorted="$sortBy === 'article'"
-                :direction="$sortDirection"
-                wire:click="sort('article')"
-            >
-                Article
-            </flux:table.column>
+    <flux:card class="p-5">
+        <!-- Table -->
+        <flux:table :paginate="$this->products" variant="bordered">
+            <flux:table.columns>
+                <flux:table.column
+                    sortable
+                    :sorted="$sortBy === 'article'"
+                    :direction="$sortDirection"
+                    wire:click="sort('article')"
+                >
+                    Article
+                </flux:table.column>
 
-            <flux:table.column
-                sortable
-                :sorted="$sortBy === 'designation'"
-                :direction="$sortDirection"
-                wire:click="sort('designation')"
-            >
-                Désignation
-            </flux:table.column>
+                <flux:table.column
+                    sortable
+                    :sorted="$sortBy === 'designation'"
+                    :direction="$sortDirection"
+                    wire:click="sort('designation')"
+                >
+                    Désignation
+                </flux:table.column>
 
-            <flux:table.column class="hidden sm:table-cell">Marque</flux:table.column>
-            <flux:table.column class="hidden sm:table-cell">Catégorie</flux:table.column>
+                <flux:table.column class="hidden sm:table-cell">Marque</flux:table.column>
+                <flux:table.column class="hidden sm:table-cell">Catégorie</flux:table.column>
 
-            <flux:table.column
-                sortable
-                :sorted="$sortBy === 'type_id'"
-                :direction="$sortDirection"
-                wire:click="sort('type_id')"
-                class="hidden md:table-cell"
-            >
-                Type
-            </flux:table.column>
+                <flux:table.column
+                    sortable
+                    :sorted="$sortBy === 'type_id'"
+                    :direction="$sortDirection"
+                    wire:click="sort('type_id')"
+                    class="hidden md:table-cell"
+                >
+                    Type
+                </flux:table.column>
 
-            <flux:table.column class="text-center">État</flux:table.column>
-            <flux:table.column></flux:table.column>
-        </flux:table.columns>
+                <flux:table.column class="text-center">État</flux:table.column>
+                <flux:table.column></flux:table.column>
+            </flux:table.columns>
 
-        <flux:table.rows>
-            @forelse ($this->products as $product)
-                <flux:table.row :key="$product->id" wire:key="product-{{ $product->id }}">
+            <flux:table.rows>
+                @forelse ($this->products as $product)
+                    <flux:table.row :key="$product->id" wire:key="product-{{ $product->id }}">
 
-                    <!-- Article -->
-                    <flux:table.cell>
-                        <flux:badge size="sm" color="zinc" inset="top bottom">
-                            {{ $product->article ?? $product->product_code }}
-                        </flux:badge>
-                        @if($product->EAN)
-                            <p class="text-xs text-zinc-400 mt-0.5">EAN: {{ $product->EAN }}</p>
-                        @endif
-                    </flux:table.cell>
-
-                    <!-- Désignation -->
-                    <flux:table.cell>
-                        <p class="font-medium text-sm">{{ $product->designation }}</p>
-                        @if($product->designation_variant)
-                            <p class="text-xs text-zinc-400 mt-0.5">{{ $product->designation_variant }}</p>
-                        @endif
-                        @if($product->ref_fabri_n_1)
-                            <p class="text-xs text-zinc-400 mt-0.5">Réf: {{ $product->ref_fabri_n_1 }}</p>
-                        @endif
-                        <!-- Infos mobiles -->
-                        <div class="text-xs text-zinc-400 mt-1 sm:hidden">
-                            <div>Marque: {{ $product->marque?->name ?? 'N/A' }}</div>
-                            <div>Catégorie: {{ $product->categorie?->name ?? 'N/A' }}</div>
-                            @if($product->type)
-                                <div>Type: {{ $product->type->name ?? 'N/A' }}</div>
+                        <!-- Article -->
+                        <flux:table.cell>
+                            <flux:badge size="sm" color="zinc" inset="top bottom">
+                                {{ $product->article ?? $product->product_code }}
+                            </flux:badge>
+                            @if($product->EAN)
+                                <p class="text-xs text-zinc-400 mt-0.5">EAN: {{ $product->EAN }}</p>
                             @endif
-                            <div>État: {{ $product->state == 1 ? 'Actif' : 'Inactif' }}</div>
-                        </div>
-                    </flux:table.cell>
+                        </flux:table.cell>
 
-                    <!-- Marque -->
-                    <flux:table.cell class="hidden sm:table-cell">
-                        <span class="text-sm">{{ $product->marque?->name ?? '-' }}</span>
-                    </flux:table.cell>
+                        <!-- Désignation -->
+                        <flux:table.cell>
+                            <p class="font-medium text-sm">{{ $product->designation }}</p>
+                            @if($product->designation_variant)
+                                <p class="text-xs text-zinc-400 mt-0.5">{{ $product->designation_variant }}</p>
+                            @endif
+                            @if($product->ref_fabri_n_1)
+                                <p class="text-xs text-zinc-400 mt-0.5">Réf: {{ $product->ref_fabri_n_1 }}</p>
+                            @endif
+                            <!-- Infos mobiles -->
+                            <div class="text-xs text-zinc-400 mt-1 sm:hidden">
+                                <div>Marque: {{ $product->marque?->name ?? 'N/A' }}</div>
+                                <div>Catégorie: {{ $product->categorie?->name ?? 'N/A' }}</div>
+                                @if($product->type)
+                                    <div>Type: {{ $product->type->name ?? 'N/A' }}</div>
+                                @endif
+                                <div>État: {{ $product->state == 1 ? 'Actif' : 'Inactif' }}</div>
+                            </div>
+                        </flux:table.cell>
 
-                    <!-- Catégorie -->
-                    <flux:table.cell class="hidden sm:table-cell">
-                        <span class="text-sm">{{ $product->categorie?->name ?? '-' }}</span>
-                    </flux:table.cell>
+                        <!-- Marque -->
+                        <flux:table.cell class="hidden sm:table-cell">
+                            <span class="text-sm">{{ $product->marque?->name ?? '-' }}</span>
+                        </flux:table.cell>
 
-                    <!-- Type -->
-                    <flux:table.cell class="hidden md:table-cell">
-                        <span class="text-sm">{{ $product->type?->name ?? '-' }}</span>
-                    </flux:table.cell>
+                        <!-- Catégorie -->
+                        <flux:table.cell class="hidden sm:table-cell">
+                            <span class="text-sm">{{ $product->categorie?->name ?? '-' }}</span>
+                        </flux:table.cell>
 
-                    <!-- État -->
-                    <flux:table.cell class="text-center">
-                        <div class="flex items-center justify-center">
-                            @if($updatingProductId === $product->id)
-                                <svg class="animate-spin h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                                </svg>
-                            @else
-                                <button
-                                    wire:click="toggleState({{ $product->id }})"
-                                    type="button"
-                                    role="switch"
-                                    aria-checked="{{ $product->state == 1 ? 'true' : 'false' }}"
-                                    class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 hover:opacity-80"
-                                    style="background-color: {{ $product->state == 1 ? '#22c55e' : '#d1d5db' }}"
-                                >
+                        <!-- Type -->
+                        <flux:table.cell class="hidden md:table-cell">
+                            <span class="text-sm">{{ $product->type?->name ?? '-' }}</span>
+                        </flux:table.cell>
+
+                        <!-- État -->
+                        <flux:table.cell class="text-center">
+                            <div class="flex items-center justify-center">
+                                @if($updatingProductId === $product->id)
+                                    <svg class="animate-spin h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                                    </svg>
+                                @else
+                                    <button
+                                        wire:click="toggleState({{ $product->id }})"
+                                        type="button"
+                                        role="switch"
+                                        aria-checked="{{ $product->state == 1 ? 'true' : 'false' }}"
+                                        class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 hover:opacity-80"
+                                        style="background-color: {{ $product->state == 1 ? '#22c55e' : '#d1d5db' }}"
+                                    >
                                     <span
                                         class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
                                         style="transform: translateX({{ $product->state == 1 ? '24px' : '4px' }})"
                                     />
-                                </button>
-                            @endif
-                        </div>
-                        <span class="sr-only">{{ $product->state == 1 ? 'Actif' : 'Inactif' }}</span>
-                    </flux:table.cell>
-
-                </flux:table.row>
-
-            @empty
-                <flux:table.row>
-                    <flux:table.cell colspan="7">
-                        <div class="flex flex-col items-center justify-center py-12 text-center">
-                            <flux:icon name="cube" class="text-zinc-400 mb-3" style="width: 40px; height: 40px;" />
-                            <p class="text-zinc-400 font-medium text-sm">
-                                @if ($search || $filterState !== '' || $filterMarque !== '' || $filterCategorie !== '')
-                                    Aucun produit trouvé pour ces filtres
-                                @else
-                                    Aucun produit enregistré
+                                    </button>
                                 @endif
-                            </p>
-                            @if ($search || $filterState !== '' || $filterMarque !== '' || $filterCategorie !== '')
-                                <flux:button variant="ghost" size="sm" wire:click="resetFilters" class="mt-3">
-                                    Réinitialiser les filtres
-                                </flux:button>
-                            @endif
-                        </div>
-                    </flux:table.cell>
-                </flux:table.row>
-            @endforelse
-        </flux:table.rows>
-    </flux:table>
+                            </div>
+                            <span class="sr-only">{{ $product->state == 1 ? 'Actif' : 'Inactif' }}</span>
+                        </flux:table.cell>
 
+                    </flux:table.row>
+
+                @empty
+                    <flux:table.row>
+                        <flux:table.cell colspan="7">
+                            <div class="flex flex-col items-center justify-center py-12 text-center">
+                                <flux:icon name="cube" class="text-zinc-400 mb-3" style="width: 40px; height: 40px;" />
+                                <p class="text-zinc-400 font-medium text-sm">
+                                    @if ($search || $filterState !== '' || $filterMarque !== '' || $filterCategorie !== '')
+                                        Aucun produit trouvé pour ces filtres
+                                    @else
+                                        Aucun produit enregistré
+                                    @endif
+                                </p>
+                                @if ($search || $filterState !== '' || $filterMarque !== '' || $filterCategorie !== '')
+                                    <flux:button variant="ghost" size="sm" wire:click="resetFilters" class="mt-3">
+                                        Réinitialiser les filtres
+                                    </flux:button>
+                                @endif
+                            </div>
+                        </flux:table.cell>
+                    </flux:table.row>
+                @endforelse
+            </flux:table.rows>
+        </flux:table>
+
+    </flux:card>
     <livewire:pages::products.parkod />
 </div>
