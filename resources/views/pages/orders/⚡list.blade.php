@@ -98,36 +98,9 @@ new class extends Component
         $this->dispatch('delete-commande', id: $id);
     }
 
-    #[Computed]
-    public function stats()
-    {
-        return [
-            'total'      => Commande::count(),
-            'crees'      => Commande::where('status', 1)->count(),
-            'facturees'  => Commande::where('status', 2)->count(),
-            'montant'    => Commande::sum('montant_total'),
-        ];
-    }
-
-    #[Computed]
-    public function activeFiltersCount(): int
-    {
-        return collect([$this->filterStatus, $this->filterEtat, $this->filterFournisseur, $this->filterDateFrom, $this->filterDateTo])
-            ->filter(fn($v) => $v !== '')
-            ->count();
-    }
-
-    #[Computed]
-    public function fournisseurs()
-    {
-        return Fournisseur::orderBy('name')->get();
-    }
-
-    #[Computed]
-    public function commandes()
+    private function baseQuery()
     {
         return Commande::query()
-            ->with(['fournisseur', 'magasinLivraison'])
             ->when($this->search, fn($q) =>
             $q->where('libelle', 'like', "%{$this->search}%")
                 ->orWhereHas('fournisseur', fn($q) =>
@@ -148,7 +121,58 @@ new class extends Component
             )
             ->when($this->filterDateTo !== '', fn($q) =>
             $q->whereDate('created_at', '<=', $this->filterDateTo)
+            );
+    }
+
+    private function statsQuery()
+    {
+        return Commande::query()
+            ->when($this->filterEtat !== '', fn($q) =>
+            $q->where('etat', $this->filterEtat)
             )
+            ->when($this->filterFournisseur !== '', fn($q) =>
+            $q->where('fournisseur_id', $this->filterFournisseur)
+            )
+            ->when($this->filterDateFrom !== '', fn($q) =>
+            $q->whereDate('created_at', '>=', $this->filterDateFrom)
+            )
+            ->when($this->filterDateTo !== '', fn($q) =>
+            $q->whereDate('created_at', '<=', $this->filterDateTo)
+            );
+    }
+
+    #[Computed]
+    public function stats()
+    {
+        $base = $this->statsQuery();
+
+        return [
+            'total'      => (clone $base)->count(),
+            'crees'      => (clone $base)->where('status', 1)->count(),
+            'facturees'  => (clone $base)->where('status', 2)->count(),
+            'montant'    => (clone $base)->sum('montant_total'),
+        ];
+    }
+
+    #[Computed]
+    public function activeFiltersCount(): int
+    {
+        return collect([$this->filterStatus, $this->filterEtat, $this->filterFournisseur, $this->filterDateFrom, $this->filterDateTo])
+            ->filter(fn($v) => $v !== '')
+            ->count();
+    }
+
+    #[Computed]
+    public function fournisseurs()
+    {
+        return Fournisseur::orderBy('name')->get();
+    }
+
+    #[Computed]
+    public function commandes()
+    {
+        return $this->baseQuery()
+            ->with(['fournisseur', 'magasinLivraison'])
             ->orderBy($this->sortBy, $this->sortDirection)
             ->paginate($this->perPage);
     }
