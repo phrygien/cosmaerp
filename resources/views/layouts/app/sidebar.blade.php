@@ -49,6 +49,21 @@
                 {{ __('Magasin') }}
             </flux:sidebar.item>
 
+            <flux:sidebar.group
+                expandable
+                icon="clipboard-document-list"
+                heading="Commandes"
+                class="grid"
+                :expanded="request()->routeIs('orders.*')"
+            >
+                <flux:sidebar.item href="{{ route('orders.list') }}" wire:navigate>
+                    {{ __('Commandes') }}
+                </flux:sidebar.item>
+
+                <flux:sidebar.item href="{{ route('orders.create') }}" wire:navigate>
+                    {{ __('Nouvelle') }}
+                </flux:sidebar.item>
+            </flux:sidebar.group>
 
         </flux:sidebar.nav>
 

@@ -36,6 +36,8 @@ new class extends Component
     #[Url(as: 'categorie', except: '')]
     public string $filterCategorie = '';
 
+    public bool $showFilters = false;
+
     public $updatingProductId = null;
 
     public function sort(string $column): void
@@ -58,6 +60,11 @@ new class extends Component
     }
     public function updatedFilterCategorie(): void { $this->resetPage(); }
 
+    public function toggleFilters(): void
+    {
+        $this->showFilters = ! $this->showFilters;
+    }
+
     #[On('product-created')]
     #[On('product-updated')]
     #[On('product-deleted')]
@@ -67,6 +74,7 @@ new class extends Component
         unset($this->products);
         unset($this->marquesList);
         unset($this->categoriesList);
+        unset($this->stats);
         $this->resetPage();
     }
 
@@ -108,6 +116,7 @@ new class extends Component
             DB::commit();
 
             unset($this->products);
+            unset($this->stats);
 
             $this->dispatch('product-state-updated', id: $id, state: $newState);
 
@@ -128,6 +137,16 @@ new class extends Component
         } finally {
             $this->updatingProductId = null;
         }
+    }
+
+    #[Computed]
+    public function stats()
+    {
+        return [
+            'total'    => Product::count(),
+            'active'   => Product::where('state', 1)->count(),
+            'inactive' => Product::where('state', 0)->count(),
+        ];
     }
 
     #[Computed]
@@ -177,6 +196,14 @@ new class extends Component
     }
 
     #[Computed]
+    public function activeFiltersCount(): int
+    {
+        return collect([$this->filterState, $this->filterMarque, $this->filterCategorie])
+            ->filter(fn($v) => $v !== '')
+            ->count();
+    }
+
+    #[Computed]
     public function marquesList()
     {
         return Marque::query()
@@ -197,15 +224,69 @@ new class extends Component
 ?>
 
 <div>
-    <!-- Header -->
-    <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
-        <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <flux:input
-                wire:model.live.debounce.400ms="search"
-                placeholder="Rechercher un produit..."
-                icon="magnifying-glass"
-                class="w-full sm:w-72"
-            />
+    <flux:breadcrumbs class="mb-5">
+        <flux:breadcrumbs.item href="#">Produit</flux:breadcrumbs.item>
+        <flux:breadcrumbs.item>List</flux:breadcrumbs.item>
+    </flux:breadcrumbs>
+
+    <div class="flex items-center justify-between mb-6">
+        <flux:heading size="xl" level="1">{{ __('Produit') }}</flux:heading>
+
+        <flux:modal.trigger name="importer-parkod">
+            <flux:button variant="primary" class="w-full sm:w-auto" icon="arrow-up-on-square-stack">
+                Importer un fichier PARKOD
+            </flux:button>
+        </flux:modal.trigger>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <flux:card class="p-5">
+            <p class="text-sm text-zinc-500">Total Produits</p>
+            <p class="text-3xl font-bold mt-1">{{ $this->stats['total'] }}</p>
+        </flux:card>
+
+        <flux:card class="p-5">
+            <p class="text-sm text-zinc-500">Produits Actifs</p>
+            <p class="text-3xl font-bold mt-1 text-green-500">{{ $this->stats['active'] }}</p>
+        </flux:card>
+
+        <flux:card class="p-5">
+            <p class="text-sm text-zinc-500">Produits Inactifs</p>
+            <p class="text-3xl font-bold mt-1 text-zinc-400">{{ $this->stats['inactive'] }}</p>
+        </flux:card>
+    </div>
+
+    <flux:card class="p-5 mt-5">
+
+        <!-- En-tête du tableau : recherche | toggle filtres | per page -->
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
+            <div class="flex items-center gap-2">
+                <flux:input
+                    wire:model.live.debounce.400ms="search"
+                    placeholder="Rechercher un produit..."
+                    icon="magnifying-glass"
+                    class="w-full sm:w-72"
+                />
+
+                <!-- Bouton toggle filtres avec badge compteur -->
+                <div class="relative">
+                    <flux:button
+                        wire:click="toggleFilters"
+                        :variant="$showFilters ? 'primary' : 'ghost'"
+                        icon="funnel"
+                        size="sm"
+                        class="relative"
+                    >
+                        Filtres
+                    </flux:button>
+                    @if($this->activeFiltersCount > 0)
+                        <span class="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center w-4 h-4 text-[10px] font-bold leading-none text-white bg-red-500 rounded-full">
+                            {{ $this->activeFiltersCount }}
+                        </span>
+                    @endif
+                </div>
+            </div>
 
             <flux:select wire:model.live="perPage" class="w-full sm:w-20">
                 <flux:select.option value="5">5</flux:select.option>
@@ -215,53 +296,53 @@ new class extends Component
             </flux:select>
         </div>
 
-        <flux:modal.trigger name="importer-parkod">
-            <flux:button variant="primary" class="w-full sm:w-auto" icon="arrow-up-on-square-stack">
-                Importer un fichier PARKOD
-            </flux:button>
-        </flux:modal.trigger>
-    </div>
+        <!-- Panneau de filtres (togglable) -->
+        @if($showFilters)
+            <div
+                x-data
+                x-init="$el.classList.add('animate-fade-in')"
+                class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 mb-4 bg-zinc-50 dark:bg-zinc-800/50"
+            >
+                <div class="flex items-center justify-between mb-3">
+                    <p class="text-sm font-medium text-zinc-700 dark:text-zinc-300">Filtres</p>
+                    @if($this->activeFiltersCount > 0)
+                        <flux:button wire:click="resetFilters" variant="ghost" size="xs" class="text-red-500 hover:text-red-600">
+                            Réinitialiser
+                        </flux:button>
+                    @endif
+                </div>
 
-    <!-- Filtres -->
-    <div class="flex flex-col gap-3 mb-4">
-        <!-- Filtres marque / catégorie avec bouton sur la même ligne -->
-        <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <flux:select wire:model.live="filterMarque" placeholder="Toutes les marques" class="w-full sm:w-64">
-                <flux:select.option value="">Toutes les marques</flux:select.option>
-                @foreach ($this->marquesList as $marque)
-                    <flux:select.option value="{{ $marque->code }}">
-                        {{ $marque->name }} ({{ $marque->code }})
-                    </flux:select.option>
-                @endforeach
-            </flux:select>
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
+                    <flux:select wire:model.live="filterMarque" placeholder="Toutes les marques" class="w-full sm:w-56">
+                        <flux:select.option value="">Toutes les marques</flux:select.option>
+                        @foreach ($this->marquesList as $marque)
+                            <flux:select.option value="{{ $marque->code }}">
+                                {{ $marque->name }} ({{ $marque->code }})
+                            </flux:select.option>
+                        @endforeach
+                    </flux:select>
 
-            <flux:select wire:model.live="filterCategorie" placeholder="Toutes les catégories" class="w-full sm:w-64">
-                <flux:select.option value="">Toutes les catégories</flux:select.option>
-                @foreach ($this->categoriesList as $categorie)
-                    <flux:select.option value="{{ $categorie->code }}">
-                        {{ $categorie->name }}
-                        @if($categorie->marque)
-                            ({{ $categorie->marque->name }})
-                        @endif
-                    </flux:select.option>
-                @endforeach
-            </flux:select>
+                    <flux:select wire:model.live="filterCategorie" placeholder="Toutes les catégories" class="w-full sm:w-56">
+                        <flux:select.option value="">Toutes les catégories</flux:select.option>
+                        @foreach ($this->categoriesList as $categorie)
+                            <flux:select.option value="{{ $categorie->code }}">
+                                {{ $categorie->name }}
+                                @if($categorie->marque)
+                                    ({{ $categorie->marque->name }})
+                                @endif
+                            </flux:select.option>
+                        @endforeach
+                    </flux:select>
 
-            <flux:radio.group wire:model.live="filterState" variant="segmented">
-                <flux:radio label="Tous"    value=""  />
-                <flux:radio label="Actif"   value="1" />
-                <flux:radio label="Inactif" value="0" />
-            </flux:radio.group>
+                    <flux:radio.group wire:model.live="filterState" variant="segmented">
+                        <flux:radio label="Tous"    value=""  />
+                        <flux:radio label="Actif"   value="1" />
+                        <flux:radio label="Inactif" value="0" />
+                    </flux:radio.group>
+                </div>
+            </div>
+        @endif
 
-            <!-- Bouton Réinitialiser - affiché uniquement si des filtres sont appliqués -->
-            @if($filterMarque !== '' || $filterCategorie !== '' || $filterState !== '' || $search !== '')
-                <flux:button wire:click="resetFilters" variant="danger" size="sm" class="whitespace-nowrap">
-                    Réinitialiser
-                </flux:button>
-            @endif
-        </div>
-    </div>
-    <flux:card class="p-5 mt-5">
         <!-- Table -->
         <flux:table :paginate="$this->products" variant="bordered">
             <flux:table.columns>
@@ -401,7 +482,7 @@ new class extends Component
                 @endforelse
             </flux:table.rows>
         </flux:table>
-
     </flux:card>
+
     <livewire:pages::products.parkod />
 </div>
