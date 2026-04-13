@@ -377,22 +377,6 @@ new class extends Component
                         <span class="sr-only">{{ $product->state == 1 ? 'Actif' : 'Inactif' }}</span>
                     </flux:table.cell>
 
-                    <!-- Actions -->
-                    <flux:table.cell>
-                        <flux:dropdown>
-                            <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom" />
-                            <flux:menu>
-                                <flux:menu.item icon="pencil" wire:click="edit({{ $product->id }})">
-                                    Modifier
-                                </flux:menu.item>
-                                <flux:menu.separator />
-                                <flux:menu.item icon="trash" variant="danger" wire:click="confirmDelete({{ $product->id }})">
-                                    Supprimer
-                                </flux:menu.item>
-                            </flux:menu>
-                        </flux:dropdown>
-                    </flux:table.cell>
-
                 </flux:table.row>
 
             @empty
