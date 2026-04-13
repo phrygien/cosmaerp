@@ -149,124 +149,126 @@ new class extends Component
         @endif
     </div>
 
-    <!-- Table -->
-    <flux:table :paginate="$this->categories" variant="bordered">
-        <flux:table.columns>
-            <flux:table.column
-                sortable
-                :sorted="$sortBy === 'code'"
-                :direction="$sortDirection"
-                wire:click="sort('code')"
-            >
-                Code
-            </flux:table.column>
+    <flux:card clas="p-5">
+        <!-- Table -->
+        <flux:table :paginate="$this->categories" variant="bordered">
+            <flux:table.columns>
+                <flux:table.column
+                    sortable
+                    :sorted="$sortBy === 'code'"
+                    :direction="$sortDirection"
+                    wire:click="sort('code')"
+                >
+                    Code
+                </flux:table.column>
 
-            <flux:table.column
-                sortable
-                :sorted="$sortBy === 'name'"
-                :direction="$sortDirection"
-                wire:click="sort('name')"
-            >
-                Nom
-            </flux:table.column>
+                <flux:table.column
+                    sortable
+                    :sorted="$sortBy === 'name'"
+                    :direction="$sortDirection"
+                    wire:click="sort('name')"
+                >
+                    Nom
+                </flux:table.column>
 
-            <flux:table.column class="hidden sm:table-cell">
-                Marque
-            </flux:table.column>
+                <flux:table.column class="hidden sm:table-cell">
+                    Marque
+                </flux:table.column>
 
-            <flux:table.column
-                sortable
-                :sorted="$sortBy === 'state'"
-                :direction="$sortDirection"
-                wire:click="sort('state')"
-            >
-                État
-            </flux:table.column>
+                <flux:table.column
+                    sortable
+                    :sorted="$sortBy === 'state'"
+                    :direction="$sortDirection"
+                    wire:click="sort('state')"
+                >
+                    État
+                </flux:table.column>
 
-            <flux:table.column></flux:table.column>
-        </flux:table.columns>
+                <flux:table.column></flux:table.column>
+            </flux:table.columns>
 
-        <flux:table.rows>
-            @forelse ($this->categories as $category)
-                <flux:table.row :key="$category->code">
+            <flux:table.rows>
+                @forelse ($this->categories as $category)
+                    <flux:table.row :key="$category->code">
 
-                    <!-- Code -->
-                    <flux:table.cell>
-                        <flux:badge size="sm" color="zinc" inset="top bottom">
-                            {{ $category->code }}
-                        </flux:badge>
-                    </flux:table.cell>
-
-                    <!-- Nom -->
-                    <flux:table.cell>
-                        <p class="font-medium text-sm">{{ $category->name }}</p>
-                        <!-- Marque visible en mobile uniquement -->
-                        <p class="text-xs text-zinc-400 mt-0.5 sm:hidden">
-                            {{ $category->marque?->name ?? '—' }}
-                        </p>
-                    </flux:table.cell>
-
-                    <!-- Marque cachée en mobile -->
-                    <flux:table.cell class="hidden sm:table-cell">
-                        @if ($category->marque)
-                            <flux:badge size="sm" color="blue" inset="top bottom">
-                                {{ $category->marque->name }}
+                        <!-- Code -->
+                        <flux:table.cell>
+                            <flux:badge size="sm" color="zinc" inset="top bottom">
+                                {{ $category->code }}
                             </flux:badge>
-                        @else
-                            <span class="text-zinc-400 text-sm">—</span>
-                        @endif
-                    </flux:table.cell>
+                        </flux:table.cell>
 
-                    <!-- État -->
-                    <flux:table.cell>
-                        @if ($category->state == 1)
-                            <flux:badge size="sm" color="green" inset="top bottom">Actif</flux:badge>
-                        @else
-                            <flux:badge size="sm" color="red" inset="top bottom">Inactif</flux:badge>
-                        @endif
-                    </flux:table.cell>
-
-                    <!-- Actions -->
-                    <flux:table.cell>
-                        <flux:dropdown>
-                            <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom" />
-                            <flux:menu>
-                                <flux:menu.item icon="pencil" wire:click="edit('{{ $category->code }}')">
-                                    Modifier
-                                </flux:menu.item>
-                                <flux:menu.separator />
-                                <flux:menu.item icon="trash" variant="danger" wire:click="confirmDelete('{{ $category->code }}')">
-                                    Supprimer
-                                </flux:menu.item>
-                            </flux:menu>
-                        </flux:dropdown>
-                    </flux:table.cell>
-
-                </flux:table.row>
-
-            @empty
-                <flux:table.row>
-                    <flux:table.cell colspan="5">
-                        <div class="flex flex-col items-center justify-center py-12 text-center">
-                            <flux:icon name="tag" class="text-zinc-400 mb-3" style="width: 40px; height: 40px;" />
-                            <p class="text-zinc-400 font-medium text-sm">
-                                @if ($search || $filterState !== '' || $filterMarque)
-                                    Aucune catégorie trouvée pour ces filtres
-                                @else
-                                    Aucune catégorie enregistrée
-                                @endif
+                        <!-- Nom -->
+                        <flux:table.cell>
+                            <p class="font-medium text-sm">{{ $category->name }}</p>
+                            <!-- Marque visible en mobile uniquement -->
+                            <p class="text-xs text-zinc-400 mt-0.5 sm:hidden">
+                                {{ $category->marque?->name ?? '—' }}
                             </p>
-                            @if ($search || $filterState !== '' || $filterMarque)
-                                <flux:button variant="ghost" size="sm" wire:click="resetFilters" class="mt-3">
-                                    Réinitialiser les filtres
-                                </flux:button>
+                        </flux:table.cell>
+
+                        <!-- Marque cachée en mobile -->
+                        <flux:table.cell class="hidden sm:table-cell">
+                            @if ($category->marque)
+                                <flux:badge size="sm" color="blue" inset="top bottom">
+                                    {{ $category->marque->name }}
+                                </flux:badge>
+                            @else
+                                <span class="text-zinc-400 text-sm">—</span>
                             @endif
-                        </div>
-                    </flux:table.cell>
-                </flux:table.row>
-            @endforelse
-        </flux:table.rows>
-    </flux:table>
+                        </flux:table.cell>
+
+                        <!-- État -->
+                        <flux:table.cell>
+                            @if ($category->state == 1)
+                                <flux:badge size="sm" color="green" inset="top bottom">Actif</flux:badge>
+                            @else
+                                <flux:badge size="sm" color="red" inset="top bottom">Inactif</flux:badge>
+                            @endif
+                        </flux:table.cell>
+
+                        <!-- Actions -->
+                        <flux:table.cell>
+                            <flux:dropdown>
+                                <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom" />
+                                <flux:menu>
+                                    <flux:menu.item icon="pencil" wire:click="edit('{{ $category->code }}')">
+                                        Modifier
+                                    </flux:menu.item>
+                                    <flux:menu.separator />
+                                    <flux:menu.item icon="trash" variant="danger" wire:click="confirmDelete('{{ $category->code }}')">
+                                        Supprimer
+                                    </flux:menu.item>
+                                </flux:menu>
+                            </flux:dropdown>
+                        </flux:table.cell>
+
+                    </flux:table.row>
+
+                @empty
+                    <flux:table.row>
+                        <flux:table.cell colspan="5">
+                            <div class="flex flex-col items-center justify-center py-12 text-center">
+                                <flux:icon name="tag" class="text-zinc-400 mb-3" style="width: 40px; height: 40px;" />
+                                <p class="text-zinc-400 font-medium text-sm">
+                                    @if ($search || $filterState !== '' || $filterMarque)
+                                        Aucune catégorie trouvée pour ces filtres
+                                    @else
+                                        Aucune catégorie enregistrée
+                                    @endif
+                                </p>
+                                @if ($search || $filterState !== '' || $filterMarque)
+                                    <flux:button variant="ghost" size="sm" wire:click="resetFilters" class="mt-3">
+                                        Réinitialiser les filtres
+                                    </flux:button>
+                                @endif
+                            </div>
+                        </flux:table.cell>
+                    </flux:table.row>
+                @endforelse
+            </flux:table.rows>
+        </flux:table>
+    </flux:card>
 
     <livewire:pages::categories.create />
     <livewire:pages::categories.edit />

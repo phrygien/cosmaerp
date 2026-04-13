@@ -87,139 +87,142 @@ new class extends Component {
         </flux:modal.trigger>
     </div>
 
-    <flux:table :paginate="$this->permissions" variant="bordered">
-        <flux:table.columns>
-            <flux:table.column
-                sortable
-                :sorted="$sortBy === 'name'"
-                :direction="$sortDirection"
-                wire:click="sort('name')"
-            >
-                Nom
-            </flux:table.column>
+    <flux:card class="p-5">
+        <flux:table :paginate="$this->permissions" variant="bordered">
+            <flux:table.columns>
+                <flux:table.column
+                    sortable
+                    :sorted="$sortBy === 'name'"
+                    :direction="$sortDirection"
+                    wire:click="sort('name')"
+                >
+                    Nom
+                </flux:table.column>
 
-            <flux:table.column
-                sortable
-                :sorted="$sortBy === 'slug'"
-                :direction="$sortDirection"
-                wire:click="sort('slug')"
-                class="hidden sm:table-cell"
-            >
-                Slug
-            </flux:table.column>
+                <flux:table.column
+                    sortable
+                    :sorted="$sortBy === 'slug'"
+                    :direction="$sortDirection"
+                    wire:click="sort('slug')"
+                    class="hidden sm:table-cell"
+                >
+                    Slug
+                </flux:table.column>
 
-            <flux:table.column
-                sortable
-                :sorted="$sortBy === 'group'"
-                :direction="$sortDirection"
-                wire:click="sort('group')"
-                class="hidden md:table-cell"
-            >
-                Groupe
-            </flux:table.column>
+                <flux:table.column
+                    sortable
+                    :sorted="$sortBy === 'group'"
+                    :direction="$sortDirection"
+                    wire:click="sort('group')"
+                    class="hidden md:table-cell"
+                >
+                    Groupe
+                </flux:table.column>
 
-            <flux:table.column class="hidden lg:table-cell">
-                Rôles
-            </flux:table.column>
+                <flux:table.column class="hidden lg:table-cell">
+                    Rôles
+                </flux:table.column>
 
-            <flux:table.column></flux:table.column>
-        </flux:table.columns>
+                <flux:table.column></flux:table.column>
+            </flux:table.columns>
 
-        <flux:table.rows>
-            @forelse ($this->permissions as $permission)
-                <flux:table.row :key="$permission->id">
+            <flux:table.rows>
+                @forelse ($this->permissions as $permission)
+                    <flux:table.row :key="$permission->id">
 
-                    <!-- Nom -->
-                    <flux:table.cell>
-                        <p class="font-medium text-sm">{{ $permission->name }}</p>
-                        <!-- Slug visible en mobile uniquement -->
-                        <p class="mt-0.5 sm:hidden">
+                        <!-- Nom -->
+                        <flux:table.cell>
+                            <p class="font-medium text-sm">{{ $permission->name }}</p>
+                            <!-- Slug visible en mobile uniquement -->
+                            <p class="mt-0.5 sm:hidden">
+                                <flux:badge size="sm" color="zinc" inset="top bottom">
+                                    {{ $permission->slug }}
+                                </flux:badge>
+                            </p>
+                            <!-- Groupe visible en mobile/tablet uniquement -->
+                            <p class="text-xs text-zinc-400 mt-0.5 md:hidden">
+                                {{ $permission->group ?? '—' }}
+                            </p>
+                            <!-- Rôles visibles en mobile/tablet/desktop uniquement -->
+                            <div class="flex flex-wrap gap-1 mt-1 lg:hidden">
+                                @forelse ($permission->roles as $role)
+                                    <flux:badge size="sm" color="blue" inset="top bottom">
+                                        {{ $role->name }}
+                                    </flux:badge>
+                                @empty
+                                    <span class="text-zinc-400 text-xs">Aucun rôle</span>
+                                @endforelse
+                            </div>
+                        </flux:table.cell>
+
+                        <!-- Slug caché en mobile -->
+                        <flux:table.cell class="hidden sm:table-cell whitespace-nowrap">
                             <flux:badge size="sm" color="zinc" inset="top bottom">
                                 {{ $permission->slug }}
                             </flux:badge>
-                        </p>
-                        <!-- Groupe visible en mobile/tablet uniquement -->
-                        <p class="text-xs text-zinc-400 mt-0.5 md:hidden">
+                        </flux:table.cell>
+
+                        <!-- Groupe caché en mobile/tablet -->
+                        <flux:table.cell class="hidden md:table-cell text-zinc-400">
                             {{ $permission->group ?? '—' }}
-                        </p>
-                        <!-- Rôles visibles en mobile/tablet/desktop uniquement -->
-                        <div class="flex flex-wrap gap-1 mt-1 lg:hidden">
-                            @forelse ($permission->roles as $role)
-                                <flux:badge size="sm" color="blue" inset="top bottom">
-                                    {{ $role->name }}
-                                </flux:badge>
-                            @empty
-                                <span class="text-zinc-400 text-xs">Aucun rôle</span>
-                            @endforelse
-                        </div>
-                    </flux:table.cell>
+                        </flux:table.cell>
 
-                    <!-- Slug caché en mobile -->
-                    <flux:table.cell class="hidden sm:table-cell whitespace-nowrap">
-                        <flux:badge size="sm" color="zinc" inset="top bottom">
-                            {{ $permission->slug }}
-                        </flux:badge>
-                    </flux:table.cell>
+                        <!-- Rôles cachés en mobile/tablet/desktop -->
+                        <flux:table.cell class="hidden lg:table-cell">
+                            <div class="flex flex-wrap gap-1">
+                                @forelse ($permission->roles as $role)
+                                    <flux:badge size="sm" color="blue" inset="top bottom">
+                                        {{ $role->name }}
+                                    </flux:badge>
+                                @empty
+                                    <span class="text-zinc-400 text-sm">Aucun rôle</span>
+                                @endforelse
+                            </div>
+                        </flux:table.cell>
 
-                    <!-- Groupe caché en mobile/tablet -->
-                    <flux:table.cell class="hidden md:table-cell text-zinc-400">
-                        {{ $permission->group ?? '—' }}
-                    </flux:table.cell>
+                        <!-- Actions -->
+                        <flux:table.cell>
+                            <flux:dropdown>
+                                <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom" />
+                                <flux:menu>
+                                    <flux:menu.item icon="pencil" wire:click="edit({{ $permission->id }})">
+                                        Modifier
+                                    </flux:menu.item>
+                                    <flux:menu.separator />
+                                    <flux:menu.item icon="trash" variant="danger" wire:click="confirmDelete({{ $permission->id }})">
+                                        Supprimer
+                                    </flux:menu.item>
+                                </flux:menu>
+                            </flux:dropdown>
+                        </flux:table.cell>
 
-                    <!-- Rôles cachés en mobile/tablet/desktop -->
-                    <flux:table.cell class="hidden lg:table-cell">
-                        <div class="flex flex-wrap gap-1">
-                            @forelse ($permission->roles as $role)
-                                <flux:badge size="sm" color="blue" inset="top bottom">
-                                    {{ $role->name }}
-                                </flux:badge>
-                            @empty
-                                <span class="text-zinc-400 text-sm">Aucun rôle</span>
-                            @endforelse
-                        </div>
-                    </flux:table.cell>
+                    </flux:table.row>
 
-                    <!-- Actions -->
-                    <flux:table.cell>
-                        <flux:dropdown>
-                            <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom" />
-                            <flux:menu>
-                                <flux:menu.item icon="pencil" wire:click="edit({{ $permission->id }})">
-                                    Modifier
-                                </flux:menu.item>
-                                <flux:menu.separator />
-                                <flux:menu.item icon="trash" variant="danger" wire:click="confirmDelete({{ $permission->id }})">
-                                    Supprimer
-                                </flux:menu.item>
-                            </flux:menu>
-                        </flux:dropdown>
-                    </flux:table.cell>
-
-                </flux:table.row>
-
-            @empty
-                <flux:table.row>
-                    <flux:table.cell colspan="5">
-                        <div class="flex flex-col items-center justify-center py-12 text-center">
-                            <flux:icon name="shield-exclamation" class="text-zinc-400 mb-3" style="width: 40px; height: 40px;" />
-                            <p class="text-zinc-400 font-medium text-sm">
+                @empty
+                    <flux:table.row>
+                        <flux:table.cell colspan="5">
+                            <div class="flex flex-col items-center justify-center py-12 text-center">
+                                <flux:icon name="shield-exclamation" class="text-zinc-400 mb-3" style="width: 40px; height: 40px;" />
+                                <p class="text-zinc-400 font-medium text-sm">
+                                    @if ($search)
+                                        Aucune permission trouvée pour "{{ $search }}"
+                                    @else
+                                        Aucune permission enregistrée
+                                    @endif
+                                </p>
                                 @if ($search)
-                                    Aucune permission trouvée pour "{{ $search }}"
-                                @else
-                                    Aucune permission enregistrée
+                                    <flux:button variant="ghost" size="sm" wire:click="$set('search', '')" class="mt-3">
+                                        Réinitialiser la recherche
+                                    </flux:button>
                                 @endif
-                            </p>
-                            @if ($search)
-                                <flux:button variant="ghost" size="sm" wire:click="$set('search', '')" class="mt-3">
-                                    Réinitialiser la recherche
-                                </flux:button>
-                            @endif
-                        </div>
-                    </flux:table.cell>
-                </flux:table.row>
-            @endforelse
-        </flux:table.rows>
-    </flux:table>
+                            </div>
+                        </flux:table.cell>
+                    </flux:table.row>
+                @endforelse
+            </flux:table.rows>
+        </flux:table>
+
+    </flux:card>
 
     <livewire:pages::permissions.create />
     <livewire:pages::permissions.edit />
