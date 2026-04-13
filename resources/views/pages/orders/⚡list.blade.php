@@ -227,7 +227,7 @@ new class extends Component
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
             <div class="flex items-center gap-2">
                 <flux:input
-                    wire:model.blur="search"
+                    wire:model.live="search"
                     placeholder="Rechercher une commande..."
                     icon="magnifying-glass"
                     class="w-full sm:w-80"
