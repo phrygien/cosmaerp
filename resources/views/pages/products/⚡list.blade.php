@@ -225,12 +225,6 @@ new class extends Component
     <!-- Filtres -->
     <div class="flex flex-col gap-3 mb-4">
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <flux:radio.group wire:model.live="filterState" variant="segmented">
-                <flux:radio label="Tous"    value=""  />
-                <flux:radio label="Actif"   value="1" />
-                <flux:radio label="Inactif" value="0" />
-            </flux:radio.group>
-
             @if ($search || $filterState !== '' || $filterMarque !== '' || $filterCategorie !== '' || $perPage !== 10)
                 <flux:button variant="danger" size="sm" wire:click="resetFilters" icon="arrow-path" class="w-full sm:w-auto">
                     Réinitialiser
@@ -260,10 +254,16 @@ new class extends Component
                     </flux:select.option>
                 @endforeach
             </flux:select>
+
+            <flux:radio.group wire:model.live="filterState" variant="segmented">
+                <flux:radio label="Tous"    value=""  />
+                <flux:radio label="Actif"   value="1" />
+                <flux:radio label="Inactif" value="0" />
+            </flux:radio.group>
         </div>
     </div>
 
-    <flux:card class="p-5">
+    <flux:card class="p-5 mt-5">
         <!-- Table -->
         <flux:table :paginate="$this->products" variant="bordered">
             <flux:table.columns>
