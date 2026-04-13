@@ -36,7 +36,6 @@ new class extends Component
     #[Url(as: 'categorie', except: '')]
     public string $filterCategorie = '';
 
-    // Propriété pour suivre l'ID du produit en cours de mise à jour
     public $updatingProductId = null;
 
     public function sort(string $column): void
@@ -49,9 +48,9 @@ new class extends Component
         }
     }
 
-    public function updatedSearch(): void        { $this->resetPage(); }
-    public function updatedPerPage(): void       { $this->resetPage(); }
-    public function updatedFilterState(): void   { $this->resetPage(); }
+    public function updatedSearch(): void          { $this->resetPage(); }
+    public function updatedPerPage(): void         { $this->resetPage(); }
+    public function updatedFilterState(): void     { $this->resetPage(); }
     public function updatedFilterMarque(): void
     {
         $this->resetPage();
@@ -100,9 +99,8 @@ new class extends Component
         try {
             DB::beginTransaction();
 
-            $product = Product::findOrFail($id);
-            $oldState = $product->state;
-            $newState = $oldState == 1 ? 0 : 1;
+            $product  = Product::findOrFail($id);
+            $newState = $product->state == 1 ? 0 : 1;
 
             $product->state = $newState;
             $product->save();
@@ -113,10 +111,9 @@ new class extends Component
 
             $this->dispatch('product-state-updated', id: $id, state: $newState);
 
-            // Afficher le toast de succès
             Flux::toast(
                 heading: $newState == 1 ? 'Produit activé' : 'Produit désactivé',
-                text: "Le produit \"{$product->designation}\" a été " . ($newState == 1 ? "activé" : "désactivé") . " avec succès",
+                text: "Le produit \"{$product->designation}\" a été " . ($newState == 1 ? 'activé' : 'désactivé') . ' avec succès',
                 variant: 'success'
             );
 
@@ -125,7 +122,7 @@ new class extends Component
 
             Flux::toast(
                 heading: 'Erreur',
-                text: "Impossible de modifier l'état du produit: " . $e->getMessage(),
+                text: "Impossible de modifier l'état du produit : " . $e->getMessage(),
                 variant: 'danger'
             );
         } finally {
@@ -136,20 +133,46 @@ new class extends Component
     #[Computed]
     public function products()
     {
-        return Product::query()
-            ->with(['marque', 'categorie', 'type', 'ligne'])
-            ->when($this->search, function($q) {
-                $q->where(function($query) {
-                    $query->where('designation', 'like', '%' . $this->search . '%')
-                        ->orWhere('designation_variant', 'like', '%' . $this->search . '%')
-                        ->orWhere('article', 'like', '%' . $this->search . '%')
-                        ->orWhere('EAN', 'like', '%' . $this->search . '%');
-                });
-            })
-            ->when($this->filterState !== '', fn($q) => $q->where('state', $this->filterState))
-            ->when($this->filterMarque !== '', fn($q) => $q->where('marque_code', $this->filterMarque))
-            ->when($this->filterCategorie !== '', fn($q) => $q->where('categorie_code', $this->filterCategorie))
-            ->orderBy($this->sortBy, $this->sortDirection)
+        if (empty(trim($this->search))) {
+            return Product::query()
+                ->with(['marque', 'categorie', 'type', 'ligne'])
+                ->when($this->filterState !== '', fn($q) => $q->where('state', $this->filterState))
+                ->when($this->filterMarque !== '', fn($q) => $q->where('marque_code', $this->filterMarque))
+                ->when($this->filterCategorie !== '', fn($q) => $q->where('categorie_code', $this->filterCategorie))
+                ->orderBy($this->sortBy, $this->sortDirection)
+                ->paginate($this->perPage);
+        }
+
+        $filters = collect();
+
+        if ($this->filterState !== '') {
+            $filters->push("state:={$this->filterState}");
+        }
+
+        if ($this->filterMarque !== '') {
+            $filters->push("marque_code:={$this->filterMarque}");
+        }
+
+        if ($this->filterCategorie !== '') {
+            $filters->push("categorie_code:={$this->filterCategorie}");
+        }
+
+        $sortMap = [
+            'designation' => 'designation',
+            'article'     => 'article',
+            'type_id'     => 'type_id',
+            'updated_at'  => 'updated_at',
+        ];
+
+        $sortField = $sortMap[$this->sortBy] ?? 'updated_at';
+
+        return Product::search($this->search)
+            ->options([
+                'query_by'  => 'designation,designation_variant,article,EAN,ref_fabri_n_1,marque_nom,categorie_nom',
+                'filter_by' => $filters->isNotEmpty() ? $filters->implode(' && ') : '',
+                'sort_by'   => "{$sortField}:{$this->sortDirection}",
+            ])
+            ->query(fn($q) => $q->with(['marque', 'categorie', 'type', 'ligne']))
             ->paginate($this->perPage);
     }
 
@@ -164,15 +187,11 @@ new class extends Component
     #[Computed]
     public function categoriesList()
     {
-        $query = Category::query()
+        return Category::query()
             ->with('marque')
-            ->orderBy('name');
-
-        if ($this->filterMarque !== '') {
-            $query->where('marque_code', $this->filterMarque);
-        }
-
-        return $query->get();
+            ->when($this->filterMarque !== '', fn($q) => $q->where('marque_code', $this->filterMarque))
+            ->orderBy('name')
+            ->get();
     }
 };
 ?>
@@ -182,7 +201,7 @@ new class extends Component
     <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
             <flux:input
-                wire:model.live.debounce="search"
+                wire:model.live.debounce.400ms="search"
                 placeholder="Rechercher un produit..."
                 icon="magnifying-glass"
                 class="w-full sm:w-72"
@@ -207,8 +226,8 @@ new class extends Component
     <div class="flex flex-col gap-3 mb-4">
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <flux:radio.group wire:model.live="filterState" variant="segmented">
-                <flux:radio label="Tous" value="" />
-                <flux:radio label="Actif" value="1" />
+                <flux:radio label="Tous"    value=""  />
+                <flux:radio label="Actif"   value="1" />
                 <flux:radio label="Inactif" value="0" />
             </flux:radio.group>
 
@@ -219,7 +238,7 @@ new class extends Component
             @endif
         </div>
 
-        <!-- Filtres supplémentaires -->
+        <!-- Filtres marque / catégorie -->
         <div class="flex flex-col gap-2 sm:flex-row">
             <flux:select wire:model.live="filterMarque" placeholder="Toutes les marques" class="w-full sm:w-64">
                 <flux:select.option value="">Toutes les marques</flux:select.option>
@@ -265,13 +284,8 @@ new class extends Component
                 Désignation
             </flux:table.column>
 
-            <flux:table.column class="hidden sm:table-cell">
-                Marque
-            </flux:table.column>
-
-            <flux:table.column class="hidden sm:table-cell">
-                Catégorie
-            </flux:table.column>
+            <flux:table.column class="hidden sm:table-cell">Marque</flux:table.column>
+            <flux:table.column class="hidden sm:table-cell">Catégorie</flux:table.column>
 
             <flux:table.column
                 sortable
@@ -283,20 +297,18 @@ new class extends Component
                 Type
             </flux:table.column>
 
-            <flux:table.column class="text-center">
-                État
-            </flux:table.column>
-
+            <flux:table.column class="text-center">État</flux:table.column>
             <flux:table.column></flux:table.column>
         </flux:table.columns>
 
         <flux:table.rows>
             @forelse ($this->products as $product)
                 <flux:table.row :key="$product->id" wire:key="product-{{ $product->id }}">
+
                     <!-- Article -->
                     <flux:table.cell>
                         <flux:badge size="sm" color="zinc" inset="top bottom">
-                            {{ $product->article ?? $product->code }}
+                            {{ $product->article ?? $product->product_code }}
                         </flux:badge>
                         @if($product->EAN)
                             <p class="text-xs text-zinc-400 mt-0.5">EAN: {{ $product->EAN }}</p>
@@ -323,32 +335,29 @@ new class extends Component
                         </div>
                     </flux:table.cell>
 
-                    <!-- Marque (desktop) -->
+                    <!-- Marque -->
                     <flux:table.cell class="hidden sm:table-cell">
                         <span class="text-sm">{{ $product->marque?->name ?? '-' }}</span>
                     </flux:table.cell>
 
-                    <!-- Catégorie (desktop) -->
+                    <!-- Catégorie -->
                     <flux:table.cell class="hidden sm:table-cell">
                         <span class="text-sm">{{ $product->categorie?->name ?? '-' }}</span>
                     </flux:table.cell>
 
-                    <!-- Type (desktop) -->
+                    <!-- Type -->
                     <flux:table.cell class="hidden md:table-cell">
                         <span class="text-sm">{{ $product->type?->name ?? '-' }}</span>
                     </flux:table.cell>
 
-                    <!-- État avec Toggle -->
+                    <!-- État -->
                     <flux:table.cell class="text-center">
                         <div class="flex items-center justify-center">
-                            <!-- Afficher le loading seulement pour cette ligne -->
                             @if($updatingProductId === $product->id)
-                                <div class="flex items-center justify-center">
-                                    <svg class="animate-spin h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                </div>
+                                <svg class="animate-spin h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                                </svg>
                             @else
                                 <button
                                     wire:click="toggleState({{ $product->id }})"
@@ -365,14 +374,11 @@ new class extends Component
                                 </button>
                             @endif
                         </div>
-
-                        <span class="sr-only">
-                            {{ $product->state == 1 ? 'Actif' : 'Inactif' }}
-                        </span>
+                        <span class="sr-only">{{ $product->state == 1 ? 'Actif' : 'Inactif' }}</span>
                     </flux:table.cell>
 
                     <!-- Actions -->
-{{--                    <flux:table.cell>
+                    <flux:table.cell>
                         <flux:dropdown>
                             <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom" />
                             <flux:menu>
@@ -385,7 +391,7 @@ new class extends Component
                                 </flux:menu.item>
                             </flux:menu>
                         </flux:dropdown>
-                    </flux:table.cell>--}}
+                    </flux:table.cell>
 
                 </flux:table.row>
 

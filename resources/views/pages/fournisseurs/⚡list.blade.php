@@ -256,6 +256,11 @@ new class extends Component
         }
     }
 
+    public function showDetails(int $id): void
+    {
+        $this->dispatch('view-fournisseur', id: $id);
+    }
+
     #[Computed]
     public function fournisseurs()
     {
@@ -523,7 +528,7 @@ new class extends Component
                         <flux:dropdown>
                             <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom" />
                             <flux:menu>
-                                <flux:menu.item icon="eye" wire:navigate :href="route('fournisseurs.view', $fournisseur->id)">
+                                <flux:menu.item icon="eye" wire:click="showDetails({{ $fournisseur->id }})">
                                     Voir les détails
                                 </flux:menu.item>
                                 <flux:menu.separator />
@@ -567,4 +572,5 @@ new class extends Component
     <livewire:pages::fournisseurs.create />
     <livewire:pages::fournisseurs.edit />
     <livewire:pages::fournisseurs.delete />
+    <livewire:pages::fournisseurs.view />
 </div>

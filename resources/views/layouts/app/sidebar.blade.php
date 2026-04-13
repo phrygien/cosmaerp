@@ -45,6 +45,10 @@
                 {{ __('Fournisseurs') }}
             </flux:sidebar.item>
 
+            <flux:sidebar.item icon="building-storefront" :href="route('magasin')" :current="request()->routeIs('magasin')" wire:navigate>
+                {{ __('Magasin') }}
+            </flux:sidebar.item>
+
 
         </flux:sidebar.nav>
 

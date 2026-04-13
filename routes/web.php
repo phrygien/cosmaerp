@@ -11,12 +11,13 @@ Route::middleware(["auth", "verified"])->group(function () {
         "permissions",
     );
     Route::livewire("/users", "pages::users.page")->name("users");
-
     Route::livewire("/fournisseurs", "pages::fournisseurs.page")->name("fournisseurs");
     Route::livewire("/fournisseurs/{fournisseur}", "pages::fournisseurs.view")->name("fournisseurs.view");
 
-});
+    // Magasin
+    Route::livewire("/magasin", "pages::magasin.page")->name("magasin");
 
+});
 
 Route::group(["middleware" => ["auth", "verified"], "prefix" => 'catalogue'], function () {
     Route::livewire('/marques', "pages::marques.page")->name("catalogue.marques");
