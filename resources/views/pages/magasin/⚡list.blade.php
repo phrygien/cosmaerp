@@ -204,185 +204,187 @@ new class extends Component
         @endif
     </div>
 
-    <!-- Table -->
-    <flux:table :paginate="$this->magasins" variant="bordered">
-        <flux:table.columns>
-            <flux:table.column
-                sortable
-                :sorted="$sortBy === 'name'"
-                :direction="$sortDirection"
-                wire:click="sort('name')"
-            >
-                Nom
-            </flux:table.column>
+    <flux:card class="p-5">
+        <!-- Table -->
+        <flux:table :paginate="$this->magasins" variant="bordered">
+            <flux:table.columns>
+                <flux:table.column
+                    sortable
+                    :sorted="$sortBy === 'name'"
+                    :direction="$sortDirection"
+                    wire:click="sort('name')"
+                >
+                    Nom
+                </flux:table.column>
 
-            <flux:table.column
-                sortable
-                :sorted="$sortBy === 'type'"
-                :direction="$sortDirection"
-                wire:click="sort('type')"
-                class="hidden sm:table-cell"
-            >
-                Type
-            </flux:table.column>
+                <flux:table.column
+                    sortable
+                    :sorted="$sortBy === 'type'"
+                    :direction="$sortDirection"
+                    wire:click="sort('type')"
+                    class="hidden sm:table-cell"
+                >
+                    Type
+                </flux:table.column>
 
-            <flux:table.column class="hidden md:table-cell">
-                Contact
-            </flux:table.column>
+                <flux:table.column class="hidden md:table-cell">
+                    Contact
+                </flux:table.column>
 
-            <flux:table.column class="hidden lg:table-cell">
-                URL
-            </flux:table.column>
+                <flux:table.column class="hidden lg:table-cell">
+                    URL
+                </flux:table.column>
 
-            <flux:table.column class="text-center">
-                État
-            </flux:table.column>
+                <flux:table.column class="text-center">
+                    État
+                </flux:table.column>
 
-            <flux:table.column></flux:table.column>
-        </flux:table.columns>
+                <flux:table.column></flux:table.column>
+            </flux:table.columns>
 
-        <flux:table.rows>
-            @forelse ($this->magasins as $magasin)
-                <flux:table.row :key="$magasin->id" wire:key="magasin-{{ $magasin->id }}">
+            <flux:table.rows>
+                @forelse ($this->magasins as $magasin)
+                    <flux:table.row :key="$magasin->id" wire:key="magasin-{{ $magasin->id }}">
 
-                    <!-- Nom -->
-                    <flux:table.cell>
-                        <p class="font-medium text-sm">{{ $magasin->name }}</p>
-                        <!-- Type visible en mobile -->
-                        @if ($magasin->type)
-                            <p class="mt-0.5 sm:hidden">
+                        <!-- Nom -->
+                        <flux:table.cell>
+                            <p class="font-medium text-sm">{{ $magasin->name }}</p>
+                            <!-- Type visible en mobile -->
+                            @if ($magasin->type)
+                                <p class="mt-0.5 sm:hidden">
+                                    <flux:badge size="sm" color="purple" inset="top bottom">
+                                        {{ $magasin->type }}
+                                    </flux:badge>
+                                </p>
+                            @endif
+                            <!-- Contact visible en mobile -->
+                            <div class="text-xs text-zinc-400 mt-0.5 md:hidden space-y-0.5">
+                                @if ($magasin->email)
+                                    <p>{{ $magasin->email }}</p>
+                                @endif
+                                @if ($magasin->telephone)
+                                    <p>{{ $magasin->telephone }}</p>
+                                @endif
+                            </div>
+                            <!-- Adresse visible en mobile -->
+                            @if ($magasin->adress)
+                                <p class="text-xs text-zinc-400 mt-0.5 md:hidden">{{ $magasin->adress }}</p>
+                            @endif
+                        </flux:table.cell>
+
+                        <!-- Type caché en mobile -->
+                        <flux:table.cell class="hidden sm:table-cell">
+                            @if ($magasin->type)
                                 <flux:badge size="sm" color="purple" inset="top bottom">
                                     {{ $magasin->type }}
                                 </flux:badge>
-                            </p>
-                        @endif
-                        <!-- Contact visible en mobile -->
-                        <div class="text-xs text-zinc-400 mt-0.5 md:hidden space-y-0.5">
-                            @if ($magasin->email)
-                                <p>{{ $magasin->email }}</p>
-                            @endif
-                            @if ($magasin->telephone)
-                                <p>{{ $magasin->telephone }}</p>
-                            @endif
-                        </div>
-                        <!-- Adresse visible en mobile -->
-                        @if ($magasin->adress)
-                            <p class="text-xs text-zinc-400 mt-0.5 md:hidden">{{ $magasin->adress }}</p>
-                        @endif
-                    </flux:table.cell>
-
-                    <!-- Type caché en mobile -->
-                    <flux:table.cell class="hidden sm:table-cell">
-                        @if ($magasin->type)
-                            <flux:badge size="sm" color="purple" inset="top bottom">
-                                {{ $magasin->type }}
-                            </flux:badge>
-                        @else
-                            <span class="text-zinc-400 text-sm">—</span>
-                        @endif
-                    </flux:table.cell>
-
-                    <!-- Contact caché en mobile -->
-                    <flux:table.cell class="hidden md:table-cell">
-                        <div class="space-y-0.5">
-                            @if ($magasin->email)
-                                <p class="text-xs text-zinc-400">{{ $magasin->email }}</p>
-                            @endif
-                            @if ($magasin->telephone)
-                                <p class="text-xs text-zinc-400">{{ $magasin->telephone }}</p>
-                            @endif
-                            @if (!$magasin->email && !$magasin->telephone)
+                            @else
                                 <span class="text-zinc-400 text-sm">—</span>
                             @endif
-                        </div>
-                    </flux:table.cell>
+                        </flux:table.cell>
 
-                    <!-- URL cachée en mobile/tablet -->
-                    <flux:table.cell class="hidden lg:table-cell">
-                        @if ($magasin->store_url)
-                            <a href="{{ $magasin->store_url }}"
-                               target="_blank"
-                               class="text-xs text-blue-400 hover:text-blue-300 hover:underline truncate max-w-xs block">
-                                {{ $magasin->store_url }}
-                            </a>
-                        @else
-                            <span class="text-zinc-400 text-sm">—</span>
-                        @endif
-                    </flux:table.cell>
+                        <!-- Contact caché en mobile -->
+                        <flux:table.cell class="hidden md:table-cell">
+                            <div class="space-y-0.5">
+                                @if ($magasin->email)
+                                    <p class="text-xs text-zinc-400">{{ $magasin->email }}</p>
+                                @endif
+                                @if ($magasin->telephone)
+                                    <p class="text-xs text-zinc-400">{{ $magasin->telephone }}</p>
+                                @endif
+                                @if (!$magasin->email && !$magasin->telephone)
+                                    <span class="text-zinc-400 text-sm">—</span>
+                                @endif
+                            </div>
+                        </flux:table.cell>
 
-                    <!-- État avec Toggle -->
-                    <flux:table.cell class="text-center">
-                        <div class="flex items-center justify-center">
-                            @if(isset($updatingStates[$magasin->id]))
-                                <div class="flex items-center justify-center">
-                                    <svg class="animate-spin h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                </div>
+                        <!-- URL cachée en mobile/tablet -->
+                        <flux:table.cell class="hidden lg:table-cell">
+                            @if ($magasin->store_url)
+                                <a href="{{ $magasin->store_url }}"
+                                   target="_blank"
+                                   class="text-xs text-blue-400 hover:text-blue-300 hover:underline truncate max-w-xs block">
+                                    {{ $magasin->store_url }}
+                                </a>
                             @else
-                                <button
-                                    wire:click="toggleState({{ $magasin->id }})"
-                                    type="button"
-                                    role="switch"
-                                    aria-checked="{{ $magasin->state == 1 ? 'true' : 'false' }}"
-                                    class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 hover:opacity-80"
-                                    style="background-color: {{ $magasin->state == 1 ? '#22c55e' : '#d1d5db' }}"
-                                >
+                                <span class="text-zinc-400 text-sm">—</span>
+                            @endif
+                        </flux:table.cell>
+
+                        <!-- État avec Toggle -->
+                        <flux:table.cell class="text-center">
+                            <div class="flex items-center justify-center">
+                                @if(isset($updatingStates[$magasin->id]))
+                                    <div class="flex items-center justify-center">
+                                        <svg class="animate-spin h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                    </div>
+                                @else
+                                    <button
+                                        wire:click="toggleState({{ $magasin->id }})"
+                                        type="button"
+                                        role="switch"
+                                        aria-checked="{{ $magasin->state == 1 ? 'true' : 'false' }}"
+                                        class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 hover:opacity-80"
+                                        style="background-color: {{ $magasin->state == 1 ? '#22c55e' : '#d1d5db' }}"
+                                    >
                                     <span
                                         class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
                                         style="transform: translateX({{ $magasin->state == 1 ? '24px' : '4px' }})"
                                     />
-                                </button>
-                            @endif
-                        </div>
+                                    </button>
+                                @endif
+                            </div>
 
-                        <span class="sr-only">
+                            <span class="sr-only">
                             {{ $magasin->state == 1 ? 'Actif' : 'Inactif' }}
                         </span>
-                    </flux:table.cell>
+                        </flux:table.cell>
 
-                    <!-- Actions -->
-                    <flux:table.cell>
-                        <flux:dropdown>
-                            <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom" />
-                            <flux:menu>
-                                <flux:menu.item icon="pencil" wire:click="edit({{ $magasin->id }})">
-                                    Modifier
-                                </flux:menu.item>
-                                <flux:menu.separator />
-                                <flux:menu.item icon="trash" variant="danger" wire:click="confirmDelete({{ $magasin->id }})">
-                                    Supprimer
-                                </flux:menu.item>
-                            </flux:menu>
-                        </flux:dropdown>
-                    </flux:table.cell>
+                        <!-- Actions -->
+                        <flux:table.cell>
+                            <flux:dropdown>
+                                <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom" />
+                                <flux:menu>
+                                    <flux:menu.item icon="pencil" wire:click="edit({{ $magasin->id }})">
+                                        Modifier
+                                    </flux:menu.item>
+                                    <flux:menu.separator />
+                                    <flux:menu.item icon="trash" variant="danger" wire:click="confirmDelete({{ $magasin->id }})">
+                                        Supprimer
+                                    </flux:menu.item>
+                                </flux:menu>
+                            </flux:dropdown>
+                        </flux:table.cell>
 
-                </flux:table.row>
+                    </flux:table.row>
 
-            @empty
-                <flux:table.row>
-                    <flux:table.cell colspan="6">
-                        <div class="flex flex-col items-center justify-center py-12 text-center">
-                            <flux:icon name="building-storefront" class="text-zinc-400 mb-3" style="width: 40px; height: 40px;" />
-                            <p class="text-zinc-400 font-medium text-sm">
+                @empty
+                    <flux:table.row>
+                        <flux:table.cell colspan="6">
+                            <div class="flex flex-col items-center justify-center py-12 text-center">
+                                <flux:icon name="building-storefront" class="text-zinc-400 mb-3" style="width: 40px; height: 40px;" />
+                                <p class="text-zinc-400 font-medium text-sm">
+                                    @if ($search || $filterState !== '' || $filterType !== '')
+                                        Aucun magasin trouvé pour ces filtres
+                                    @else
+                                        Aucun magasin enregistré
+                                    @endif
+                                </p>
                                 @if ($search || $filterState !== '' || $filterType !== '')
-                                    Aucun magasin trouvé pour ces filtres
-                                @else
-                                    Aucun magasin enregistré
+                                    <flux:button variant="ghost" size="sm" wire:click="resetFilters" class="mt-3">
+                                        Réinitialiser les filtres
+                                    </flux:button>
                                 @endif
-                            </p>
-                            @if ($search || $filterState !== '' || $filterType !== '')
-                                <flux:button variant="ghost" size="sm" wire:click="resetFilters" class="mt-3">
-                                    Réinitialiser les filtres
-                                </flux:button>
-                            @endif
-                        </div>
-                    </flux:table.cell>
-                </flux:table.row>
-            @endforelse
-        </flux:table.rows>
-    </flux:table>
+                            </div>
+                        </flux:table.cell>
+                    </flux:table.row>
+                @endforelse
+            </flux:table.rows>
+        </flux:table>
+    </flux:card>
 
     <livewire:pages::magasin.create />
     <livewire:pages::magasin.edit />
