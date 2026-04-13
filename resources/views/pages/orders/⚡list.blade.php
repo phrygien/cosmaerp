@@ -388,7 +388,7 @@ new class extends Component
                             {{ number_format($commande->montant_total, 2, ',', ' ') }} €
                         </flux:table.cell>
 
-                        <!-- Statut -->
+                        <!-- Statut + État -->
                         <flux:table.cell>
                             @php
                                 $statusColor = match($commande->status) {
@@ -406,17 +406,16 @@ new class extends Component
                                     default => '—',
                                 };
                             @endphp
-                            <flux:badge size="sm" :color="$statusColor" inset="top bottom">
-                                {{ $statusLabel }}
-                            </flux:badge>
-                            <!-- État visible sous le statut -->
-                            @if ($commande->etat)
-                                <p class="mt-0.5">
-                                    <flux:badge size="sm" color="purple" inset="top bottom">
+                            <div class="flex flex-col gap-2 items-start">
+                                <flux:badge size="sm" :color="$statusColor">
+                                    {{ $statusLabel }}
+                                </flux:badge>
+                                @if ($commande->etat)
+                                    <flux:badge size="sm" color="purple">
                                         {{ $commande->etat === 'pre_commande' ? 'Pré-commande' : 'Commande' }}
                                     </flux:badge>
-                                </p>
-                            @endif
+                                @endif
+                            </div>
                         </flux:table.cell>
 
                         <!-- Date -->
