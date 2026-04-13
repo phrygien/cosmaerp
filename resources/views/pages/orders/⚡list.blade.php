@@ -181,8 +181,8 @@ new class extends Component
 
 <div>
     <flux:breadcrumbs class="mb-5">
-        <flux:breadcrumbs.item href="#">Achats</flux:breadcrumbs.item>
-        <flux:breadcrumbs.item>Commandes</flux:breadcrumbs.item>
+        <flux:breadcrumbs.item href="#">Commande</flux:breadcrumbs.item>
+        <flux:breadcrumbs.item>Liste</flux:breadcrumbs.item>
     </flux:breadcrumbs>
 
     <!-- Heading + bouton -->
@@ -190,7 +190,7 @@ new class extends Component
         <flux:heading size="xl" level="1">{{ __('Commandes') }}</flux:heading>
 
         <flux:modal.trigger name="create-commande">
-            <flux:button variant="primary" class="w-full sm:w-auto">
+            <flux:button variant="primary" class="w-full sm:w-auto" icon="shopping-cart">
                 Ajouter une commande
             </flux:button>
         </flux:modal.trigger>
@@ -227,7 +227,7 @@ new class extends Component
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
             <div class="flex items-center gap-2">
                 <flux:input
-                    wire:model.live.debounce="search"
+                    wire:model.blur="search"
                     placeholder="Rechercher une commande..."
                     icon="magnifying-glass"
                     class="w-full sm:w-80"
@@ -300,14 +300,14 @@ new class extends Component
                     <div class="flex items-center gap-2">
                         <flux:input
                             type="date"
-                            wire:model.live="filterDateFrom"
+                            wire:model.blur="filterDateFrom"
                             label="Du"
                             class="w-40"
                         />
                         <span class="text-zinc-400 text-sm mt-5">→</span>
                         <flux:input
                             type="date"
-                            wire:model.live="filterDateTo"
+                            wire:model.blur="filterDateTo"
                             label="Au"
                             class="w-40"
                         />

@@ -51,7 +51,7 @@
 
             <flux:sidebar.group
                 expandable
-                icon="clipboard-document-list"
+                icon="shopping-cart"
                 heading="Commandes"
                 class="grid"
                 :expanded="request()->routeIs('orders.*')"
