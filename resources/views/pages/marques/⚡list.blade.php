@@ -27,6 +27,8 @@ new class extends Component
     #[Url(as: 'par_page', except: 10)]
     public int    $perPage       = 10;
 
+    public bool $showFilters = false;
+
     public $updatingMarqueId = null;
 
     public function sort(string $column): void
@@ -43,6 +45,11 @@ new class extends Component
     public function updatedPerPage(): void     { $this->resetPage(); }
     public function updatedFilterState(): void { $this->resetPage(); }
 
+    public function toggleFilters(): void
+    {
+        $this->showFilters = ! $this->showFilters;
+    }
+
     public function toggleState(string $code): void
     {
         $this->updatingMarqueId = $code;
@@ -50,9 +57,8 @@ new class extends Component
         try {
             DB::beginTransaction();
 
-            $marque = Marque::findOrFail($code);
-            $oldState = $marque->state;
-            $newState = $oldState == 1 ? 0 : 1;
+            $marque   = Marque::findOrFail($code);
+            $newState = $marque->state == 1 ? 0 : 1;
 
             $marque->state = $newState;
             $marque->save();
@@ -60,6 +66,7 @@ new class extends Component
             DB::commit();
 
             unset($this->marques);
+            unset($this->stats);
 
             $this->dispatch('marque-updated');
 
@@ -88,6 +95,7 @@ new class extends Component
     public function refresh(): void
     {
         unset($this->marques);
+        unset($this->stats);
         $this->resetPage();
     }
 
@@ -114,6 +122,24 @@ new class extends Component
     }
 
     #[Computed]
+    public function stats()
+    {
+        return [
+            'total'    => Marque::count(),
+            'active'   => Marque::where('state', 1)->count(),
+            'inactive' => Marque::where('state', 0)->count(),
+        ];
+    }
+
+    #[Computed]
+    public function activeFiltersCount(): int
+    {
+        return collect([$this->filterState])
+            ->filter(fn($v) => $v !== '')
+            ->count();
+    }
+
+    #[Computed]
     public function marques()
     {
         return Marque::query()
@@ -127,15 +153,69 @@ new class extends Component
 ?>
 
 <div>
-    <!-- Header -->
-    <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
-        <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <flux:input
-                wire:model.live.debounce="search"
-                placeholder="Rechercher une marque..."
-                icon="magnifying-glass"
-                class="w-full sm:w-72"
-            />
+    <flux:breadcrumbs class="mb-5">
+        <flux:breadcrumbs.item href="#">Marque</flux:breadcrumbs.item>
+        <flux:breadcrumbs.item>Liste</flux:breadcrumbs.item>
+    </flux:breadcrumbs>
+
+    <!-- Heading + bouton -->
+    <div class="flex items-center justify-between mb-6">
+        <flux:heading size="xl" level="1">{{ __('Marques') }}</flux:heading>
+
+        <flux:modal.trigger name="create-marque">
+            <flux:button variant="primary" class="w-full sm:w-auto">
+                Ajouter une marque
+            </flux:button>
+        </flux:modal.trigger>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <flux:card class="p-5">
+            <p class="text-sm text-zinc-500">Total Marques</p>
+            <p class="text-3xl font-bold mt-1">{{ $this->stats['total'] }}</p>
+        </flux:card>
+
+        <flux:card class="p-5">
+            <p class="text-sm text-zinc-500">Marques Actives</p>
+            <p class="text-3xl font-bold mt-1 text-green-500">{{ $this->stats['active'] }}</p>
+        </flux:card>
+
+        <flux:card class="p-5">
+            <p class="text-sm text-zinc-500">Marques Inactives</p>
+            <p class="text-3xl font-bold mt-1 text-zinc-400">{{ $this->stats['inactive'] }}</p>
+        </flux:card>
+    </div>
+
+    <flux:card class="p-5">
+
+        <!-- En-tête tableau : recherche | toggle filtres | per page -->
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
+            <div class="flex items-center gap-2">
+                <flux:input
+                    wire:model.live.debounce="search"
+                    placeholder="Rechercher une marque..."
+                    icon="magnifying-glass"
+                    class="w-full sm:w-72"
+                />
+
+                <!-- Bouton toggle filtres avec badge compteur -->
+                <div class="relative">
+                    <flux:button
+                        wire:click="toggleFilters"
+                        :variant="$showFilters ? 'primary' : 'ghost'"
+                        icon="funnel"
+                        size="sm"
+                    >
+                        Filtres
+                    </flux:button>
+                    @if($this->activeFiltersCount > 0)
+                        <span class="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center w-4 h-4 text-[10px] font-bold leading-none text-white bg-red-500 rounded-full">
+                            {{ $this->activeFiltersCount }}
+                        </span>
+                    @endif
+                </div>
+            </div>
 
             <flux:select wire:model.live="perPage" class="w-full sm:w-20">
                 <flux:select.option value="5">5</flux:select.option>
@@ -145,29 +225,27 @@ new class extends Component
             </flux:select>
         </div>
 
-        <flux:modal.trigger name="create-marque">
-            <flux:button variant="primary" class="w-full sm:w-auto">
-                Ajouter une marque
-            </flux:button>
-        </flux:modal.trigger>
-    </div>
+        <!-- Panneau de filtres (togglable) -->
+        @if($showFilters)
+            <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 mb-4 bg-zinc-50 dark:bg-zinc-800/50">
+                <div class="flex items-center justify-between mb-3">
+                    <p class="text-sm font-medium text-zinc-700 dark:text-zinc-300">Filtres</p>
+                    @if($this->activeFiltersCount > 0)
+                        <flux:button wire:click="resetFilters" variant="ghost" size="xs" class="text-red-500 hover:text-red-600">
+                            Réinitialiser
+                        </flux:button>
+                    @endif
+                </div>
 
-    <!-- Filtre état -->
-    <div class="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">
-        <flux:radio.group wire:model.live="filterState" variant="segmented">
-            <flux:radio label="Tous" value="" />
-            <flux:radio label="Actif" value="1" />
-            <flux:radio label="Inactif" value="0" />
-        </flux:radio.group>
-
-        @if ($search || $filterState !== '' || $perPage !== 10)
-            <flux:button variant="danger" size="sm" wire:click="resetFilters" icon="arrow-path" class="w-full sm:w-auto">
-                Réinitialiser
-            </flux:button>
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
+                    <flux:radio.group wire:model.live="filterState" variant="segmented">
+                        <flux:radio label="Tous"    value=""  />
+                        <flux:radio label="Actif"   value="1" />
+                        <flux:radio label="Inactif" value="0" />
+                    </flux:radio.group>
+                </div>
+            </div>
         @endif
-    </div>
-
-    <flux:card class="p-5">
 
         <!-- Table -->
         <flux:table :paginate="$this->marques" variant="bordered">
@@ -211,13 +289,12 @@ new class extends Component
                         <!-- Nom -->
                         <flux:table.cell>
                             <p class="font-medium text-sm">{{ $marque->name }}</p>
-                            <!-- Catégories visible uniquement en mobile -->
                             <p class="text-xs text-zinc-400 mt-0.5 sm:hidden">
                                 {{ $marque->categories_count }} catégorie{{ $marque->categories_count > 1 ? 's' : '' }}
                             </p>
                         </flux:table.cell>
 
-                        <!-- Catégories cachée en mobile -->
+                        <!-- Catégories -->
                         <flux:table.cell class="hidden sm:table-cell">
                             <flux:badge size="sm" color="blue" inset="top bottom">
                                 {{ $marque->categories_count }} catégorie{{ $marque->categories_count > 1 ? 's' : '' }}
