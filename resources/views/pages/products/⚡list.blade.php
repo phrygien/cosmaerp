@@ -130,45 +130,17 @@ new class extends Component
         }
     }
 
-    private function isTypesenseAvailable(): bool
-    {
-        try {
-            if (config('scout.driver') !== 'typesense') {
-                return false;
-            }
-
-            $client = app(\Typesense\Client::class);
-            $client->health->retrieve();
-
-            return true;
-        } catch (\Exception $e) {
-            return false;
-        }
-    }
-
-    private function eloquentProducts()
-    {
-        return Product::query()
-            ->with(['marque', 'categorie', 'type', 'ligne'])
-            ->when($this->search, fn($q) =>
-            $q->where('designation', 'like', "%{$this->search}%")
-                ->orWhere('article', 'like', "%{$this->search}%")
-                ->orWhere('EAN', 'like', "%{$this->search}%")
-                ->orWhere('ref_fabri_n_1', 'like', "%{$this->search}%")
-                ->orWhere('designation_variant', 'like', "%{$this->search}%")
-            )
-            ->when($this->filterState !== '',    fn($q) => $q->where('state', $this->filterState))
-            ->when($this->filterMarque !== '',   fn($q) => $q->where('marque_code', $this->filterMarque))
-            ->when($this->filterCategorie !== '', fn($q) => $q->where('categorie_code', $this->filterCategorie))
-            ->orderBy($this->sortBy, $this->sortDirection)
-            ->paginate($this->perPage);
-    }
-
     #[Computed]
     public function products()
     {
-        if (!$this->isTypesenseAvailable() || empty(trim($this->search))) {
-            return $this->eloquentProducts();
+        if (empty(trim($this->search))) {
+            return Product::query()
+                ->with(['marque', 'categorie', 'type', 'ligne'])
+                ->when($this->filterState !== '', fn($q) => $q->where('state', $this->filterState))
+                ->when($this->filterMarque !== '', fn($q) => $q->where('marque_code', $this->filterMarque))
+                ->when($this->filterCategorie !== '', fn($q) => $q->where('categorie_code', $this->filterCategorie))
+                ->orderBy($this->sortBy, $this->sortDirection)
+                ->paginate($this->perPage);
         }
 
         $filters = collect();
@@ -194,18 +166,14 @@ new class extends Component
 
         $sortField = $sortMap[$this->sortBy] ?? 'updated_at';
 
-        try {
-            return Product::search($this->search)
-                ->options([
-                    'query_by'  => 'designation,designation_variant,article,EAN,ref_fabri_n_1,marque_nom,categorie_nom',
-                    'filter_by' => $filters->isNotEmpty() ? $filters->implode(' && ') : '',
-                    'sort_by'   => "{$sortField}:{$this->sortDirection}",
-                ])
-                ->query(fn($q) => $q->with(['marque', 'categorie', 'type', 'ligne']))
-                ->paginate($this->perPage);
-        } catch (\Exception $e) {
-            return $this->eloquentProducts();
-        }
+        return Product::search($this->search)
+            ->options([
+                'query_by'  => 'designation,designation_variant,article,EAN,ref_fabri_n_1,marque_nom,categorie_nom',
+                'filter_by' => $filters->isNotEmpty() ? $filters->implode(' && ') : '',
+                'sort_by'   => "{$sortField}:{$this->sortDirection}",
+            ])
+            ->query(fn($q) => $q->with(['marque', 'categorie', 'type', 'ligne']))
+            ->paginate($this->perPage);
     }
 
     #[Computed]
@@ -286,7 +254,7 @@ new class extends Component
                 @foreach ($this->categoriesList as $categorie)
                     <flux:select.option value="{{ $categorie->code }}">
                         {{ $categorie->name }}
-                        @if ($categorie->marque)
+                        @if($categorie->marque)
                             ({{ $categorie->marque->name }})
                         @endif
                     </flux:select.option>
@@ -342,7 +310,7 @@ new class extends Component
                         <flux:badge size="sm" color="zinc" inset="top bottom">
                             {{ $product->article ?? $product->product_code }}
                         </flux:badge>
-                        @if ($product->EAN)
+                        @if($product->EAN)
                             <p class="text-xs text-zinc-400 mt-0.5">EAN: {{ $product->EAN }}</p>
                         @endif
                     </flux:table.cell>
@@ -350,41 +318,42 @@ new class extends Component
                     <!-- Désignation -->
                     <flux:table.cell>
                         <p class="font-medium text-sm">{{ $product->designation }}</p>
-                        @if ($product->designation_variant)
+                        @if($product->designation_variant)
                             <p class="text-xs text-zinc-400 mt-0.5">{{ $product->designation_variant }}</p>
                         @endif
-                        @if ($product->ref_fabri_n_1)
+                        @if($product->ref_fabri_n_1)
                             <p class="text-xs text-zinc-400 mt-0.5">Réf: {{ $product->ref_fabri_n_1 }}</p>
                         @endif
                         <!-- Infos mobiles -->
                         <div class="text-xs text-zinc-400 mt-1 sm:hidden">
                             <div>Marque: {{ $product->marque?->name ?? 'N/A' }}</div>
                             <div>Catégorie: {{ $product->categorie?->name ?? 'N/A' }}</div>
-                            @if ($product->type)
+                            @if($product->type)
                                 <div>Type: {{ $product->type->name ?? 'N/A' }}</div>
                             @endif
+                            <div>État: {{ $product->state == 1 ? 'Actif' : 'Inactif' }}</div>
                         </div>
                     </flux:table.cell>
 
                     <!-- Marque -->
                     <flux:table.cell class="hidden sm:table-cell">
-                        <span class="text-sm">{{ $product->marque?->name ?? '—' }}</span>
+                        <span class="text-sm">{{ $product->marque?->name ?? '-' }}</span>
                     </flux:table.cell>
 
                     <!-- Catégorie -->
                     <flux:table.cell class="hidden sm:table-cell">
-                        <span class="text-sm">{{ $product->categorie?->name ?? '—' }}</span>
+                        <span class="text-sm">{{ $product->categorie?->name ?? '-' }}</span>
                     </flux:table.cell>
 
                     <!-- Type -->
                     <flux:table.cell class="hidden md:table-cell">
-                        <span class="text-sm">{{ $product->type?->name ?? '—' }}</span>
+                        <span class="text-sm">{{ $product->type?->name ?? '-' }}</span>
                     </flux:table.cell>
 
                     <!-- État -->
                     <flux:table.cell class="text-center">
                         <div class="flex items-center justify-center">
-                            @if ($updatingProductId === $product->id)
+                            @if($updatingProductId === $product->id)
                                 <svg class="animate-spin h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
