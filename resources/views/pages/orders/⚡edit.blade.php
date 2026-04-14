@@ -168,7 +168,7 @@ new class extends Component
 <div class="max-w-7xl mx-auto">
     <flux:breadcrumbs class="mb-5">
         <flux:breadcrumbs.item href="{{ route('orders.list') }}">Commande</flux:breadcrumbs.item>
-        <flux:breadcrumbs.item>Modifier #{{ $commande_id }}</flux:breadcrumbs.item>
+        <flux:breadcrumbs.item>Commande №/ {{ $commande_id }}</flux:breadcrumbs.item>
     </flux:breadcrumbs>
 
     <div class="flex items-center justify-between mb-6">
