@@ -85,7 +85,7 @@ pipeline {
                             cd $PROJECT_DIR
                             echo "Installing Composer dependencies..."
 
-                            composer install \
+                            composer update \
                                 --no-dev \
                                 --no-interaction \
                                 --prefer-dist \
