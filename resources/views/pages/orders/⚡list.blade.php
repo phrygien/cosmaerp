@@ -190,7 +190,7 @@ new class extends Component
         <flux:heading size="xl" level="1">{{ __('Commandes') }}</flux:heading>
 
         <flux:modal.trigger name="create-commande">
-            <flux:button variant="primary" class="w-full sm:w-auto" icon="shopping-cart">
+            <flux:button variant="primary" class="w-full sm:w-auto" href="{{ route('orders.create') }}" wire:navigate>
                 Ajouter une commande
             </flux:button>
         </flux:modal.trigger>
