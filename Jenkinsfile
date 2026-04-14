@@ -44,7 +44,8 @@ pipeline {
             steps {
                 sh '''
                     cd $PROJECT_DIR
-                    source .commit_env
+
+                    . .commit_env
 
                     if git diff --name-only $OLD_COMMIT $NEW_COMMIT | grep -q "composer.lock"; then
                         echo "COMPOSER_CHANGED=true" > .build_flags
