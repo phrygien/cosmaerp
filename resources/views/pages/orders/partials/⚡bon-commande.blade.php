@@ -68,14 +68,14 @@ new class extends Component
 ?>
 
 <div>
-    <flux:modal name="bon-commande" class="w-full max-w-4xl">
+    <flux:modal name="bon-commande" class="w-full max-w-6xl">
         @if ($commande)
             <div class="space-y-6">
 
                 {{-- En-tête --}}
                 <div class="flex items-start justify-between">
                     <div>
-                        <flux:heading size="lg">Details de la commande</flux:heading>
+                        <flux:heading size="lg">Détails de la commande</flux:heading>
                         <flux:text class="mt-1 text-zinc-500">
                             {{ $commande->libelle ?? '—' }}
                         </flux:text>
@@ -95,7 +95,7 @@ new class extends Component
 
                 {{-- Infos bon de commande --}}
                 @if ($bonCommande)
-                    <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 text-sm">
+                    <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 text-sm">
                         <div>
                             <p class="text-zinc-500 text-xs mb-0.5">Code fournisseur</p>
                             <p class="font-medium">{{ $bonCommande->code_fournisseur ?? '—' }}</p>
@@ -154,74 +154,93 @@ new class extends Component
                 <div>
                     <flux:heading size="sm" class="mb-3">Lignes de commande</flux:heading>
 
-                    <flux:table variant="bordered">
-                        <flux:table.columns>
-                            <flux:table.column>Produit</flux:table.column>
-                            <flux:table.column>Qté</flux:table.column>
-                            <flux:table.column>PU HT</flux:table.column>
-                            <flux:table.column>Remise</flux:table.column>
-                            <flux:table.column>PU net</flux:table.column>
-                            <flux:table.column>Total HT</flux:table.column>
-                            <flux:table.column class="hidden md:table-cell">Destinations</flux:table.column>
-                        </flux:table.columns>
+                    <div class="overflow-x-auto">
+                        <flux:table variant="bordered">
+                            <flux:table.columns>
+                                <flux:table.column>EAN</flux:table.column>
+                                <flux:table.column>Produit</flux:table.column>
+                                <flux:table.column>Qté</flux:table.column>
+                                <flux:table.column>PU HT</flux:table.column>
+                                <flux:table.column>Remise</flux:table.column>
+                                <flux:table.column>PU net</flux:table.column>
+                                <flux:table.column>Total HT</flux:table.column>
+                                <flux:table.column class="hidden md:table-cell">Destinations</flux:table.column>
+                            </flux:table.columns>
 
-                        <flux:table.rows>
-                            @forelse ($commande->details as $detail)
-                                <flux:table.row :key="$detail->id">
-                                    <flux:table.cell class="font-medium text-sm">
-                                        {{ $detail->product?->designation ?? '—' }}
-                                    </flux:table.cell>
-                                    <flux:table.cell class="text-sm">
-                                        {{ $detail->quantite }}
-                                    </flux:table.cell>
-                                    <flux:table.cell class="text-sm whitespace-nowrap">
-                                        {{ number_format($detail->pu_achat_HT, 2, ',', ' ') }} €
-                                    </flux:table.cell>
-                                    <flux:table.cell class="text-sm">
-                                        {{ $detail->taux_remise ? $detail->taux_remise . ' %' : '—' }}
-                                    </flux:table.cell>
-                                    <flux:table.cell class="text-sm whitespace-nowrap">
-                                        {{ number_format($detail->pu_achat_net, 2, ',', ' ') }} €
-                                    </flux:table.cell>
-                                    <flux:table.cell class="text-sm font-medium whitespace-nowrap">
-                                        {{ number_format($detail->pu_achat_net * $detail->quantite, 2, ',', ' ') }} €
-                                    </flux:table.cell>
-                                    <flux:table.cell class="hidden md:table-cell">
-                                        <div class="flex flex-wrap gap-1">
-                                            @foreach ($detail->destinations as $dest)
-                                                <flux:badge size="sm" color="zinc">
-                                                    {{ $dest->magasin?->name ?? '—' }} ({{ $dest->quantite }})
-                                                </flux:badge>
-                                            @endforeach
-                                        </div>
-                                    </flux:table.cell>
-                                </flux:table.row>
-                            @empty
-                                <flux:table.row>
-                                    <flux:table.cell colspan="7">
-                                        <p class="text-center text-zinc-400 text-sm py-4">Aucune ligne de commande</p>
-                                    </flux:table.cell>
-                                </flux:table.row>
-                            @endforelse
-                        </flux:table.rows>
-                    </flux:table>
+                            <flux:table.rows>
+                                @forelse ($commande->details as $detail)
+                                    <flux:table.row :key="$detail->id">
+                                        <flux:table.cell class="text-xs font-mono">
+                                            {{ $detail->product?->ean ?? '—' }}
+                                        </flux:table.cell>
+                                        <flux:table.cell class="font-medium text-sm">
+                                            {{ $detail->product?->designation ?? '—' }}
+                                        </flux:table.cell>
+                                        <flux:table.cell class="text-sm">
+                                            {{ $detail->quantite }}
+                                        </flux:table.cell>
+                                        <flux:table.cell class="text-sm whitespace-nowrap">
+                                            {{ number_format($detail->pu_achat_HT, 2, ',', ' ') }} €
+                                        </flux:table.cell>
+                                        <flux:table.cell class="text-sm">
+                                            {{ $detail->taux_remise ? $detail->taux_remise . ' %' : '—' }}
+                                        </flux:table.cell>
+                                        <flux:table.cell class="text-sm whitespace-nowrap">
+                                            {{ number_format($detail->pu_achat_net, 2, ',', ' ') }} €
+                                        </flux:table.cell>
+                                        <flux:table.cell class="text-sm font-medium whitespace-nowrap">
+                                            {{ number_format($detail->pu_achat_net * $detail->quantite, 2, ',', ' ') }} €
+                                        </flux:table.cell>
+                                        <flux:table.cell class="hidden md:table-cell">
+                                            <div class="flex flex-wrap gap-1">
+                                                @foreach ($detail->destinations as $dest)
+                                                    <flux:badge size="sm" color="zinc">
+                                                        {{ $dest->magasin?->name ?? '—' }} ({{ $dest->quantite }})
+                                                    </flux:badge>
+                                                @endforeach
+                                            </div>
+                                        </flux:table.cell>
+                                    </flux:table.row>
+                                @empty
+                                    <flux:table.row>
+                                        <flux:table.cell colspan="8">
+                                            <p class="text-center text-zinc-400 text-sm py-4">Aucune ligne de commande</p>
+                                        </flux:table.cell>
+                                    </flux:table.row>
+                                @endforelse
+                            </flux:table.rows>
+                        </flux:table>
+                    </div>
                 </div>
 
-                {{-- Total --}}
-                <div class="flex justify-end">
-                    <div class="text-right space-y-1">
-                        <p class="text-sm text-zinc-500">Montant total</p>
-                        <p class="text-2xl font-bold">
-                            {{ number_format($commande->montant_total, 2, ',', ' ') }} €
-                        </p>
-                        @if ($bonCommande?->montant_commande_net)
-                            <p class="text-sm text-zinc-500">
-                                Net :
-                                <span class="font-medium text-zinc-700 dark:text-zinc-200">
-                                    {{ number_format($bonCommande->montant_commande_net, 2, ',', ' ') }} €
-                                </span>
+                {{-- Récapitulatif des totaux --}}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <flux:heading size="sm">Informations supplémentaires</flux:heading>
+                        <div class="text-sm space-y-1">
+                            <p><span class="text-zinc-500">Nombre de produits :</span> {{ $commande->details->count() }}</p>
+                            <p><span class="text-zinc-500">Quantité totale :</span> {{ $commande->details->sum('quantite') }}</p>
+                            @if($commande->remise_facture > 0)
+                                <p><span class="text-zinc-500">Remise facture :</span> {{ $commande->remise_facture }}%</p>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end">
+                        <div class="text-right space-y-1">
+                            <p class="text-sm text-zinc-500">Montant total</p>
+                            <p class="text-2xl font-bold">
+                                {{ number_format($commande->montant_total, 2, ',', ' ') }} €
                             </p>
-                        @endif
+                            @if ($bonCommande?->montant_commande_net)
+                                <p class="text-sm text-zinc-500">
+                                    Net :
+                                    <span class="font-medium text-zinc-700 dark:text-zinc-200">
+                                        {{ number_format($bonCommande->montant_commande_net, 2, ',', ' ') }} €
+                                    </span>
+                                </p>
+                            @endif
+                        </div>
                     </div>
                 </div>
 
