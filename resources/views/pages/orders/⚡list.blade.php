@@ -300,14 +300,14 @@ new class extends Component
                     <div class="flex items-center gap-2">
                         <flux:input
                             type="date"
-                            wire:model.blur="filterDateFrom"
+                            wire:model.live="filterDateFrom"
                             label="Du"
                             class="w-40"
                         />
                         <span class="text-zinc-400 text-sm mt-5">→</span>
                         <flux:input
                             type="date"
-                            wire:model.blur="filterDateTo"
+                            wire:model.live="filterDateTo"
                             label="Au"
                             class="w-40"
                         />

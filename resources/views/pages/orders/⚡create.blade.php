@@ -129,7 +129,13 @@ new class extends Component
             }
         }
 
-        $this->redirect(route('orders.list'));
+        Flux::toast(
+            heading: 'Annulation de commande',
+            text: 'La commande a été annulée.',
+            variant: 'info'
+        );
+
+        $this->redirect(route('orders.list'), navigate: true);
     }
 
     public function confirmer(): void

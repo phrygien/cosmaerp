@@ -29,6 +29,7 @@ Route::group(["middleware" => ["auth", "verified"], "prefix" => 'catalogue'], fu
 Route::group(["middleware" => ["auth", "verified"], "prefix" => 'orders'], function () {
     Route::livewire('/list', "pages::orders.page")->name("orders.list");
     Route::livewire('/create', "pages::orders.create")->name("orders.create");
+    Route::livewire('/edit/{id}', "pages::orders.edit")->name("orders.edit");
 });
 
 require __DIR__ . "/settings.php";
