@@ -33,7 +33,7 @@ new class extends Component
 
         $this->commande = $this->loadCommande($id);
 
-        dd($this->commande);
+        //dd($this->commande);
         $this->bonCommande = BonCommande::with([
             'magasinFacturation',
             'magasinLivraison',
