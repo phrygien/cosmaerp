@@ -200,17 +200,17 @@ new class extends Component
         <div class="flex gap-2 mt-2 flex-wrap">
             @if($this->product?->marque)
                 <span class="text-xs bg-white dark:bg-gray-800 border border-indigo-200 dark:border-indigo-700 rounded px-2 py-0.5 text-indigo-700 dark:text-indigo-300">
-                    {{ $this->product->marque->name }}
+                    Marque: {{ $this->product->marque->name }}
                 </span>
             @endif
             @if($this->product?->categorie)
                 <span class="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded px-2 py-0.5 text-gray-600 dark:text-gray-300">
-                    {{ $this->product->categorie->name }}
+                    Categorie: {{ $this->product->categorie->name }}
                 </span>
             @endif
             @if($this->product?->EAN)
                 <span class="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded px-2 py-0.5 text-gray-600 dark:text-gray-300">
-                {{ $this->product->EAN }}
+                EAN: {{ $this->product->EAN }}
             </span>
             @endif
         </div>
