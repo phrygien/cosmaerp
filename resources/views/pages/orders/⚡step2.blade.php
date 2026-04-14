@@ -332,8 +332,8 @@ new class extends Component
             @endif
 
             {{-- Table produits --}}
-            <flux:table :paginate="$this->products">
-                <flux:table.columns>
+            <flux:table :paginate="$this->products" container:class="max-h-[600px]">
+                <flux:table.columns sticky class="bg-white dark:bg-zinc-900">
                     <flux:table.column
                         sortable
                         :sorted="$sortBy === 'product_code'"
