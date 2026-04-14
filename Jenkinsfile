@@ -104,6 +104,7 @@ pipeline {
                 sh '''
                     cd $PROJECT_DIR
 
+                    # Seulement les dossiers nécessaires à Laravel
                     sudo chgrp -R www-data storage bootstrap/cache
                     sudo chmod -R 775 storage bootstrap/cache
                 '''
