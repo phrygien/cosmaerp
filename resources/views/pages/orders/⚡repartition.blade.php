@@ -208,6 +208,11 @@ new class extends Component
                     {{ $this->product->categorie->name }}
                 </span>
             @endif
+            @if($this->product?->EAN)
+                <span class="text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded px-2 py-0.5 text-gray-600 dark:text-gray-300">
+                {{ $this->product->EAN }}
+            </span>
+            @endif
         </div>
     </div>
 
