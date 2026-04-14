@@ -4,18 +4,24 @@ use Livewire\Component;
 use Livewire\Attributes\On;
 use App\Models\BonCommande;
 use App\Models\Commande;
+use App\Mail\BonCommandeMail;
 use Flux\Flux;
+use Illuminate\Support\Facades\Mail;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 new class extends Component
 {
     public ?int $commandeId = null;
     public ?BonCommande $bonCommande = null;
     public ?Commande $commande = null;
+    public bool $emailSent = false;
+    public bool $sendingEmail = false;
 
     #[On('show-bon-commande')]
     public function load(int $id): void
     {
         $this->commandeId = $id;
+        $this->emailSent = false;
 
         $this->commande = Commande::with([
             'fournisseur',
@@ -30,6 +36,49 @@ new class extends Component
         ])->where('commande_id', $id)->first();
 
         Flux::modal('bon-commande')->show();
+    }
+
+    public function exportPdf(): \Symfony\Component\HttpFoundation\Response
+    {
+        $commande = $this->commande;
+        $bonCommande = $this->bonCommande;
+
+        $pdf = Pdf::loadView('pdf.bon-commande', compact('commande', 'bonCommande'))
+            ->setPaper('a4');
+
+        $filename = 'bon-commande-' . ($commande->id) . '.pdf';
+
+        return response()->streamDownload(
+            fn () => print($pdf->output()),
+            $filename,
+            ['Content-Type' => 'application/pdf']
+        );
+    }
+
+    public function sendEmail(): void
+    {
+        $this->sendingEmail = true;
+
+        $commande = $this->commande;
+        $bonCommande = $this->bonCommande;
+
+        $pdf = Pdf::loadView('pdf.bon-commande', compact('commande', 'bonCommande'))
+            ->setPaper('a4');
+
+        $email = $commande->fournisseur?->email;
+
+        if (!$email) {
+            Flux::toast('Aucune adresse email trouvée pour ce fournisseur.', variant: 'danger');
+            $this->sendingEmail = false;
+            return;
+        }
+
+        Mail::to($email)->send(new BonCommandeMail($commande, $bonCommande, $pdf->output()));
+
+        $this->emailSent = true;
+        $this->sendingEmail = false;
+
+        Flux::toast('Bon de commande envoyé à ' . $email, variant: 'success');
     }
 };
 ?>
@@ -192,8 +241,43 @@ new class extends Component
                     </div>
                 </div>
 
-                {{-- Footer --}}
-                <div class="flex justify-end">
+                {{-- Footer avec actions --}}
+                <div class="flex items-center justify-between pt-2">
+                    {{-- Actions PDF / Email --}}
+                    <div class="flex items-center gap-2">
+                        <flux:button
+                            wire:click="exportPdf"
+                            icon="arrow-down-tray"
+                            variant="filled"
+                            size="sm"
+                        >
+                            Exporter PDF
+                        </flux:button>
+
+                        <flux:button
+                            wire:click="sendEmail"
+                            wire:loading.attr="disabled"
+                            wire:target="sendEmail"
+                            icon="{{ $emailSent ? 'check' : 'envelope' }}"
+                            variant="{{ $emailSent ? 'outline' : 'outline' }}"
+                            size="sm"
+                            :disabled="$emailSent || !$commande->fournisseur?->email"
+                        >
+                            <span wire:loading.remove wire:target="sendEmail">
+                                {{ $emailSent ? 'Email envoyé' : 'Envoyer par email' }}
+                            </span>
+                            <span wire:loading wire:target="sendEmail">
+                                Envoi en cours…
+                            </span>
+                        </flux:button>
+
+                        @if (!$commande->fournisseur?->email)
+                            <flux:tooltip content="Aucune adresse email pour ce fournisseur">
+                                <flux:icon name="exclamation-triangle" class="text-amber-400 w-4 h-4" />
+                            </flux:tooltip>
+                        @endif
+                    </div>
+
                     <flux:modal.close>
                         <flux:button variant="ghost">Fermer</flux:button>
                     </flux:modal.close>
