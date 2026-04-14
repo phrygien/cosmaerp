@@ -253,100 +253,99 @@ new class extends Component
 
     {{-- Step Indicator --}}
     <nav aria-label="Progress">
-        <ol role="list" class="divide-y divide-gray-300 rounded-md border border-gray-300 dark:divide-zinc-700 rounded-md border dark:border-b-zinc-500 md:flex md:divide-y-0">
+        <ol role="list"
+            class="divide-y divide-gray-200 dark:divide-zinc-700
+               rounded-lg border border-gray-200 dark:border-zinc-700
+               md:flex md:divide-y-0">
 
-            {{-- Step 1 --}}
-            <li class="relative md:flex md:flex-1">
-                @if($currentStep > 1)
-                    <a href="#" wire:click.prevent="$set('currentStep', 1)" class="group flex w-full items-center">
-                        <span class="flex items-center px-6 py-4 text-sm font-medium">
-                            <span class="flex size-10 shrink-0 items-center justify-center rounded-full bg-rose-600 group-hover:bg-rose-800">
-                                <svg class="size-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+            @php
+                $steps = [
+                    1 => 'Informations',
+                    2 => 'Produits',
+                    3 => 'Aperçu',
+                ];
+            @endphp
+
+            @foreach($steps as $step => $label)
+                @php
+                    $done   = $currentStep > $step;
+                    $active = $currentStep === $step;
+                    $last   = $step === count($steps);
+                @endphp
+
+                <li class="relative md:flex md:flex-1">
+
+                    {{-- DONE : étape complétée --}}
+                    @if($done)
+                        <a href="#"
+                           wire:click.prevent="$set('currentStep', {{ $step }})"
+                           class="group flex w-full items-center">
+                        <span class="flex items-center px-6 py-4 gap-3 text-sm font-medium">
+                            <span class="flex size-9 shrink-0 items-center justify-center rounded-full
+                                         bg-rose-600 group-hover:bg-rose-700
+                                         transition-colors duration-150">
+                                <svg class="size-5 text-white" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                                     <path fill-rule="evenodd" d="M19.916 4.626a.75.75 0 0 1 .208 1.04l-9 13.5a.75.75 0 0 1-1.154.114l-6-6a.75.75 0 0 1 1.06-1.06l5.353 5.353 8.493-12.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"/>
                                 </svg>
                             </span>
-                            <span class="ml-4 text-sm font-medium text-gray-900">Informations</span>
-                        </span>
-                    </a>
-                @elseif($currentStep === 1)
-                    <span class="flex items-center px-6 py-4 text-sm font-medium">
-                        <span class="flex size-10 shrink-0 items-center justify-center rounded-full border-2 border-rose-600">
-                            <span class="text-rose-600">01</span>
-                        </span>
-                        <span class="ml-4 text-sm font-medium text-rose-600">Informations</span>
-                    </span>
-                @else
-                    <span class="flex items-center px-6 py-4 text-sm font-medium">
-                        <span class="flex size-10 shrink-0 items-center justify-center rounded-full border-2 border-gray-300">
-                            <span class="text-gray-500">01</span>
-                        </span>
-                        <span class="ml-4 text-sm font-medium text-gray-500">Informations</span>
-                    </span>
-                @endif
-                <div class="absolute top-0 right-0 hidden h-full w-5 md:block" aria-hidden="true">
-                    <svg class="size-full text-gray-300" viewBox="0 0 22 80" fill="none" preserveAspectRatio="none">
-                        <path d="M0 -2L20 40L0 82" vector-effect="non-scaling-stroke" stroke="currentcolor" stroke-linejoin="round"/>
-                    </svg>
-                </div>
-            </li>
-
-            {{-- Step 2 --}}
-            <li class="relative md:flex md:flex-1">
-                @if($currentStep > 2)
-                    <a href="#" wire:click.prevent="$set('currentStep', 2)" class="group flex w-full items-center">
-                        <span class="flex items-center px-6 py-4 text-sm font-medium">
-                            <span class="flex size-10 shrink-0 items-center justify-center rounded-full bg-rose-600 group-hover:bg-rose-800">
-                                <svg class="size-6 text-white" viewBox="0 0 24 24" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M19.916 4.626a.75.75 0 0 1 .208 1.04l-9 13.5a.75.75 0 0 1-1.154.114l-6-6a.75.75 0 0 1 1.06-1.06l5.353 5.353 8.493-12.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"/>
-                                </svg>
+                            <span class="text-sm font-medium
+                                         text-gray-900 dark:text-zinc-100">
+                                {{ $label }}
                             </span>
-                            <span class="ml-4 text-sm font-medium text-gray-900">Produits</span>
                         </span>
-                    </a>
-                @elseif($currentStep === 2)
-                    <span class="flex items-center px-6 py-4 text-sm font-medium">
-                        <span class="flex size-10 shrink-0 items-center justify-center rounded-full border-2 border-rose-600">
-                            <span class="text-rose-600">02</span>
-                        </span>
-                        <span class="ml-4 text-sm font-medium text-rose-600">Produits</span>
-                    </span>
-                @else
-                    <span class="flex items-center px-6 py-4 text-sm font-medium">
-                        <span class="flex size-10 shrink-0 items-center justify-center rounded-full border-2 border-gray-300">
-                            <span class="text-gray-500">02</span>
-                        </span>
-                        <span class="ml-4 text-sm font-medium text-gray-500">Produits</span>
-                    </span>
-                @endif
-                <div class="absolute top-0 right-0 hidden h-full w-5 md:block" aria-hidden="true">
-                    <svg class="size-full text-gray-300" viewBox="0 0 22 80" fill="none" preserveAspectRatio="none">
-                        <path d="M0 -2L20 40L0 82" vector-effect="non-scaling-stroke" stroke="currentcolor" stroke-linejoin="round"/>
-                    </svg>
-                </div>
-            </li>
+                        </a>
 
-            {{-- Step 3 --}}
-            <li class="relative md:flex md:flex-1">
-                @if($currentStep === 3)
-                    <span class="flex items-center px-6 py-4 text-sm font-medium">
-                        <span class="flex size-10 shrink-0 items-center justify-center rounded-full border-2 border-rose-600">
-                            <span class="text-rose-600">03</span>
+                        {{-- ACTIVE : étape en cours --}}
+                    @elseif($active)
+                        <span class="flex items-center px-6 py-4 gap-3 text-sm font-medium" aria-current="step">
+                        <span class="flex size-9 shrink-0 items-center justify-center rounded-full
+                                     border-2 border-rose-600 dark:border-rose-500">
+                            <span class="text-sm font-semibold
+                                         text-rose-600 dark:text-rose-400">
+                                {{ str_pad($step, 2, '0', STR_PAD_LEFT) }}
+                            </span>
                         </span>
-                        <span class="ml-4 text-sm font-medium text-rose-600">Aperçu</span>
-                    </span>
-                @else
-                    <span class="flex items-center px-6 py-4 text-sm font-medium">
-                        <span class="flex size-10 shrink-0 items-center justify-center rounded-full border-2 border-gray-300">
-                            <span class="text-gray-500">03</span>
+                        <span class="text-sm font-medium
+                                     text-rose-600 dark:text-rose-400">
+                            {{ $label }}
                         </span>
-                        <span class="ml-4 text-sm font-medium text-gray-500">Aperçu</span>
                     </span>
-                @endif
-            </li>
+
+                        {{-- INACTIVE : étape future --}}
+                    @else
+                        <span class="flex items-center px-6 py-4 gap-3 text-sm font-medium">
+                        <span class="flex size-9 shrink-0 items-center justify-center rounded-full
+                                     border-2 border-gray-300 dark:border-zinc-600">
+                            <span class="text-sm font-medium
+                                         text-gray-400 dark:text-zinc-500">
+                                {{ str_pad($step, 2, '0', STR_PAD_LEFT) }}
+                            </span>
+                        </span>
+                        <span class="text-sm font-medium
+                                     text-gray-400 dark:text-zinc-500">
+                            {{ $label }}
+                        </span>
+                    </span>
+                    @endif
+
+                    {{-- Flèche séparatrice (sauf dernier) --}}
+                    @unless($last)
+                        <div class="absolute top-0 right-0 hidden h-full w-5 md:block" aria-hidden="true">
+                            <svg class="size-full text-gray-200 dark:text-zinc-700"
+                                 viewBox="0 0 22 80" fill="none" preserveAspectRatio="none">
+                                <path d="M0 -2L20 40L0 82"
+                                      vector-effect="non-scaling-stroke"
+                                      stroke="currentColor"
+                                      stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                    @endunless
+
+                </li>
+            @endforeach
 
         </ol>
     </nav>
-
     {{-- Step Content --}}
     <flux:card class="mt-5">
 
