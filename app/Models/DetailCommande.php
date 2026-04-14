@@ -19,7 +19,7 @@ class DetailCommande extends Model
 
     public function product(): BelongsTo
     {
-        return $this->belongsTo(Product::class, 'product_id', 'id');
+        return $this->belongsTo(Product::class, 'product_id');
     }
 
     public function destinations(): HasMany

@@ -25,6 +25,6 @@ class Commande extends Model
 
     public function details(): HasMany
     {
-        return $this->hasMany(DetailCommande::class, 'commande_id', 'id');
+        return $this->hasMany(DetailCommande::class, 'commande_id');
     }
 }

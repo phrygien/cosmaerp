@@ -458,7 +458,7 @@ new class extends Component
                                 <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom" />
                                 <flux:menu>
                                     <flux:menu.item icon="document-text" wire:click="showBonCommande({{ $commande->id }})">
-                                        Bon de commande
+                                        Details de la commande
                                     </flux:menu.item>
                                     <flux:menu.item icon="pencil" wire:click="edit({{ $commande->id }})">
                                         Modifier
