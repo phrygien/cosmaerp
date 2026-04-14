@@ -3,138 +3,174 @@
 <head>
     <meta charset="UTF-8">
     <style>
-        body { font-family: DejaVu Sans, sans-serif; font-size: 12px; color: #111; }
-        h1 { font-size: 18px; margin-bottom: 4px; }
-        .subtitle { color: #666; margin-bottom: 16px; }
-        .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
-        .badge-green { background: #dcfce7; color: #166534; }
-        .badge-blue  { background: #dbeafe; color: #1e40af; }
-        .badge-yellow{ background: #fef9c3; color: #854d0e; }
-        .badge-red   { background: #fee2e2; color: #991b1b; }
-        .grid2 { display: table; width: 100%; margin-bottom: 12px; }
-        .grid2 .col { display: table-cell; width: 50%; vertical-align: top; }
-        .info-grid { display: table; width: 100%; border-collapse: collapse; margin-bottom: 16px; }
-        .info-grid .cell { display: table-cell; width: 33%; padding: 4px 8px 4px 0; vertical-align: top; }
-        .label { font-size: 10px; color: #888; margin-bottom: 2px; }
-        .value { font-weight: bold; }
-        hr { border: none; border-top: 1px solid #e5e7eb; margin: 12px 0; }
-        table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-        th { background: #f4f4f5; text-align: left; padding: 6px 8px; font-size: 11px; color: #555; border-bottom: 2px solid #e5e7eb; }
-        td { padding: 6px 8px; border-bottom: 1px solid #f1f1f1; font-size: 11px; }
-        .text-right { text-align: right; }
-        .total-section { margin-top: 16px; text-align: right; }
-        .total-section .total-label { color: #888; font-size: 11px; }
-        .total-section .total-amount { font-size: 20px; font-weight: bold; }
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            color: #000;
+            margin: 0;
+            padding: 20px;
+        }
+        .header {
+            display: table;
+            width: 100%;
+            border: 2px solid #000;
+        }
+        .logo {
+            display: table-cell;
+            width: 250px;
+            vertical-align: middle;
+            padding: 8px;
+            border-right: 2px solid #000;
+        }
+        .logo img {
+            max-height: 70px;
+        }
+        .title {
+            display: table-cell;
+            vertical-align: middle;
+            text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+            padding: 10px;
+        }
+        .info-right {
+            display: table-cell;
+            width: 220px;
+            vertical-align: top;
+            border-left: 2px solid #000;
+            padding: 8px;
+            font-size: 11px;
+        }
+        .info-right td {
+            padding: 2px 0;
+        }
+
+        .main-title {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 20px 0 10px 0;
+        }
+
+        .field-row {
+            margin-bottom: 8px;
+        }
+        .field-label {
+            font-weight: bold;
+            width: 140px;
+            display: inline-block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            border: 2px solid #000;
+        }
+        th, td {
+            border: 1px solid #000;
+            padding: 6px 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+        .designation { text-align: left; }
+
+        .footer {
+            display: table;
+            width: 100%;
+            margin-top: 30px;
+        }
+        .footer div {
+            display: table-cell;
+            width: 50%;
+            text-align: center;
+            border: 2px solid #000;
+            padding: 10px 0;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
 
-<h1>Bon de commande</h1>
-<p class="subtitle">{{ $commande->libelle ?? '—' }}</p>
-
-@php
-    $statusColor = match($commande->status) {
-        -1 => 'red', 1 => 'blue', 2 => 'yellow', 3 => 'green', default => 'zinc',
-    };
-    $statusLabel = match($commande->status) {
-        -1 => 'Annulée', 1 => 'Créée', 2 => 'Facturée', 3 => 'Clôturée', default => '—',
-    };
-@endphp
-
-<span class="badge badge-{{ $statusColor }}">{{ $statusLabel }}</span>
-<hr>
-
-@if ($bonCommande)
-    <div class="info-grid">
-        <div class="cell">
-            <div class="label">Code fournisseur</div>
-            <div class="value">{{ $bonCommande->code_fournisseur ?? '—' }}</div>
-        </div>
-        <div class="cell">
-            <div class="label">N° compte</div>
-            <div class="value">{{ $bonCommande->numero_compte ?? '—' }}</div>
-        </div>
-        <div class="cell">
-            <div class="label">Date commande</div>
-            <div class="value">
-                {{ $bonCommande->date_commande
-                    ? \Carbon\Carbon::parse($bonCommande->date_commande)->translatedFormat('d F Y')
-                    : '—' }}
-            </div>
-        </div>
-        <div class="cell">
-            <div class="label">Livraison prévue</div>
-            <div class="value">
-                {{ $bonCommande->date_livraison_prevue
-                    ? \Carbon\Carbon::parse($bonCommande->date_livraison_prevue)->translatedFormat('d F Y')
-                    : '—' }}
-            </div>
-        </div>
-        <div class="cell">
-            <div class="label">Magasin facturation</div>
-            <div class="value">{{ $bonCommande->magasinFacturation?->name ?? '—' }}</div>
-        </div>
-        <div class="cell">
-            <div class="label">Magasin livraison</div>
-            <div class="value">{{ $bonCommande->magasinLivraison?->name ?? '—' }}</div>
-        </div>
+<!-- En-tête -->
+<div class="header">
+    <div class="logo">
+        <!-- Remplace par ton logo réel -->
+        <strong style="font-size:20px; color:#b91c1c;">Cosma</strong><br>
+        <strong style="font-size:14px;">Parfumeries</strong>
     </div>
-@endif
-
-<div class="grid2">
-    <div class="col">
-        <div class="label">Fournisseur</div>
-        <div class="value">{{ $commande->fournisseur?->name ?? '—' }}</div>
-    </div>
-    <div class="col">
-        <div class="label">Magasin livraison</div>
-        <div class="value">{{ $commande->magasinLivraison?->name ?? '—' }}</div>
+    <div class="title">BON DE COMMANDE</div>
+    <div class="info-right">
+        <table style="width:100%; border:none;">
+            <tr><td><strong>Code</strong></td><td>FR.A-02</td></tr>
+            <tr><td><strong>Version</strong></td><td>01</td></tr>
+            <tr><td><strong>Date</strong></td><td>24/07/2018</td></tr>
+        </table>
     </div>
 </div>
 
-<hr>
+<div class="main-title">BON DE COMMANDE :</div>
 
+<!-- Informations -->
+<div class="field-row">
+    <span class="field-label">N° :</span>
+    <strong>{{ $bonCommande->numero ?? '..........................' }}</strong>
+</div>
+<div class="field-row">
+    <span class="field-label">DATE :</span>
+    <strong>{{ $bonCommande->date_commande ? \Carbon\Carbon::parse($bonCommande->date_commande)->format('d/m/Y') : '..........................' }}</strong>
+</div>
+
+<div class="field-row">
+    <span class="field-label">FOURNISSEUR :</span>
+    <strong>{{ $commande->fournisseur?->name ?? '........................................................................' }}</strong>
+</div>
+
+<div class="field-row">
+    <span class="field-label">V/ REF :</span>
+    <strong>{{ $bonCommande->reference_fournisseur ?? '........................................................................' }}</strong>
+</div>
+
+<div class="field-row">
+    <span class="field-label">IMPUTATION :</span>
+    <strong>{{ $bonCommande->imputation ?? '........................................................................' }}</strong>
+</div>
+
+<!-- Tableau des articles -->
 <table>
     <thead>
     <tr>
-        <th>Produit</th>
-        <th>Qté</th>
-        <th>PU HT</th>
-        <th>Remise</th>
-        <th>PU net</th>
-        <th class="text-right">Total HT</th>
-        <th>Destinations</th>
+        <th width="10%">Quantité</th>
+        <th width="55%">Désignations</th>
+        <th width="20%">EAN</th>
+        <th width="15%">P.U H.T</th>
+        <th width="15%">% de Remise</th>
+        <th width="20%">P.T H.T</th>
     </tr>
     </thead>
     <tbody>
     @forelse ($commande->details as $detail)
         <tr>
-            <td>{{ $detail->product?->name ?? '—' }}</td>
             <td>{{ $detail->quantite }}</td>
-            <td>{{ number_format($detail->pu_achat_HT, 2, ',', ' ') }} €</td>
-            <td>{{ $detail->taux_remise ? $detail->taux_remise . ' %' : '—' }}</td>
-            <td>{{ number_format($detail->pu_achat_net, 2, ',', ' ') }} €</td>
-            <td class="text-right">{{ number_format($detail->pu_achat_net * $detail->quantite, 2, ',', ' ') }} €</td>
-            <td>
-                @foreach ($detail->destinations as $dest)
-                    {{ $dest->magasin?->name ?? '—' }} ({{ $dest->quantite }})@if (!$loop->last), @endif
-                @endforeach
-            </td>
+            <td class="designation">{{ $detail->product?->designation ?? '—' }}</td>
+            <td class="designation">{{ $detail->product?->EAN ?? '—' }}</td>
+            <td>{{ number_format($detail->pu_achat_HT, 2, ',', ' ') }}</td>
+            <td>{{ number_format($detail->taux_remise, 2, ',', ' ') }}</td>
+            <td>{{ number_format($detail->pu_achat_net * $detail->quantite, 2, ',', ' ') }}</td>
         </tr>
     @empty
-        <tr><td colspan="7" style="text-align:center; color:#aaa;">Aucune ligne</td></tr>
+        <tr><td colspan="4" style="height:300px;"></td></tr>
     @endforelse
     </tbody>
 </table>
 
-<div class="total-section">
-    <div class="total-label">Montant total</div>
-    <div class="total-amount">{{ number_format($commande->montant_total, 2, ',', ' ') }} €</div>
-    @if ($bonCommande?->montant_commande_net)
-        <div class="total-label">
-            Net : <strong>{{ number_format($bonCommande->montant_commande_net, 2, ',', ' ') }} €</strong>
-        </div>
-    @endif
+<!-- Bas de page -->
+<div class="footer">
+    <div>Visa Service Achat</div>
+    <div>Visa Direction</div>
 </div>
 
 </body>
