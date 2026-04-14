@@ -14,10 +14,10 @@ new class extends Component
     public ?int $detail_id  = null;   // null = création, int = modification
     public bool $edit_mode  = false;
 
-    public float $pu_achat_ht  = 0;
-    public float $taux_remise  = 0;
-    public float $tax          = 0;
-    public float $pu_achat_net = 0;
+    public float $pu_achat_ht  = 0.0;
+    public float $taux_remise  = 0.0;
+    public float $tax          = 0.0;
+    public float $pu_achat_net = 0.0;
 
     /** @var array<int, int> magasin_id => quantite */
     public array $repartitions = [];
@@ -67,8 +67,17 @@ new class extends Component
         return (int) array_sum(array_map('intval', $this->repartitions));
     }
 
-    public function updatedPuAchatHt(): void  { $this->computeNet(); }
-    public function updatedTauxRemise(): void { $this->computeNet(); }
+    public function updatedPuAchatHt($value): void
+    {
+        $this->pu_achat_ht = $value === '' || $value === null ? 0 : (float) $value;
+        $this->computeNet();
+    }
+
+    public function updatedTauxRemise($value): void
+    {
+        $this->taux_remise = $value === '' || $value === null ? 0 : (float) $value;
+        $this->computeNet();
+    }
 
     private function computeNet(): void
     {
@@ -222,7 +231,7 @@ new class extends Component
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <flux:field>
                 <flux:label>PU Achat HT</flux:label>
-                <flux:input wire:model.live="pu_achat_ht" type="number" step="0.0001" min="0" placeholder="0.0000"/>
+                <flux:input wire:model.live.number="pu_achat_ht" type="number" step="0.0001" min="0" placeholder="0.0000"/>
                 <flux:error name="pu_achat_ht"/>
             </flux:field>
 
