@@ -15,18 +15,23 @@ new class extends Component
     public ?Commande $commande = null;
     public bool $emailSent = false;
 
+    private function loadCommande(int $id): Commande
+    {
+        return Commande::with([
+            'fournisseur',
+            'magasinLivraison',
+            'details.product',
+            'details.destinations.magasin',
+        ])->findOrFail($id);
+    }
+
     #[On('show-bon-commande')]
     public function load(int $id): void
     {
         $this->commandeId = $id;
         $this->emailSent = false;
 
-        $this->commande = Commande::with([
-            'fournisseur',
-            'magasinLivraison',
-            'details.product',
-            'details.destinations.magasin',
-        ])->findOrFail($id);
+        $this->commande = $this->loadCommande($id);
 
         $this->bonCommande = BonCommande::with([
             'magasinFacturation',
@@ -36,15 +41,9 @@ new class extends Component
         Flux::modal('bon-commande')->show();
     }
 
-    public function exportPdf(): void
-    {
-        // Livewire ne peut pas streamer de fichiers — on redirige vers la route dédiée
-        $this->redirect(route('bon-commande.pdf', $this->commandeId));
-    }
-
     public function sendEmail(): void
     {
-        $commande = $this->commande;
+        $commande    = $this->loadCommande($this->commandeId);
         $bonCommande = $this->bonCommande;
 
         $email = $commande->fournisseur?->email;
@@ -54,7 +53,6 @@ new class extends Component
             return;
         }
 
-        // Génération du PDF ici pour l'email
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView(
             'pdf.bon-commande',
             compact('commande', 'bonCommande')
@@ -63,7 +61,6 @@ new class extends Component
         Mail::to($email)->send(new BonCommandeMail($commande, $bonCommande, $pdf->output()));
 
         $this->emailSent = true;
-
         Flux::toast('Bon de commande envoyé à ' . $email, variant: 'success');
     }
 };
@@ -229,23 +226,24 @@ new class extends Component
 
                 {{-- Footer avec actions --}}
                 <div class="flex items-center justify-between pt-2">
+
                     {{-- Actions PDF / Email --}}
                     <div class="flex items-center gap-2">
-                        <flux:button
-                            wire:click="exportPdf"
-                            icon="arrow-down-tray"
-                            variant="filled"
-                            size="sm"
-                        >
-                            Exporter PDF
-                        </flux:button>
 
+                        {{-- Bouton PDF : lien direct vers la route, nouvel onglet --}}
+                        <a href="{{ route('bon-commande.pdf', $commandeId) }}" target="_blank">
+                            <flux:button icon="arrow-down-tray" variant="filled" size="sm">
+                                Exporter PDF
+                            </flux:button>
+                        </a>
+
+                        {{-- Bouton Email --}}
                         <flux:button
                             wire:click="sendEmail"
                             wire:loading.attr="disabled"
                             wire:target="sendEmail"
-                            icon="{{ $emailSent ? 'check' : 'envelope' }}"
-                            variant="{{ $emailSent ? 'outline' : 'outline' }}"
+                            :icon="$emailSent ? 'check' : 'envelope'"
+                            variant="outline"
                             size="sm"
                             :disabled="$emailSent || !$commande->fournisseur?->email"
                         >
@@ -257,11 +255,13 @@ new class extends Component
                             </span>
                         </flux:button>
 
+                        {{-- Avertissement si pas d'email fournisseur --}}
                         @if (!$commande->fournisseur?->email)
                             <flux:tooltip content="Aucune adresse email pour ce fournisseur">
                                 <flux:icon name="exclamation-triangle" class="text-amber-400 w-4 h-4" />
                             </flux:tooltip>
                         @endif
+
                     </div>
 
                     <flux:modal.close>
