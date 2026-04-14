@@ -4,7 +4,6 @@ pipeline {
     environment {
         APP_ENV = 'production'
         PROJECT_DIR = '/var/www/cosmaerp'
-        PHP_BIN = 'php'
     }
 
     stages {
@@ -21,11 +20,13 @@ pipeline {
         stage('Pull code') {
             steps {
                 script {
+                    // Ancien commit
                     env.OLD_COMMIT = sh(
                         script: "cd $PROJECT_DIR && git rev-parse HEAD",
                         returnStdout: true
                     ).trim()
 
+                    // Mise à jour
                     sh '''
                         cd $PROJECT_DIR
                         git fetch origin
@@ -33,58 +34,85 @@ pipeline {
                         git clean -fd
                     '''
 
+                    // Nouveau commit
                     env.NEW_COMMIT = sh(
                         script: "cd $PROJECT_DIR && git rev-parse HEAD",
                         returnStdout: true
                     ).trim()
+
+                    echo "OLD: ${env.OLD_COMMIT}"
+                    echo "NEW: ${env.NEW_COMMIT}"
                 }
             }
         }
 
-        stage('Check Composer changes') {
+        stage('Check changes') {
             steps {
-                sh '''
-                    cd $PROJECT_DIR
+                script {
+                    // Vérifier composer
+                    def composerChanged = sh(
+                        script: """
+                            cd $PROJECT_DIR
+                            git diff --name-only ${env.OLD_COMMIT} ${env.NEW_COMMIT} | grep composer.lock || true
+                        """,
+                        returnStdout: true
+                    ).trim()
 
-                    . .commit_env
+                    env.COMPOSER_CHANGED = composerChanged ? "true" : "false"
 
-                    if git diff --name-only $OLD_COMMIT $NEW_COMMIT | grep -q "composer.lock"; then
-                        echo "COMPOSER_CHANGED=true" > .build_flags
-                    else
-                        echo "COMPOSER_CHANGED=false" > .build_flags
-                    fi
-                '''
+                    // Vérifier npm
+                    def npmChanged = sh(
+                        script: """
+                            cd $PROJECT_DIR
+                            git diff --name-only ${env.OLD_COMMIT} ${env.NEW_COMMIT} | grep package-lock.json || true
+                        """,
+                        returnStdout: true
+                    ).trim()
+
+                    env.NPM_CHANGED = npmChanged ? "true" : "false"
+
+                    echo "Composer changed: ${env.COMPOSER_CHANGED}"
+                    echo "NPM changed: ${env.NPM_CHANGED}"
+                }
             }
         }
 
-        stage('Install dependencies (Composer)') {
+        stage('Composer install') {
             steps {
-                sh '''
-                    cd $PROJECT_DIR
-                    source .build_flags
+                script {
+                    if (env.COMPOSER_CHANGED == "true") {
+                        sh '''
+                            cd $PROJECT_DIR
+                            echo "📦 Installing Composer dependencies..."
 
-                    if [ "$COMPOSER_CHANGED" = "true" ]; then
-                        echo "composer.lock modifié → installation dépendances"
-
-                        composer install \
-                            --no-dev \
-                            --no-interaction \
-                            --prefer-dist \
-                            --optimize-autoloader
-                    else
-                        echo "Aucun changement composer → skip"
-                    fi
-                '''
+                            composer install \
+                                --no-dev \
+                                --no-interaction \
+                                --prefer-dist \
+                                --optimize-autoloader
+                        '''
+                    } else {
+                        echo "✅ Skip Composer (no change)"
+                    }
+                }
             }
         }
 
-        stage('Build assets') {
+        stage('NPM build') {
             steps {
-                sh '''
-                    cd $PROJECT_DIR
-                    npm ci
-                    npm run build
-                '''
+                script {
+                    if (env.NPM_CHANGED == "true") {
+                        sh '''
+                            cd $PROJECT_DIR
+                            echo "📦 Building assets..."
+
+                            npm ci
+                            npm run build
+                        '''
+                    } else {
+                        echo "✅ Skip NPM build (no change)"
+                    }
+                }
             }
         }
 
@@ -106,7 +134,6 @@ pipeline {
                 sh '''
                     cd $PROJECT_DIR
 
-                    # Seulement les dossiers nécessaires à Laravel
                     sudo chgrp -R www-data storage bootstrap/cache
                     sudo chmod -R 775 storage bootstrap/cache
                 '''
@@ -116,10 +143,10 @@ pipeline {
 
     post {
         success {
-            echo "Déploiement optimisé réussi"
+            echo "✅ Déploiement réussi (optimisé)"
         }
         failure {
-            echo "Échec du déploiement"
+            echo "❌ Échec du déploiement"
         }
     }
 }
