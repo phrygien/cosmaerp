@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\BonCommandePdfController;
 
 Route::view("/", "welcome")->name("home");
 
@@ -29,10 +30,8 @@ Route::group(["middleware" => ["auth", "verified"], "prefix" => 'catalogue'], fu
 Route::group(["middleware" => ["auth", "verified"], "prefix" => 'orders'], function () {
     Route::livewire('/list', "pages::orders.page")->name("orders.list");
     Route::livewire('/create', "pages::orders.create")->name("orders.create");
-    Route::livewire('/edit/{id}', "pages::orders.edit")->name("orders.edit");
+    Route::livewire('/edit/{commande_id}', "pages::orders.edit")->name("orders.edit");
 });
-
-use App\Http\Controllers\BonCommandePdfController;
 
 Route::get('/commandes/{id}/bon-commande/pdf', [BonCommandePdfController::class, 'download'])
     ->name('bon-commande.pdf')
