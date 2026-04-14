@@ -238,7 +238,7 @@ new class extends Component
 
     {{-- Step Indicator --}}
     <nav aria-label="Progress">
-        <ol role="list" class="divide-y divide-gray-300 rounded-md border border-gray-300 md:flex md:divide-y-0">
+        <ol role="list" class="divide-y divide-gray-300 rounded-md border border-gray-300 dark:divide-zinc-700 rounded-md border dark:border-b-zinc-500 md:flex md:divide-y-0">
 
             {{-- Step 1 --}}
             <li class="relative md:flex md:flex-1">
