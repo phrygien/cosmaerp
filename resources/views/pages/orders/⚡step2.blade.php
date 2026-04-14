@@ -107,7 +107,7 @@ new class extends Component
                 ->when($filterStatut === 'added',     fn($q) => $q->whereIn('id', $addedIds))
                 ->when($filterStatut === 'available', fn($q) => $q->whereNotIn('id', $addedIds))
                 ->orderBy($this->sortBy, $this->sortDirection)
-                ->paginate(15);
+                ->paginate(25);
         }
 
         // ── Filtres Typesense ────────────────────────────────────────────
