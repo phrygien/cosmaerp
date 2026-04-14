@@ -9,11 +9,14 @@ new class extends Component
 ?>
 
 <div class="max-w-7xl mx-auto">
+
+    <flux:breadcrumbs class="mb-5">
+        <flux:breadcrumbs.item href="#">PARKOD</flux:breadcrumbs.item>
+        <flux:breadcrumbs.item>Importer</flux:breadcrumbs.item>
+    </flux:breadcrumbs>
+
     <div class="relative mb-6 w-full">
-        <flux:heading size="xl" level="1">{{ __('Import PARKOD') }}</flux:heading>
-        <flux:subheading size="lg" class="mb-6">
-            {{ __('Importez et gérez les données PARKOD sur la plateforme ERP') }}
-        </flux:subheading>
+        <flux:heading size="xl" level="1">{{ __('Import Parkod') }}</flux:heading>
     </div>
 
     <livewire:pages::parkod.import />
