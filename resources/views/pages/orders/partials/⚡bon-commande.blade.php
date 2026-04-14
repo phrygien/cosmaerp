@@ -75,7 +75,7 @@ new class extends Component
                 {{-- En-tête --}}
                 <div class="flex items-start justify-between">
                     <div>
-                        <flux:heading size="lg">Bon de commande</flux:heading>
+                        <flux:heading size="lg">Details de la commande</flux:heading>
                         <flux:text class="mt-1 text-zinc-500">
                             {{ $commande->libelle ?? '—' }}
                         </flux:text>
