@@ -176,6 +176,11 @@ new class extends Component
             ->orderBy($this->sortBy, $this->sortDirection)
             ->paginate($this->perPage);
     }
+
+    public function showBonCommande(int $id): void
+    {
+        $this->dispatch('show-bon-commande', id: $id);
+    }
 };
 ?>
 
@@ -452,6 +457,9 @@ new class extends Component
                             <flux:dropdown>
                                 <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom" />
                                 <flux:menu>
+                                    <flux:menu.item icon="document-text" wire:click="showBonCommande({{ $commande->id }})">
+                                        Bon de commande
+                                    </flux:menu.item>
                                     <flux:menu.item icon="pencil" wire:click="edit({{ $commande->id }})">
                                         Modifier
                                     </flux:menu.item>
@@ -491,4 +499,5 @@ new class extends Component
 
     </flux:card>
 
+    <livewire:pages::orders.partials.bon-commande />
 </div>
