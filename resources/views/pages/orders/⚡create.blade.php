@@ -130,8 +130,8 @@ new class extends Component
         }
 
         Flux::toast(
-            heading: 'Annulation de commande',
-            text: 'La commande a été annulée.',
+            heading: 'Annulation creation de commande',
+            text: 'La creation commande a été annulée.',
             variant: 'success'
         );
 
