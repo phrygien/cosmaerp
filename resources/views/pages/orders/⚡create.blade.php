@@ -187,9 +187,24 @@ new class extends Component
             'montant_total' => round($totalTTC, 2),
         ]);
 
+        // Créer le bon de commande
+        \App\Models\BonCommande::create([
+            'commande_id'            => $commande->id,
+            'code_fournisseur'       => $commande->fournisseur?->code ?? null,
+            'numero_compte'          => $commande->fournisseur?->numero_compte ?? null,
+            'date_commande'          => now(),
+            'date_livraison_prevue'  => $commande->nombre_jour > 0
+                ? now()->addDays($commande->nombre_jour)
+                : null,
+            'magasin_facturation_id' => $commande->magasin_livraison_id,
+            'magasin_livraison_id'   => $commande->magasin_livraison_id,
+            'montant_commande_net'   => round($totalNet, 2),
+            'state'                  => 1,
+        ]);
+
         Flux::toast(
             heading: 'Commande confirmée',
-            text: 'La commande a été enregistrée avec succès.',
+            text: 'La commande et le bon de commande ont été enregistrés avec succès.',
             variant: 'success'
         );
 
