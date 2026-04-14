@@ -7,7 +7,6 @@ use App\Models\Commande;
 use App\Mail\BonCommandeMail;
 use Flux\Flux;
 use Illuminate\Support\Facades\Mail;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 new class extends Component
 {
@@ -15,7 +14,6 @@ new class extends Component
     public ?BonCommande $bonCommande = null;
     public ?Commande $commande = null;
     public bool $emailSent = false;
-    public bool $sendingEmail = false;
 
     #[On('show-bon-commande')]
     public function load(int $id): void
@@ -38,45 +36,33 @@ new class extends Component
         Flux::modal('bon-commande')->show();
     }
 
-    public function exportPdf(): \Symfony\Component\HttpFoundation\Response
+    public function exportPdf(): void
     {
-        $commande = $this->commande;
-        $bonCommande = $this->bonCommande;
-
-        $pdf = Pdf::loadView('pdf.bon-commande', compact('commande', 'bonCommande'))
-            ->setPaper('a4');
-
-        $filename = 'bon-commande-' . ($commande->id) . '.pdf';
-
-        return response()->streamDownload(
-            fn () => print($pdf->output()),
-            $filename,
-            ['Content-Type' => 'application/pdf']
-        );
+        // Livewire ne peut pas streamer de fichiers — on redirige vers la route dédiée
+        $this->redirect(route('bon-commande.pdf', $this->commandeId));
     }
 
     public function sendEmail(): void
     {
-        $this->sendingEmail = true;
-
         $commande = $this->commande;
         $bonCommande = $this->bonCommande;
-
-        $pdf = Pdf::loadView('pdf.bon-commande', compact('commande', 'bonCommande'))
-            ->setPaper('a4');
 
         $email = $commande->fournisseur?->email;
 
         if (!$email) {
             Flux::toast('Aucune adresse email trouvée pour ce fournisseur.', variant: 'danger');
-            $this->sendingEmail = false;
             return;
         }
+
+        // Génération du PDF ici pour l'email
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView(
+            'pdf.bon-commande',
+            compact('commande', 'bonCommande')
+        )->setPaper('a4');
 
         Mail::to($email)->send(new BonCommandeMail($commande, $bonCommande, $pdf->output()));
 
         $this->emailSent = true;
-        $this->sendingEmail = false;
 
         Flux::toast('Bon de commande envoyé à ' . $email, variant: 'success');
     }

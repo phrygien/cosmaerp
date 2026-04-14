@@ -32,4 +32,10 @@ Route::group(["middleware" => ["auth", "verified"], "prefix" => 'orders'], funct
     Route::livewire('/edit/{id}', "pages::orders.edit")->name("orders.edit");
 });
 
+use App\Http\Controllers\BonCommandePdfController;
+
+Route::get('/commandes/{id}/bon-commande/pdf', [BonCommandePdfController::class, 'download'])
+    ->name('bon-commande.pdf')
+    ->middleware('auth');
+
 require __DIR__ . "/settings.php";
