@@ -20,13 +20,13 @@ pipeline {
         stage('Pull code') {
             steps {
                 script {
-                    // Ancien commit
+                    // OLD COMMIT
                     env.OLD_COMMIT = sh(
                         script: "cd $PROJECT_DIR && git rev-parse HEAD",
                         returnStdout: true
                     ).trim()
 
-                    // Mise à jour
+                    // UPDATE CODE
                     sh '''
                         cd $PROJECT_DIR
                         git fetch origin
@@ -34,7 +34,7 @@ pipeline {
                         git clean -fd
                     '''
 
-                    // Nouveau commit
+                    // NEW COMMIT
                     env.NEW_COMMIT = sh(
                         script: "cd $PROJECT_DIR && git rev-parse HEAD",
                         returnStdout: true
@@ -49,7 +49,7 @@ pipeline {
         stage('Check changes') {
             steps {
                 script {
-                    // Vérifier composer
+
                     def composerChanged = sh(
                         script: """
                             cd $PROJECT_DIR
@@ -60,7 +60,6 @@ pipeline {
 
                     env.COMPOSER_CHANGED = composerChanged ? "true" : "false"
 
-                    // Vérifier npm
                     def npmChanged = sh(
                         script: """
                             cd $PROJECT_DIR
@@ -83,16 +82,17 @@ pipeline {
                     if (env.COMPOSER_CHANGED == "true") {
                         sh '''
                             cd $PROJECT_DIR
-                            echo "Installing Composer dependencies..."
+                            echo "📦 Composer install..."
 
                             composer update \
                                 --no-dev \
                                 --no-interaction \
                                 --prefer-dist \
-                                --optimize-autoloader
+                                --optimize-autoloader \
+                                --no-scripts
                         '''
                     } else {
-                        echo "Skip Composer (no change)"
+                        echo "✅ Skip Composer install"
                     }
                 }
             }
@@ -104,13 +104,13 @@ pipeline {
                     if (env.NPM_CHANGED == "true") {
                         sh '''
                             cd $PROJECT_DIR
-                            echo "Building assets..."
+                            echo "📦 NPM build..."
 
                             npm ci
                             npm run build
                         '''
                     } else {
-                        echo "Skip NPM build (no change)"
+                        echo "✅ Skip NPM build"
                     }
                 }
             }
@@ -125,6 +125,7 @@ pipeline {
                     php artisan route:cache
                     php artisan view:cache
                     php artisan cache:clear
+                    php artisan package:discover || true
                 '''
             }
         }
@@ -143,10 +144,10 @@ pipeline {
 
     post {
         success {
-            echo "Déploiement réussi (optimisé)"
+            echo "✅ Déploiement réussi"
         }
         failure {
-            echo "Échec du déploiement"
+            echo "❌ Échec du déploiement"
         }
     }
 }
