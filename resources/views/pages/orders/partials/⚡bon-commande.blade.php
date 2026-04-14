@@ -171,7 +171,7 @@ new class extends Component
                                 @forelse ($commande->details as $detail)
                                     <flux:table.row :key="$detail->id">
                                         <flux:table.cell class="text-xs font-mono">
-                                            {{ $detail->product?->ean ?? '—' }}
+                                            {{ $detail->product?->EAN ?? '—' }}
                                         </flux:table.cell>
                                         <flux:table.cell class="font-medium text-sm">
                                             {{ $detail->product?->designation ?? '—' }}
