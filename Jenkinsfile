@@ -20,23 +20,24 @@ pipeline {
 
         stage('Pull code') {
             steps {
-                sh '''
-                    cd $PROJECT_DIR
+                script {
+                    env.OLD_COMMIT = sh(
+                        script: "cd $PROJECT_DIR && git rev-parse HEAD",
+                        returnStdout: true
+                    ).trim()
 
-                    git fetch origin
+                    sh '''
+                        cd $PROJECT_DIR
+                        git fetch origin
+                        git reset --hard origin/main
+                        git clean -fd
+                    '''
 
-                    # Sauvegarder ancien commit
-                    OLD_COMMIT=$(git rev-parse HEAD)
-
-                    git reset --hard origin/main
-                    git clean -fd
-
-                    # Nouveau commit
-                    NEW_COMMIT=$(git rev-parse HEAD)
-
-                    echo "OLD_COMMIT=$OLD_COMMIT" > .commit_env
-                    echo "NEW_COMMIT=$NEW_COMMIT" >> .commit_env
-                '''
+                    env.NEW_COMMIT = sh(
+                        script: "cd $PROJECT_DIR && git rev-parse HEAD",
+                        returnStdout: true
+                    ).trim()
+                }
             }
         }
 
