@@ -76,7 +76,7 @@ new class extends Component
                     <div class="flex items-center gap-4">
                         <div>
                             <flux:heading size="xl">Détails de la commande</flux:heading>
-                            <flux:text class="mt-1 text-zinc-500">
+                            <flux:text class="mt-1 text-rose-500">
                                 {{ $commande->libelle ?? 'Commande sans libellé' }}
                             </flux:text>
                         </div>

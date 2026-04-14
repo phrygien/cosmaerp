@@ -460,7 +460,7 @@ new class extends Component
                                     <flux:menu.item icon="document-text" wire:click="showBonCommande({{ $commande->id }})">
                                         Details de la commande
                                     </flux:menu.item>
-                                    <flux:menu.item icon="pencil" wire:click="edit({{ $commande->id }})">
+                                    <flux:menu.item icon="pencil" href="{{ route('orders.edit', ) }}">
                                         Modifier
                                     </flux:menu.item>
                                     <flux:menu.separator />
