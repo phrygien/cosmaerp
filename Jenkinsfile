@@ -83,7 +83,7 @@ pipeline {
                     if (env.COMPOSER_CHANGED == "true") {
                         sh '''
                             cd $PROJECT_DIR
-                            echo "📦 Installing Composer dependencies..."
+                            echo "Installing Composer dependencies..."
 
                             composer install \
                                 --no-dev \
@@ -92,7 +92,7 @@ pipeline {
                                 --optimize-autoloader
                         '''
                     } else {
-                        echo "✅ Skip Composer (no change)"
+                        echo "Skip Composer (no change)"
                     }
                 }
             }
@@ -104,13 +104,13 @@ pipeline {
                     if (env.NPM_CHANGED == "true") {
                         sh '''
                             cd $PROJECT_DIR
-                            echo "📦 Building assets..."
+                            echo "Building assets..."
 
                             npm ci
                             npm run build
                         '''
                     } else {
-                        echo "✅ Skip NPM build (no change)"
+                        echo "Skip NPM build (no change)"
                     }
                 }
             }
@@ -143,10 +143,10 @@ pipeline {
 
     post {
         success {
-            echo "✅ Déploiement réussi (optimisé)"
+            echo "Déploiement réussi (optimisé)"
         }
         failure {
-            echo "❌ Échec du déploiement"
+            echo "Échec du déploiement"
         }
     }
 }
