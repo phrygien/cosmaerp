@@ -14,7 +14,7 @@ new class extends Component
     {
         $this->totalCommandes = Commande::count();
         $this->montantTotal   = Commande::sum('montant_total');
-        $this->enAttente      = Commande::where('status', 'en_attente')->count();
+        $this->enAttente      = Commande::where('status', 1)->count(); // cree
 
         $parMois = Commande::selectRaw("
                 DATE_FORMAT(created_at, '%Y-%m') as mois,
@@ -37,26 +37,27 @@ new class extends Component
             ->get()
             ->groupBy('mois');
 
-        $labels = $montants = $confirmes = $annules = $attente = [];
+        $labels = $montants = $crees = $facturees = $cloturees = $annulees = [];
 
         for ($m = 1; $m <= 12; $m++) {
             $key = now()->year . '-' . str_pad($m, 2, '0', STR_PAD_LEFT);
-            $labels[]    = now()->setMonth($m)->translatedFormat('M');
-            $montants[]  = (float) ($parMois[$key]->total ?? 0);
-            $statuts     = $parStatut[$key] ?? collect();
-            $confirmes[] = (int) ($statuts->firstWhere('status', 'confirme')?->nb   ?? 0);
-            $annules[]   = (int) ($statuts->firstWhere('status', 'annule')?->nb     ?? 0);
-            $attente[]   = (int) ($statuts->firstWhere('status', 'en_attente')?->nb ?? 0);
+            $labels[]     = now()->setMonth($m)->translatedFormat('M');
+            $montants[]   = (float) ($parMois[$key]->total ?? 0);
+            $statuts      = $parStatut[$key] ?? collect();
+            $annulees[]   = (int) ($statuts->firstWhere('status', -1)?->nb  ?? 0);
+            $crees[]      = (int) ($statuts->firstWhere('status', 1)?->nb   ?? 0);
+            $facturees[]  = (int) ($statuts->firstWhere('status', 2)?->nb   ?? 0);
+            $cloturees[]  = (int) ($statuts->firstWhere('status', 3)?->nb   ?? 0);
         }
 
-        $this->chartData = compact('labels', 'montants', 'confirmes', 'annules', 'attente');
+        $this->chartData = compact('labels', 'montants', 'annulees', 'crees', 'facturees', 'cloturees');
     }
 }
 ?>
 
 <div class="flex h-full w-full flex-1 flex-col gap-3">
 
-    {{-- 3 metric cards : 1 colonne sur mobile, 3 sur desktop --}}
+    {{-- 3 metric cards --}}
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
 
         <flux:card class="flex flex-col gap-1 p-4 py-6 sm:py-8 justify-center">
@@ -70,13 +71,13 @@ new class extends Component
         </flux:card>
 
         <flux:card class="flex flex-col gap-1 p-4 py-6 sm:py-8 justify-center">
-            <flux:subheading>En attente</flux:subheading>
+            <flux:subheading>Créées</flux:subheading>
             <flux:heading size="xl">{{ $enAttente }}</flux:heading>
         </flux:card>
 
     </div>
 
-    {{-- 2 graphiques : empilés sur mobile, côte à côte sur desktop --}}
+    {{-- 2 graphiques --}}
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-5">
 
         {{-- Bar chart --}}
@@ -94,15 +95,19 @@ new class extends Component
             <div class="flex flex-wrap gap-3 text-xs text-zinc-500 dark:text-zinc-400">
                 <span class="flex items-center gap-1.5">
                     <span class="inline-block w-3 h-0.5 rounded-full" style="background:#1D9E75"></span>
-                    Confirmées
+                    Clôturées
+                </span>
+                <span class="flex items-center gap-1.5">
+                    <span class="inline-block w-3 h-0.5 rounded-full" style="background:#185FA5"></span>
+                    Facturées
+                </span>
+                <span class="flex items-center gap-1.5">
+                    <span class="inline-block w-3 h-0.5 rounded-full" style="background:#EF9F27"></span>
+                    Créées
                 </span>
                 <span class="flex items-center gap-1.5">
                     <span class="inline-block w-3 h-0.5 rounded-full" style="background:#E24B4A"></span>
                     Annulées
-                </span>
-                <span class="flex items-center gap-1.5">
-                    <span class="inline-block w-3 h-0.5 rounded-full" style="background:#EF9F27"></span>
-                    En attente
                 </span>
             </div>
             <div class="relative w-full" style="height: 200px;">
@@ -165,19 +170,24 @@ new class extends Component
                 labels: data.labels,
                 datasets: [
                     {
-                        label: 'Confirmées', data: data.confirmes,
+                        label: 'Clôturées', data: data.cloturees,
                         borderColor: '#1D9E75', backgroundColor: 'rgba(29,158,117,0.08)',
                         fill: true, tension: 0.3, pointRadius: isMobile ? 1 : 2
                     },
                     {
-                        label: 'Annulées', data: data.annules,
-                        borderColor: '#E24B4A', backgroundColor: 'rgba(226,75,74,0.05)',
-                        fill: true, tension: 0.3, pointRadius: isMobile ? 1 : 2, borderDash: [4, 4]
+                        label: 'Facturées', data: data.facturees,
+                        borderColor: '#185FA5', backgroundColor: 'rgba(24,95,165,0.08)',
+                        fill: true, tension: 0.3, pointRadius: isMobile ? 1 : 2
                     },
                     {
-                        label: 'En attente', data: data.attente,
+                        label: 'Créées', data: data.crees,
                         borderColor: '#EF9F27', backgroundColor: 'rgba(239,159,39,0.05)',
                         fill: true, tension: 0.3, pointRadius: isMobile ? 1 : 2, borderDash: [2, 4]
+                    },
+                    {
+                        label: 'Annulées', data: data.annulees,
+                        borderColor: '#E24B4A', backgroundColor: 'rgba(226,75,74,0.05)',
+                        fill: true, tension: 0.3, pointRadius: isMobile ? 1 : 2, borderDash: [4, 4]
                     }
                 ]
             },
