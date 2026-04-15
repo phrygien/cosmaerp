@@ -165,7 +165,7 @@ new class extends Component
 };
 ?>
 
-<div class="max-w-8xl mx-auto">
+<div class="max-w-7xl mx-auto">
     <flux:breadcrumbs class="mb-5">
         <flux:breadcrumbs.item href="{{ route('orders.list') }}">Commande</flux:breadcrumbs.item>
         <flux:breadcrumbs.item>Commande №/ {{ $commande_id }}</flux:breadcrumbs.item>
