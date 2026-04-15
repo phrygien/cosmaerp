@@ -42,6 +42,7 @@ new class extends Component
     public int    $perPage       = 10;
 
     public bool $showFilters = false;
+    public array $updatingStatus = [];
 
     public function sort(string $column): void
     {
@@ -76,6 +77,118 @@ new class extends Component
             text: 'Tous les filtres ont été réinitialisés avec succès',
             variant: 'info'
         );
+    }
+
+    public function updateStatus(int $id, int $newStatus): void
+    {
+        $this->updatingStatus[$id] = true;
+
+        try {
+            DB::beginTransaction();
+
+            $commande = Commande::findOrFail($id);
+            $oldStatus = $commande->status;
+
+            // Vérifier la transition de statut
+            $validTransitions = [
+                1 => [2, -1],  // Créée -> Facturée ou Annulée
+                2 => [3, -1],  // Facturée -> Clôturée ou Annulée
+                3 => [],       // Clôturée -> aucune transition
+                -1 => [],      // Annulée -> aucune transition
+            ];
+
+            if (!in_array($newStatus, $validTransitions[$oldStatus] ?? [])) {
+                $statusLabels = [
+                    -1 => 'Annulée',
+                    1 => 'Créée',
+                    2 => 'Facturée',
+                    3 => 'Clôturée'
+                ];
+
+                Flux::toast(
+                    heading: 'Transition invalide',
+                    text: "Impossible de passer de \"{$statusLabels[$oldStatus]}\" à \"{$statusLabels[$newStatus]}\"",
+                    variant: 'warning'
+                );
+                return;
+            }
+
+            $commande->status = $newStatus;
+
+            // Si la commande est clôturée ou annulée, on peut ajouter une date
+            if ($newStatus === 3) {
+                $commande->date_cloture = now();
+            } elseif ($newStatus === 2) {
+                $commande->date_facturation = now();
+            } elseif ($newStatus === -1) {
+                $commande->date_annulation = now();
+            }
+
+            $commande->save();
+
+            DB::commit();
+
+            unset($this->commandes);
+            unset($this->stats);
+
+            $this->dispatch('commande-updated');
+
+            $statusLabels = [
+                -1 => 'Annulée',
+                1 => 'Créée',
+                2 => 'Facturée',
+                3 => 'Clôturée'
+            ];
+
+            Flux::toast(
+                heading: 'Statut mis à jour',
+                text: "La commande \"{$commande->libelle}\" est maintenant \"{$statusLabels[$newStatus]}\"",
+                variant: 'success'
+            );
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Flux::toast(
+                heading: 'Erreur',
+                text: "Impossible de modifier le statut : " . $e->getMessage(),
+                variant: 'danger'
+            );
+        } finally {
+            unset($this->updatingStatus[$id]);
+        }
+    }
+
+    public function getNextStatus(int $currentStatus): ?int
+    {
+        $nextStatus = match($currentStatus) {
+            1 => 2,  // Créée -> Facturée
+            2 => 3,  // Facturée -> Clôturée
+            default => null,
+        };
+        return $nextStatus;
+    }
+
+    public function getStatusLabel(int $status): string
+    {
+        return match($status) {
+            -1 => 'Annulée',
+            1 => 'Créée',
+            2 => 'Facturée',
+            3 => 'Clôturée',
+            default => '—',
+        };
+    }
+
+    public function getStatusColor(int $status): string
+    {
+        return match($status) {
+            -1 => 'red',
+            1 => 'blue',
+            2 => 'yellow',
+            3 => 'green',
+            default => 'zinc',
+        };
     }
 
     #[On('commande-created')]
@@ -417,32 +530,45 @@ new class extends Component
                             {{ number_format($commande->montant_total, 2, ',', ' ') }} €
                         </flux:table.cell>
 
-                        <!-- Statut + État -->
+                        <!-- Statut avec Toggle -->
                         <flux:table.cell>
-                            @php
-                                $statusColor = match($commande->status) {
-                                    -1      => 'red',
-                                    1       => 'blue',
-                                    2       => 'yellow',
-                                    3       => 'green',
-                                    default => 'zinc',
-                                };
-                                $statusLabel = match($commande->status) {
-                                    -1      => 'Annulée',
-                                    1       => 'Créée',
-                                    2       => 'Facturée',
-                                    3       => 'Clôturée',
-                                    default => '—',
-                                };
-                            @endphp
-                            <div class="flex flex-col gap-2 items-start">
-                                <flux:badge size="sm" :color="$statusColor">
-                                    {{ $statusLabel }}
-                                </flux:badge>
-                                @if ($commande->etat)
-                                    <flux:badge size="sm" color="purple">
-                                        {{ $commande->etat === 'pre_commande' ? 'Pré-commande' : 'Commande' }}
+                            <div class="flex flex-col gap-2">
+                                <div class="flex items-center gap-2">
+                                    @php
+                                        $nextStatus = $this->getNextStatus($commande->status);
+                                    @endphp
+
+                                    @if($nextStatus && !isset($updatingStatus[$commande->id]))
+                                        <button
+                                            wire:click="updateStatus({{ $commande->id }}, {{ $nextStatus }})"
+                                            class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-colors"
+                                            style="background-color: {{ $this->getStatusColor($commande->status) === 'green' ? '#22c55e20' : '#3b82f620' }}; color: {{ $this->getStatusColor($commande->status) === 'green' ? '#16a34a' : '#2563eb' }}"
+                                        >
+                                            <flux:icon name="arrow-path" class="size-3" />
+                                            Passer à {{ $this->getStatusLabel($nextStatus) }}
+                                        </button>
+                                    @endif
+                                </div>
+
+                                <div class="flex flex-wrap gap-2">
+                                    <flux:badge size="sm" :color="$this->getStatusColor($commande->status)">
+                                        {{ $this->getStatusLabel($commande->status) }}
                                     </flux:badge>
+                                    @if ($commande->etat)
+                                        <flux:badge size="sm" color="purple">
+                                            {{ $commande->etat === 'pre_commande' ? 'Pré-commande' : 'Commande' }}
+                                        </flux:badge>
+                                    @endif
+                                </div>
+
+                                @if(isset($updatingStatus[$commande->id]))
+                                    <div class="flex items-center gap-1 text-xs text-zinc-400">
+                                        <svg class="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                                        </svg>
+                                        Mise à jour...
+                                    </div>
                                 @endif
                             </div>
                         </flux:table.cell>
@@ -458,7 +584,7 @@ new class extends Component
                                 <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom" />
                                 <flux:menu>
                                     <flux:menu.item icon="document-text" wire:click="showBonCommande({{ $commande->id }})">
-                                        Details de la commande
+                                        Détails de la commande
                                     </flux:menu.item>
                                     <flux:menu.item icon="pencil" href="{{ route('orders.edit', $commande->id) }}">
                                         Modifier

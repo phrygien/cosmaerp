@@ -13,7 +13,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'deposite_date',
     'magasin_id',
     'product_id',
-    'produit_fournisseur_id',
     'gen_code',
     'detail_commande_id',
     'state'
@@ -28,11 +27,6 @@ class StockMagasin extends Model
     public  function product (): BelongsTo
     {
         return $this->belongsTo(Product::class, 'product_id', 'id');
-    }
-
-    public function produitFournisseur (): BelongsTo
-    {
-        return $this->belongsTo(ProduitFournisseur::class, 'produit_fournisseur_id', 'id');
     }
 
     public function detailCommande (): BelongsTo
