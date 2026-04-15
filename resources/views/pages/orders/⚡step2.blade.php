@@ -332,15 +332,143 @@ new class extends Component
             @endif
 
             {{-- Table produits --}}
+
             <flux:table :paginate="$this->products" container:class="max-h-[600px]">
                 <flux:table.columns sticky class="bg-white dark:bg-zinc-900 p-3">
-                    {{-- ... colonnes inchangées ... --}}
+                    <flux:table.column
+                        sortable
+                        :sorted="$sortBy === 'product_code'"
+                        :direction="$sortDirection"
+                        wire:click="sort('product_code')"
+                    >
+                        Code
+                    </flux:table.column>
+
+                    <flux:table.column
+                        sortable
+                        :sorted="$sortBy === 'designation'"
+                        :direction="$sortDirection"
+                        wire:click="sort('designation')"
+                    >
+                        Désignation
+                    </flux:table.column>
+
+                    <flux:table.column
+                        sortable
+                        :sorted="$sortBy === 'ean'"
+                        :direction="$sortDirection"
+                        wire:click="sort('ean')"
+                    >
+                        EAN
+                    </flux:table.column>
+
+                    <flux:table.column>Marque</flux:table.column>
+                    <flux:table.column>Catégorie</flux:table.column>
+                    <flux:table.column>Statut</flux:table.column>
+                    <flux:table.column>Action</flux:table.column>
                 </flux:table.columns>
 
-                {{-- Rows réelles : masquées pendant le chargement --}}
-                <flux:table.rows wire:loading.remove wire:target="search, sort, filterMarque, filterCategorie, filterStatut, resetAdvancedFilters">
+                <flux:table.rows>
                     @forelse($this->products as $product)
-                        {{-- ... contenu inchangé ... --}}
+                        @php $isSelected = in_array($product->id, $this->selectedProductIds); @endphp
+
+                        <flux:table.row :key="$product->id">
+
+                            {{-- Code --}}
+                            <flux:table.cell>
+                                <span class="font-mono text-xs text-gray-500">{{ $product->product_code }}</span>
+                            </flux:table.cell>
+
+                            {{-- Désignation --}}
+                            <flux:table.cell>
+                                <p class="font-medium text-gray-900 dark:text-white text-sm">
+                                    {{ $product->designation }}
+                                </p>
+                                @if($product->designation_variant)
+                                    <p class="text-xs text-gray-400 mt-0.5">{{ $product->designation_variant }}</p>
+                                @endif
+                            </flux:table.cell>
+
+                            {{-- EAN --}}
+                            <flux:table.cell>
+                                @if($product->EAN)
+                                    <span class="font-mono text-xs text-gray-500 tracking-wider">
+                                        {{ $product->EAN }}
+                                    </span>
+                                @else
+                                    <span class="text-gray-300 text-xs">—</span>
+                                @endif
+                            </flux:table.cell>
+
+                            {{-- Marque --}}
+                            <flux:table.cell>
+                                @if($product->marque)
+                                    <flux:badge size="sm" color="blue" inset="top bottom">
+                                        {{ $product->marque->name }}
+                                    </flux:badge>
+                                @else
+                                    <span class="text-gray-300 text-xs">—</span>
+                                @endif
+                            </flux:table.cell>
+
+                            {{-- Catégorie --}}
+                            <flux:table.cell>
+                                @if($product->categorie)
+                                    <flux:badge size="sm" color="zinc" inset="top bottom">
+                                        {{ $product->categorie->name }}
+                                    </flux:badge>
+                                @else
+                                    <span class="text-gray-300 text-xs">—</span>
+                                @endif
+                            </flux:table.cell>
+
+                            {{-- Statut ajout --}}
+                            <flux:table.cell>
+                                @if($isSelected)
+                                    <flux:badge size="sm" color="green" inset="top bottom" icon="check">
+                                        Ajouté
+                                    </flux:badge>
+                                @else
+                                    <flux:badge size="sm" color="zinc" inset="top bottom">
+                                        Disponible
+                                    </flux:badge>
+                                @endif
+                            </flux:table.cell>
+
+                            {{-- Action --}}
+                            <flux:table.cell>
+                                @if($isSelected)
+                                    @php
+                                        $detail = $this->details->firstWhere('product_id', $product->id);
+                                    @endphp
+                                    <flux:button
+                                        size="sm"
+                                        variant="ghost"
+                                        icon="pencil-square"
+                                        inset="top bottom"
+                                        class="text-indigo-500 hover:text-indigo-700"
+                                        wire:click="editRepartition({{ $detail->id }})"
+                                        wire:loading.attr="disabled"
+                                        wire:target="editRepartition({{ $detail->id }})"
+                                    >
+                                        Modifier
+                                    </flux:button>
+                                @else
+                                    <flux:button
+                                        size="sm"
+                                        variant="ghost"
+                                        icon="plus-circle"
+                                        inset="top bottom"
+                                        wire:click="openRepartition({{ $product->id }})"
+                                        wire:loading.attr="disabled"
+                                        wire:target="openRepartition({{ $product->id }})"
+                                    >
+                                        Ajouter
+                                    </flux:button>
+                                @endif
+                            </flux:table.cell>
+
+                        </flux:table.row>
                     @empty
                         <flux:table.row>
                             <flux:table.cell colspan="7" class="py-12 text-center text-gray-400">
@@ -348,57 +476,6 @@ new class extends Component
                             </flux:table.cell>
                         </flux:table.row>
                     @endforelse
-                </flux:table.rows>
-
-                {{-- Skeleton affiché pendant le chargement --}}
-                <flux:table.rows wire:loading wire:target="search, sort, filterMarque, filterCategorie, filterStatut, resetAdvancedFilters">
-                    @for($i = 0; $i < 8; $i++)
-                        <flux:table.row>
-                            {{-- Code --}}
-                            <flux:table.cell>
-                                <flux:skeleton.group animate="shimmer">
-                                    <flux:skeleton.line class="w-20" />
-                                </flux:skeleton.group>
-                            </flux:table.cell>
-                            {{-- Désignation --}}
-                            <flux:table.cell>
-                                <flux:skeleton.group animate="shimmer">
-                                    <flux:skeleton.line />
-                                    <flux:skeleton.line class="w-2/3" />
-                                </flux:skeleton.group>
-                            </flux:table.cell>
-                            {{-- EAN --}}
-                            <flux:table.cell>
-                                <flux:skeleton.group animate="shimmer">
-                                    <flux:skeleton.line class="w-28" />
-                                </flux:skeleton.group>
-                            </flux:table.cell>
-                            {{-- Marque --}}
-                            <flux:table.cell>
-                                <flux:skeleton.group animate="shimmer">
-                                    <flux:skeleton class="h-5 w-16 rounded-full" />
-                                </flux:skeleton.group>
-                            </flux:table.cell>
-                            {{-- Catégorie --}}
-                            <flux:table.cell>
-                                <flux:skeleton.group animate="shimmer">
-                                    <flux:skeleton class="h-5 w-20 rounded-full" />
-                                </flux:skeleton.group>
-                            </flux:table.cell>
-                            {{-- Statut --}}
-                            <flux:table.cell>
-                                <flux:skeleton.group animate="shimmer">
-                                    <flux:skeleton class="h-5 w-16 rounded-full" />
-                                </flux:skeleton.group>
-                            </flux:table.cell>
-                            {{-- Action --}}
-                            <flux:table.cell>
-                                <flux:skeleton.group animate="shimmer">
-                                    <flux:skeleton class="h-7 w-20 rounded-md" />
-                                </flux:skeleton.group>
-                            </flux:table.cell>
-                        </flux:table.row>
-                    @endfor
                 </flux:table.rows>
             </flux:table>
         </div>
