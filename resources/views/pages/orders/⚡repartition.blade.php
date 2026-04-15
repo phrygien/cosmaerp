@@ -257,7 +257,7 @@ new class extends Component
     </div>
 
     {{-- Répartition par magasin --}}
-    <div>
+    <div class="p-5">
         <div class="flex items-center justify-between mb-3">
             <flux:heading size="sm">Répartition par magasin</flux:heading>
             <span class="text-sm font-semibold {{ $this->totalQuantite > 0 ? 'text-indigo-600' : 'text-gray-400' }}">
