@@ -56,33 +56,33 @@ new class extends Component
 
 <div class="flex h-full w-full flex-1 flex-col gap-3">
 
-    {{-- 3 metric cards --}}
-    <div class="grid grid-cols-3 gap-3">
+    {{-- 3 metric cards : 1 colonne sur mobile, 3 sur desktop --}}
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
 
-        <flux:card class="flex flex-col gap-1 p-4 py-8 justify-center">
+        <flux:card class="flex flex-col gap-1 p-4 py-6 sm:py-8 justify-center">
             <flux:subheading>Total commandes</flux:subheading>
             <flux:heading size="xl">{{ $totalCommandes }}</flux:heading>
         </flux:card>
 
-        <flux:card class="flex flex-col gap-1 p-4 py-8 justify-center">
+        <flux:card class="flex flex-col gap-1 p-4 py-6 sm:py-8 justify-center">
             <flux:subheading>Montant total</flux:subheading>
             <flux:heading size="xl">{{ number_format($montantTotal, 0, ',', ' ') }} €</flux:heading>
         </flux:card>
 
-        <flux:card class="flex flex-col gap-1 p-4 py-8 justify-center">
+        <flux:card class="flex flex-col gap-1 p-4 py-6 sm:py-8 justify-center">
             <flux:subheading>En attente</flux:subheading>
             <flux:heading size="xl">{{ $enAttente }}</flux:heading>
         </flux:card>
 
     </div>
 
-    {{-- 2 graphiques côte à côte --}}
-    <div class="grid grid-cols-2 gap-3 mt-5">
+    {{-- 2 graphiques : empilés sur mobile, côte à côte sur desktop --}}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-5">
 
         {{-- Bar chart --}}
         <flux:card class="flex flex-col gap-3 p-4">
-            <flux:subheading>Commandes par mois ({{ now()->year }})</flux:subheading>
-            <div class="relative w-full" style="height: 280px;">
+            <flux:subheading>Montants par mois ({{ now()->year }})</flux:subheading>
+            <div class="relative w-full" style="height: 220px;">
                 <canvas id="commandeBarChart" role="img"
                         aria-label="Montants de commandes par mois"></canvas>
             </div>
@@ -91,7 +91,7 @@ new class extends Component
         {{-- Line chart --}}
         <flux:card class="flex flex-col gap-3 p-4">
             <flux:subheading>Commandes par statut</flux:subheading>
-            <div class="flex gap-3 text-xs text-zinc-500 dark:text-zinc-400">
+            <div class="flex flex-wrap gap-3 text-xs text-zinc-500 dark:text-zinc-400">
                 <span class="flex items-center gap-1.5">
                     <span class="inline-block w-3 h-0.5 rounded-full" style="background:#1D9E75"></span>
                     Confirmées
@@ -105,7 +105,7 @@ new class extends Component
                     En attente
                 </span>
             </div>
-            <div class="relative w-full" style="height: 250px;">
+            <div class="relative w-full" style="height: 200px;">
                 <canvas id="commandeLineChart" role="img"
                         aria-label="Évolution des commandes par statut"></canvas>
             </div>
@@ -119,7 +119,8 @@ new class extends Component
         const isDark = document.documentElement.classList.contains('dark');
         const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
         const tickColor = isDark ? '#a1a1aa' : '#71717a';
-        const tickFont  = { size: 10 };
+        const isMobile  = window.innerWidth < 640;
+        const tickFont  = { size: isMobile ? 9 : 10 };
 
         new Chart(document.getElementById('commandeBarChart'), {
             type: 'bar',
@@ -141,12 +142,17 @@ new class extends Component
                     y: {
                         ticks: {
                             color: tickColor, font: tickFont,
-                            callback: v => v >= 1000 ? (v / 1000).toFixed(0) + 'k' : v
+                            callback: v => v >= 1000 ? (v / 1000).toFixed(0) + 'k' : v,
+                            maxTicksLimit: 5,
                         },
                         grid: { color: gridColor }
                     },
                     x: {
-                        ticks: { color: tickColor, font: tickFont, autoSkip: false },
+                        ticks: {
+                            color: tickColor, font: tickFont,
+                            autoSkip: isMobile,
+                            maxTicksLimit: isMobile ? 6 : 12,
+                        },
                         grid: { display: false }
                     }
                 }
@@ -161,17 +167,17 @@ new class extends Component
                     {
                         label: 'Confirmées', data: data.confirmes,
                         borderColor: '#1D9E75', backgroundColor: 'rgba(29,158,117,0.08)',
-                        fill: true, tension: 0.3, pointRadius: 2
+                        fill: true, tension: 0.3, pointRadius: isMobile ? 1 : 2
                     },
                     {
                         label: 'Annulées', data: data.annules,
                         borderColor: '#E24B4A', backgroundColor: 'rgba(226,75,74,0.05)',
-                        fill: true, tension: 0.3, pointRadius: 2, borderDash: [4, 4]
+                        fill: true, tension: 0.3, pointRadius: isMobile ? 1 : 2, borderDash: [4, 4]
                     },
                     {
                         label: 'En attente', data: data.attente,
                         borderColor: '#EF9F27', backgroundColor: 'rgba(239,159,39,0.05)',
-                        fill: true, tension: 0.3, pointRadius: 2, borderDash: [2, 4]
+                        fill: true, tension: 0.3, pointRadius: isMobile ? 1 : 2, borderDash: [2, 4]
                     }
                 ]
             },
@@ -180,9 +186,16 @@ new class extends Component
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
                 scales: {
-                    y: { ticks: { color: tickColor, font: tickFont }, grid: { color: gridColor } },
+                    y: {
+                        ticks: { color: tickColor, font: tickFont, maxTicksLimit: 5 },
+                        grid: { color: gridColor }
+                    },
                     x: {
-                        ticks: { color: tickColor, font: tickFont, autoSkip: true, maxTicksLimit: 6 },
+                        ticks: {
+                            color: tickColor, font: tickFont,
+                            autoSkip: true,
+                            maxTicksLimit: isMobile ? 6 : 12,
+                        },
                         grid: { display: false }
                     }
                 }
