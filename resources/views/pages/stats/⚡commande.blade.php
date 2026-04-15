@@ -77,7 +77,7 @@ new class extends Component
     </div>
 
     {{-- 2 graphiques côte à côte --}}
-    <div class="grid grid-cols-2 gap-3">
+    <div class="grid grid-cols-2 gap-3 mt-5">
 
         {{-- Bar chart --}}
         <flux:card class="flex flex-col gap-3 p-4">
