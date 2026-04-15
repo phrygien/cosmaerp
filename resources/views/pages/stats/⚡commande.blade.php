@@ -66,7 +66,7 @@ new class extends Component
 
         <flux:card class="flex flex-col gap-1 p-4 py-8 justify-center">
             <flux:subheading>Montant total</flux:subheading>
-            <flux:heading size="xl">{{ number_format($montantTotal, 0, ',', ' ') }} Rs</flux:heading>
+            <flux:heading size="xl">{{ number_format($montantTotal, 0, ',', ' ') }} €</flux:heading>
         </flux:card>
 
         <flux:card class="flex flex-col gap-1 p-4 py-8 justify-center">
