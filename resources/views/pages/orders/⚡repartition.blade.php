@@ -269,9 +269,9 @@ new class extends Component
         <p class="text-sm text-red-600 mb-2">{{ $message }}</p>
         @enderror
 
-        <div class="space-y-2 max-h-80 overflow-y-auto pr-1">
+        <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
             @foreach($this->magasins as $magasin)
-                <div class="flex items-center gap-3 rounded-md border border-gray-200 dark:border-gray-700 px-3 py-2 bg-white dark:bg-gray-800
+                <div class="flex items-center gap-3 rounded-md border mb-3 border-gray-200 dark:border-gray-700 px-3 py-2 bg-white dark:bg-gray-800
                     {{ ($repartitions[$magasin->id] ?? 0) > 0 ? 'border-indigo-300 dark:border-indigo-600 bg-indigo-50/50 dark:bg-indigo-900/10' : '' }}">
                     <div class="flex-1 min-w-0">
                         <p class="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">
