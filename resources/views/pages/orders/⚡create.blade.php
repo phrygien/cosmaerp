@@ -214,7 +214,7 @@ new class extends Component
 
 ?>
 
-<div class="max-w-7xl mx-auto">
+<div class="max-w-8xl mx-auto">
     <flux:breadcrumbs class="mb-5">
         <flux:breadcrumbs.item href="#">Commande</flux:breadcrumbs.item>
         <flux:breadcrumbs.item>Nouvelle</flux:breadcrumbs.item>
