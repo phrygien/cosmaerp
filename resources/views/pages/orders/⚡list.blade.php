@@ -7,6 +7,7 @@ use Livewire\Attributes\Url;
 use App\Models\Commande;
 use App\Models\Fournisseur;
 use App\Models\Magasin;
+use App\Models\Facture;
 use Flux\Flux;
 use Illuminate\Support\Facades\DB;
 
@@ -79,6 +80,20 @@ new class extends Component
         );
     }
 
+    private function generateFactureNumber(): string
+    {
+        $year = date('Y');
+        $month = date('m');
+
+        // Compter les factures du mois en cours
+        $count = Facture::whereYear('created_at', $year)
+                ->whereMonth('created_at', $month)
+                ->count() + 1;
+
+        // Format: FAC-YYYYMM-XXXX
+        return sprintf('FAC-%s%s-%04d', $year, $month, $count);
+    }
+
     public function updateStatus(int $id, int $newStatus): void
     {
         $this->updatingStatus[$id] = true;
@@ -86,7 +101,7 @@ new class extends Component
         try {
             DB::beginTransaction();
 
-            $commande = Commande::findOrFail($id);
+            $commande = Commande::with(['fournisseur'])->findOrFail($id);
             $oldStatus = $commande->status;
 
             // Vérifier la transition de statut
@@ -120,8 +135,47 @@ new class extends Component
                 $commande->date_cloture = now();
             } elseif ($newStatus === 2) {
                 $commande->date_facturation = now();
+
+                // Créer la facture automatiquement
+                $factureNumber = $this->generateFactureNumber();
+
+                $facture = Facture::create([
+                    'fournisseur_id' => $commande->fournisseur_id,
+                    'type' => 'achat',
+                    'libelle' => 'Facture ' . $commande->libelle,
+                    'numero' => $factureNumber,
+                    'date_commande' => $commande->created_at,
+                    'montant' => $commande->montant_total,
+                    'date_reception' => null,
+                    'commande_id' => $commande->id,
+                    'remise' => $commande->remise ?? 0,
+                    'tax' => $commande->tax ?? 0,
+                    'state' => 1,
+                ]);
+
+                // Dispatch event pour notifier la création de la facture
+                $this->dispatch('facture-created', facture: $facture);
+
+                Flux::toast(
+                    heading: 'Facture créée',
+                    text: "La facture N°{$factureNumber} a été générée automatiquement",
+                    variant: 'success'
+                );
             } elseif ($newStatus === -1) {
                 $commande->date_annulation = now();
+
+                // Si une facture existe, on l'annule aussi
+                $facture = Facture::where('commande_id', $commande->id)->first();
+                if ($facture && $facture->state == 1) {
+                    $facture->state = 0;
+                    $facture->save();
+
+                    Flux::toast(
+                        heading: 'Facture annulée',
+                        text: "La facture associée a été annulée",
+                        variant: 'warning'
+                    );
+                }
             }
 
             $commande->save();
@@ -194,6 +248,7 @@ new class extends Component
     #[On('commande-created')]
     #[On('commande-updated')]
     #[On('commande-deleted')]
+    #[On('facture-created')]
     public function refresh(): void
     {
         unset($this->commandes);
