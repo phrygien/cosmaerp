@@ -85,12 +85,10 @@ new class extends Component
         $year = date('Y');
         $month = date('m');
 
-        // Compter les factures du mois en cours
         $count = Facture::whereYear('created_at', $year)
                 ->whereMonth('created_at', $month)
                 ->count() + 1;
 
-        // Format: FAC-YYYYMM-XXXX
         return sprintf('FAC-%s%s-%04d', $year, $month, $count);
     }
 
@@ -104,12 +102,11 @@ new class extends Component
             $commande = Commande::with(['fournisseur'])->findOrFail($id);
             $oldStatus = $commande->status;
 
-            // Vérifier la transition de statut
             $validTransitions = [
-                1 => [2, -1],  // Créée -> Facturée ou Annulée
-                2 => [3, -1],  // Facturée -> Clôturée ou Annulée
-                3 => [],       // Clôturée -> aucune transition
-                -1 => [],      // Annulée -> aucune transition
+                1 => [2, -1],
+                2 => [3, -1],
+                3 => [],
+                -1 => [],
             ];
 
             if (!in_array($newStatus, $validTransitions[$oldStatus] ?? [])) {
@@ -130,13 +127,11 @@ new class extends Component
 
             $commande->status = $newStatus;
 
-            // Si la commande est clôturée ou annulée, on peut ajouter une date
             if ($newStatus === 3) {
                 $commande->date_cloture = now();
             } elseif ($newStatus === 2) {
                 $commande->date_facturation = now();
 
-                // Créer la facture automatiquement
                 $factureNumber = $this->generateFactureNumber();
 
                 $facture = Facture::create([
@@ -153,7 +148,6 @@ new class extends Component
                     'state' => 1,
                 ]);
 
-                // Dispatch event pour notifier la création de la facture
                 $this->dispatch('facture-created', facture: $facture);
 
                 Flux::toast(
@@ -164,7 +158,6 @@ new class extends Component
             } elseif ($newStatus === -1) {
                 $commande->date_annulation = now();
 
-                // Si une facture existe, on l'annule aussi
                 $facture = Facture::where('commande_id', $commande->id)->first();
                 if ($facture && $facture->state == 1) {
                     $facture->state = 0;
@@ -216,8 +209,8 @@ new class extends Component
     public function getNextStatus(int $currentStatus): ?int
     {
         $nextStatus = match($currentStatus) {
-            1 => 2,  // Créée -> Facturée
-            2 => 3,  // Facturée -> Clôturée
+            1 => 2,
+            2 => 3,
             default => null,
         };
         return $nextStatus;
@@ -245,6 +238,12 @@ new class extends Component
         };
     }
 
+    public function canEdit(int $status): bool
+    {
+        // Seules les commandes avec le statut "Créée" (1) peuvent être modifiées
+        return $status === 1;
+    }
+
     #[On('commande-created')]
     #[On('commande-updated')]
     #[On('commande-deleted')]
@@ -258,6 +257,17 @@ new class extends Component
 
     public function edit(int $id): void
     {
+        $commande = Commande::find($id);
+
+        if (!$this->canEdit($commande->status)) {
+            Flux::toast(
+                heading: 'Action impossible',
+                text: 'Seules les commandes avec le statut "Créée" peuvent être modifiées',
+                variant: 'warning'
+            );
+            return;
+        }
+
         $this->dispatch('edit-commande', id: $id);
     }
 
@@ -641,9 +651,17 @@ new class extends Component
                                     <flux:menu.item icon="document-text" wire:click="showBonCommande({{ $commande->id }})">
                                         Détails de la commande
                                     </flux:menu.item>
-                                    <flux:menu.item icon="pencil" href="{{ route('orders.edit', $commande->id) }}">
-                                        Modifier
-                                    </flux:menu.item>
+
+                                    @if($this->canEdit($commande->status))
+                                        <flux:menu.item icon="pencil" href="{{ route('orders.edit', $commande->id) }}">
+                                            Modifier
+                                        </flux:menu.item>
+                                    @else
+                                        <flux:menu.item icon="pencil" disabled class="opacity-50 cursor-not-allowed">
+                                            Modifier ({{ $this->getStatusLabel($commande->status) }})
+                                        </flux:menu.item>
+                                    @endif
+
                                     <flux:menu.separator />
                                     <flux:menu.item icon="trash" variant="danger" wire:click="confirmDelete({{ $commande->id }})">
                                         Supprimer
