@@ -233,7 +233,7 @@ new class extends Component
                             @foreach($detail->destinations as $dest)
                                 <div class="flex items-center justify-between gap-2 text-xs text-gray-500 dark:text-gray-400">
                                     <span class="truncate max-w-20">{{ $dest->magasin->name ?? '—' }}</span>
-                                    <flux:badge size="sm" color="zinc" inset="top bottom">
+                                    <flux:badge size="sm" color="zinc" inset="top bottom" class="mt-2">
                                         {{ $dest->quantite }}
                                     </flux:badge>
                                 </div>
