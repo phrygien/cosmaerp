@@ -4,6 +4,8 @@ use Livewire\Component;
 use Livewire\Attributes\Computed;
 use App\Models\DetailCommande;
 use App\Models\ReceptionCommande;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 new class extends Component
 {
@@ -21,13 +23,17 @@ new class extends Component
     public function mount(): void
     {
         foreach ($this->details as $detail) {
-            // Pré-remplir avec les données déjà saisies si elles existent
+            // Pré-remplir avec les données déjà saisies si elles existent,
+            // sinon mettre la quantité commandée comme valeur par défaut
             $existing = ReceptionCommande::where('commande_id', $this->commande_id)
                 ->where('detail_commande_id', $detail->id)
                 ->first();
 
+            // Par défaut : total réparti entre magasins (pas forcément detail->quantite)
+            $totalRepartition = (int) $detail->destinations->sum('quantite') ?: $detail->quantite;
+
             $this->lignes[$detail->id] = [
-                'recu'       => $existing?->recu       ?? 0,
+                'recu'       => $existing?->recu       ?? $totalRepartition,
                 'invendable' => $existing?->invendable ?? 0,
             ];
         }
@@ -41,38 +47,80 @@ new class extends Component
             ->get();
     }
 
+    /**
+     * Retourne la somme des quantités réparties sur les magasins pour une ligne.
+     * C'est ce total qui fait foi — pas forcément detail->quantite.
+     */
+    private function getTotalRepartition(int $detailId): int
+    {
+        $detail = $this->details->find($detailId);
+
+        return (int) ($detail?->destinations->sum('quantite') ?? $detail?->quantite ?? 0);
+    }
+
     public function getEtatLigne(int $detailId): string
     {
         $ligne   = $this->lignes[$detailId] ?? ['recu' => 0, 'invendable' => 0];
-        $detail  = $this->details->find($detailId);
-        $attendu = $detail?->quantite ?? 0;
+        $attendu = $this->getTotalRepartition($detailId);
         $recu    = (int) $ligne['recu'];
 
-        if ($recu === 0)          return 'non_recu';
-        if ($recu >= $attendu)    return 'complet';
+        if ($recu === 0)        return 'non_recu';
+        if ($recu > $attendu)   return 'depasse';   // dépasse la répartition
+        if ($recu === $attendu) return 'complet';
         return 'partiel';
     }
 
     public function saveLigne(int $detailId): void
     {
-        $this->validateOnly("lignes.{$detailId}.recu",       ["lignes.{$detailId}.recu"       => 'integer|min:0']);
-        $this->validateOnly("lignes.{$detailId}.invendable", ["lignes.{$detailId}.invendable" => 'integer|min:0']);
+        // Le plafond est la somme des répartitions magasins, pas detail->quantite
+        $attendu = $this->getTotalRepartition($detailId);
 
-        $recu       = (int) ($this->lignes[$detailId]['recu']       ?? 0);
+        // Validation avant d'ouvrir la transaction
+        $this->validateOnly("lignes.{$detailId}.recu", [
+            "lignes.{$detailId}.recu" => "integer|min:0|max:{$attendu}",
+        ], [
+            "lignes.{$detailId}.recu.max" => "La quantité reçue ({$attendu} max) ne peut pas dépasser le total réparti entre les magasins.",
+        ]);
+
+        $this->validateOnly("lignes.{$detailId}.invendable", [
+            "lignes.{$detailId}.invendable" => 'integer|min:0',
+        ]);
+
+        // Plafonner en dur pour éviter toute dérive
+        $recu       = min((int) ($this->lignes[$detailId]['recu']       ?? 0), $attendu);
         $invendable = (int) ($this->lignes[$detailId]['invendable'] ?? 0);
 
-        ReceptionCommande::updateOrCreate(
-            [
+        try {
+            DB::transaction(function () use ($detailId, $recu, $invendable): void {
+                ReceptionCommande::updateOrCreate(
+                    [
+                        'commande_id'        => $this->commande_id,
+                        'detail_commande_id' => $detailId,
+                    ],
+                    [
+                        'bon_commande_id' => $this->bon_commande_id,
+                        'recu'            => $recu,
+                        'invendable'      => $invendable,
+                        'state'           => 1,
+                    ]
+                );
+            });
+
+            // Resynchroniser l'état local uniquement si la transaction a réussi
+            $this->lignes[$detailId]['recu'] = $recu;
+
+        } catch (\Throwable $e) {
+            Log::error('Erreur sauvegarde ligne réception', [
                 'commande_id'        => $this->commande_id,
                 'detail_commande_id' => $detailId,
-            ],
-            [
-                'bon_commande_id' => $this->bon_commande_id,
-                'recu'            => $recu,
-                'invendable'      => $invendable,
-                'state'           => 1,
-            ]
-        );
+                'error'              => $e->getMessage(),
+            ]);
+
+            $this->addError(
+                "lignes.{$detailId}.recu",
+                'Une erreur est survenue lors de la sauvegarde. Veuillez réessayer.'
+            );
+        }
     }
 
     #[Computed]
@@ -150,7 +198,7 @@ new class extends Component
                 @endphp
 
                 <flux:table.row :key="$detail->id"
-                                class="{{ $etat === 'complet' ? 'bg-green-50 dark:bg-green-900/10' : ($etat === 'partiel' ? 'bg-amber-50 dark:bg-amber-900/10' : '') }}"
+                                class="{{ $etat === 'complet' ? 'bg-green-50 dark:bg-green-900/10' : ($etat === 'partiel' ? 'bg-amber-50 dark:bg-amber-900/10' : ($etat === 'depasse' ? 'bg-red-50 dark:bg-red-900/10' : '')) }}"
                 >
 
                     {{-- Produit --}}
@@ -195,17 +243,21 @@ new class extends Component
 
                     {{-- Input : Qté reçue --}}
                     <flux:table.cell>
+                        @php $maxRecu = $detail->destinations->sum('quantite') ?: $detail->quantite; @endphp
                         <div class="w-24">
                             <flux:input
                                 wire:model.live="lignes.{{ $detail->id }}.recu"
                                 type="number"
                                 min="0"
-                                max="{{ $detail->quantite }}"
+                                max="{{ $maxRecu }}"
                                 step="1"
                                 size="sm"
                                 placeholder="0"
                             />
                         </div>
+                        @error("lignes.{$detail->id}.recu")
+                        <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                        @enderror
                     </flux:table.cell>
 
                     {{-- Input : Invendable --}}
@@ -224,7 +276,19 @@ new class extends Component
 
                     {{-- Statut --}}
                     <flux:table.cell>
-                        @if($etat === 'complet')
+                        @if($etat === 'depasse')
+                            @php $maxRepa = $detail->destinations->sum('quantite') ?: $detail->quantite; @endphp
+                            <div class="flex flex-col gap-0.5">
+                                <flux:badge size="sm" color="red" icon="x-circle" inset="top bottom">
+                                    {{ __('Dépassement') }}
+                                </flux:badge>
+
+                                <flux:badge size="sm" color="purple" inset="top bottom" class="mt-2">
+                                    {{ __('Qté commandée') }} : <strong>{{ $maxRepa }}</strong>
+                                </flux:badge>
+
+                            </div>
+                        @elseif($etat === 'complet')
                             <flux:badge size="sm" color="green" icon="check-circle" inset="top bottom">
                                 Complet
                             </flux:badge>
