@@ -104,39 +104,37 @@ new class extends Component
 
 <div class="space-y-8">
 
-    <!-- === SINGLE HORIZONTAL CARD - HAUTEUR RÉDUITE === -->
-    <flux:card class="bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 shadow-sm">
-        <div class="grid grid-cols-3 divide-x divide-gray-100 dark:divide-zinc-700 py-3">
+    <!-- === 3 CARDS SÉPARÉES === -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
 
-            <!-- Attendu -->
-            <div class="px-6 text-center">
-                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-widest">Attendu</p>
-                <p class="text-2xl font-semibold text-gray-900 dark:text-white tabular-nums mt-0.5">
-                    {{ $this->totalAttendu }}
-                </p>
-                <p class="text-[10px] text-gray-400">unités commandées</p>
-            </div>
-
-            <!-- Reçu -->
-            <div class="px-6 text-center">
-                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-widest">Reçu</p>
-                <p class="text-2xl font-semibold text-green-600 dark:text-green-500 tabular-nums mt-0.5">
-                    {{ $this->totalRecu }}
-                </p>
-                <p class="text-[10px] text-gray-400">unités réceptionnées</p>
-            </div>
-
-            <!-- Invendable -->
-            <div class="px-6 text-center">
-                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-widest">Invendable</p>
-                <p class="text-2xl font-semibold text-red-600 dark:text-red-500 tabular-nums mt-0.5">
-                    {{ $this->totalInvendable }}
-                </p>
-                <p class="text-[10px] text-gray-400">unités écartées</p>
-            </div>
-
+        <!-- Card Attendu -->
+        <div class="bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 rounded-2xl shadow-sm p-6 text-center">
+            <p class="text-xs uppercase tracking-widest font-medium text-gray-500">Attendu</p>
+            <p class="text-4xl font-semibold text-gray-900 dark:text-white tabular-nums mt-3">
+                {{ $this->totalAttendu }}
+            </p>
+            <p class="text-sm text-gray-400 mt-1">unités commandées</p>
         </div>
-    </flux:card>
+
+        <!-- Card Reçu -->
+        <div class="bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 rounded-2xl shadow-sm p-6 text-center">
+            <p class="text-xs uppercase tracking-widest font-medium text-gray-500">Reçu</p>
+            <p class="text-4xl font-semibold text-green-600 dark:text-green-500 tabular-nums mt-3">
+                {{ $this->totalRecu }}
+            </p>
+            <p class="text-sm text-gray-400 mt-1">unités réceptionnées</p>
+        </div>
+
+        <!-- Card Invendable -->
+        <div class="bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 rounded-2xl shadow-sm p-6 text-center">
+            <p class="text-xs uppercase tracking-widest font-medium text-gray-500">Invendable</p>
+            <p class="text-4xl font-semibold text-red-600 dark:text-red-500 tabular-nums mt-3">
+                {{ $this->totalInvendable }}
+            </p>
+            <p class="text-sm text-gray-400 mt-1">unités écartées</p>
+        </div>
+
+    </div>
 
     <!-- === TABLEAU DES PRODUITS === -->
     <flux:table>
