@@ -33,6 +33,11 @@ Route::group(["middleware" => ["auth", "verified"], "prefix" => 'orders'], funct
     Route::livewire('/edit/{commande_id}', "pages::orders.edit")->name("orders.edit");
 });
 
+Route::group(["middleware" => ["auth", "verified"], "prefix" => 'reception'], function () {
+    Route::livewire('/list', "pages::aprovisionement.page")->name("reception_commande.list");
+    Route::livewire('/create', "pages::aprovisionement.reception.create")->name("reception_commande.create");
+});
+
 Route::get('/commandes/{id}/bon-commande/pdf', [BonCommandePdfController::class, 'download'])
     ->name('bon-commande.pdf')
     ->middleware('auth');

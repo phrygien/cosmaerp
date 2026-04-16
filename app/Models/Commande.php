@@ -27,4 +27,5 @@ class Commande extends Model
     {
         return $this->hasMany(DetailCommande::class, 'commande_id');
     }
+
 }

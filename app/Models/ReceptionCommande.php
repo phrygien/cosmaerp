@@ -12,18 +12,18 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 #[Fillable(['bon_commande_id', 'recu', 'invendable', 'commande_id', 'detail_commande_id', 'state'])]
 class ReceptionCommande extends Model
 {
-    public function bonCommande(): BelongsTo
+    public function bon_commande(): BelongsTo
     {
-        return $this->belongsTo(BonCommande::class, 'bon_commande_id', 'id');
+        return $this->belongsTo(BonCommande::class, 'bon_commande_id');
     }
 
     public function commande(): BelongsTo
     {
-        return $this->belongsTo(Commande::class, 'commande_id', 'id');
+        return $this->belongsTo(Commande::class, 'commande_id');
     }
 
-    public function detailCommande(): HasOne
+    public function detail_commande(): BelongsTo
     {
-        return $this->hasOne(DetailCommande::class, 'detail_commande_id', 'id');
+        return $this->belongsTo(DetailCommande::class, 'detail_commande_id');
     }
 }

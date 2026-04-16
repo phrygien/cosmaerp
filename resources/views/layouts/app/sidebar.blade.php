@@ -65,6 +65,24 @@
                 </flux:sidebar.item>
             </flux:sidebar.group>
 
+            <flux:sidebar.spacer />
+
+            <flux:sidebar.group
+                expandable
+                icon="queue-list"
+                heading="Réception des commande"
+                class="grid"
+                :expanded="request()->routeIs('reception_commande.*')"
+            >
+                <flux:sidebar.item href="{{ route('reception_commande.list') }}" wire:navigate>
+                    {{ __('Historique réception') }}
+                </flux:sidebar.item>
+
+                <flux:sidebar.item href="{{ route('reception_commande.create') }}" wire:navigate>
+                    {{ __('Nouvelle réception') }}
+                </flux:sidebar.item>
+            </flux:sidebar.group>
+
         </flux:sidebar.nav>
 
         <flux:sidebar.spacer />
