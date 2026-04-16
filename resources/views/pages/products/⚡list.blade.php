@@ -411,8 +411,8 @@ new class extends Component
                                         ) !!}
                                     </div>
                                     <span class="text-[10px] text-zinc-400 font-mono tracking-widest select-all">
-                {{ $product->EAN }}
-            </span>
+                                        {{ $product->EAN }}
+                                    </span>
                                 </div>
                             @else
                                 <span class="text-xs text-zinc-300 dark:text-zinc-600">—</span>

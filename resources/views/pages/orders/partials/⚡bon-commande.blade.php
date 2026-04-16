@@ -204,7 +204,30 @@ new class extends Component
                             <flux:table.rows>
                                 @forelse ($commande->details as $detail)
                                     <flux:table.row :key="$detail->id">
-                                        <flux:table.cell class="text-xs font-mono">{{ $detail->product?->EAN ?? '—' }}</flux:table.cell>
+
+                                        <flux:table.cell class="hidden lg:table-cell text-center">
+                                            @if($detail->product?->EAN)
+                                                <div class="flex flex-col items-center gap-1">
+                                                    <div class="barcode-wrapper" style="line-height:0">
+                                                        {!! DNS1D::getBarcodeSVG(
+                                                            $detail->product?->EAN,
+                                                            strlen($detail->product?->EAN) === 8 ? 'EAN8' : 'EAN13',
+                                                            1.3,
+                                                            40,
+                                                            'auto',
+                                                            false
+                                                        ) !!}
+                                                    </div>
+                                                    <span class="text-[10px] text-zinc-400 font-mono tracking-widest select-all">
+                                                        {{ $detail->product?->EAN }}
+                                                    </span>
+                                                </div>
+                                            @else
+                                                <span class="text-xs text-zinc-300 dark:text-zinc-600">—</span>
+                                            @endif
+                                        </flux:table.cell>
+
+
                                         <flux:table.cell class="font-medium text-sm">{{ $detail->product?->designation ?? '—' }}</flux:table.cell>
                                         <flux:table.cell class="text-sm">{{ $detail->quantite }}</flux:table.cell>
                                         <flux:table.cell class="text-sm whitespace-nowrap">{{ number_format($detail->pu_achat_HT, 2, ',', ' ') }} €</flux:table.cell>
