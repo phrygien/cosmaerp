@@ -368,6 +368,40 @@ new class extends Component
 
         {{-- STEP 2 : Produits reçus --}}
         @if($currentStep === 2 && $commande_id)
+            {{-- Aperçu commande sélectionnée --}}
+            @if($this->selectedCommande)
+                <div class="mb-5 sm:col-span-2 rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 p-4 grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div>
+                        <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Fournisseur</p>
+                        <p class="text-sm font-semibold text-gray-900 dark:text-white">
+                            {{ $this->selectedCommande->fournisseur?->name ?? '—' }}
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Magasin</p>
+                        <p class="text-sm font-semibold text-gray-900 dark:text-white">
+                            {{ $this->selectedCommande->magasinLivraison?->name ?? '—' }}
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Montant total</p>
+                        <p class="text-sm font-semibold text-indigo-600 dark:text-indigo-400">
+                            {{ number_format($this->selectedCommande->montant_total, 2) }}
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Bon de commande</p>
+                        <p class="text-sm font-semibold text-gray-900 dark:text-white">
+                            @if($this->bonCommande)
+                                #{{ $this->bonCommande->id }}
+                            @else
+                                <flux:badge color="red" size="sm">Aucun bon</flux:badge>
+                            @endif
+                        </p>
+                    </div>
+                </div>
+            @endif
+
             @livewire('pages::aprovisionement.reception.step2', [
                 'commande_id'    => $commande_id,
                 'bon_commande_id' => $bon_commande_id,
