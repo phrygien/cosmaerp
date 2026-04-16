@@ -325,7 +325,7 @@ new class extends Component
                                 <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Bon de commande</p>
                                 <p class="text-sm font-semibold text-gray-900 dark:text-white">
                                     @if($this->bonCommande)
-                                        #{{ $this->bonCommande->id }}
+                                        № / {{ $this->bonCommande->id }}
                                     @else
                                         <flux:badge color="red" size="sm">Aucun bon</flux:badge>
                                     @endif
@@ -393,7 +393,7 @@ new class extends Component
                         <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Bon de commande</p>
                         <p class="text-sm font-semibold text-gray-900 dark:text-white">
                             @if($this->bonCommande)
-                                #{{ $this->bonCommande->id }}
+                                № / {{ $this->bonCommande->id }}
                             @else
                                 <flux:badge color="red" size="sm">Aucun bon</flux:badge>
                             @endif
