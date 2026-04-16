@@ -14,22 +14,15 @@ new class extends Component
     public ?string $date_reception;
     public ?string $note;
 
-    /**
-     * État local : detail_commande_id => ['recu' => int, 'invendable' => int]
-     * @var array<int, array{recu: int, invendable: int}>
-     */
     public array $lignes = [];
 
     public function mount(): void
     {
         foreach ($this->details as $detail) {
-            // Pré-remplir avec les données déjà saisies si elles existent,
-            // sinon mettre la quantité commandée comme valeur par défaut
             $existing = ReceptionCommande::where('commande_id', $this->commande_id)
                 ->where('detail_commande_id', $detail->id)
                 ->first();
 
-            // Par défaut : total réparti entre magasins (pas forcément detail->quantite)
             $totalRepartition = (int) $detail->destinations->sum('quantite') ?: $detail->quantite;
 
             $this->lignes[$detail->id] = [
@@ -47,14 +40,9 @@ new class extends Component
             ->get();
     }
 
-    /**
-     * Retourne la somme des quantités réparties sur les magasins pour une ligne.
-     * C'est ce total qui fait foi — pas forcément detail->quantite.
-     */
     private function getTotalRepartition(int $detailId): int
     {
         $detail = $this->details->find($detailId);
-
         return (int) ($detail?->destinations->sum('quantite') ?? $detail?->quantite ?? 0);
     }
 
@@ -65,38 +53,32 @@ new class extends Component
         $recu    = (int) $ligne['recu'];
 
         if ($recu === 0)        return 'non_recu';
-        if ($recu > $attendu)   return 'depasse';   // dépasse la répartition
+        if ($recu > $attendu)   return 'depasse';
         if ($recu === $attendu) return 'complet';
         return 'partiel';
     }
 
     public function saveLigne(int $detailId): void
     {
-        // Le plafond est la somme des répartitions magasins, pas detail->quantite
         $attendu = $this->getTotalRepartition($detailId);
 
-        // Validation avant d'ouvrir la transaction
         $this->validateOnly("lignes.{$detailId}.recu", [
             "lignes.{$detailId}.recu" => "integer|min:0|max:{$attendu}",
         ], [
-            "lignes.{$detailId}.recu.max" => "La quantité reçue ({$attendu} max) ne peut pas dépasser le total réparti entre les magasins.",
+            "lignes.{$detailId}.recu.max" => "Quantité max dépassée.",
         ]);
 
         $this->validateOnly("lignes.{$detailId}.invendable", [
             "lignes.{$detailId}.invendable" => 'integer|min:0',
         ]);
 
-        // Plafonner en dur pour éviter toute dérive
-        $recu       = min((int) ($this->lignes[$detailId]['recu']       ?? 0), $attendu);
+        $recu       = min((int) ($this->lignes[$detailId]['recu'] ?? 0), $attendu);
         $invendable = (int) ($this->lignes[$detailId]['invendable'] ?? 0);
 
         try {
             DB::transaction(function () use ($detailId, $recu, $invendable): void {
                 ReceptionCommande::updateOrCreate(
-                    [
-                        'commande_id'        => $this->commande_id,
-                        'detail_commande_id' => $detailId,
-                    ],
+                    ['commande_id' => $this->commande_id, 'detail_commande_id' => $detailId],
                     [
                         'bon_commande_id' => $this->bon_commande_id,
                         'recu'            => $recu,
@@ -106,79 +88,60 @@ new class extends Component
                 );
             });
 
-            // Resynchroniser l'état local uniquement si la transaction a réussi
             $this->lignes[$detailId]['recu'] = $recu;
 
         } catch (\Throwable $e) {
-            Log::error('Erreur sauvegarde ligne réception', [
-                'commande_id'        => $this->commande_id,
-                'detail_commande_id' => $detailId,
-                'error'              => $e->getMessage(),
-            ]);
-
-            $this->addError(
-                "lignes.{$detailId}.recu",
-                'Une erreur est survenue lors de la sauvegarde. Veuillez réessayer.'
-            );
+            Log::error('Erreur sauvegarde réception', ['error' => $e->getMessage()]);
+            $this->addError("lignes.{$detailId}.recu", 'Erreur de sauvegarde.');
         }
     }
 
-    #[Computed]
-    public function totalAttendu(): int
-    {
-        return $this->details->sum('quantite');
-    }
-
-    #[Computed]
-    public function totalRecu(): int
-    {
-        return collect($this->lignes)->sum(fn($l) => (int) ($l['recu'] ?? 0));
-    }
-
-    #[Computed]
-    public function totalInvendable(): int
-    {
-        return collect($this->lignes)->sum(fn($l) => (int) ($l['invendable'] ?? 0));
-    }
+    #[Computed] public function totalAttendu(): int { return $this->details->sum('quantite'); }
+    #[Computed] public function totalRecu(): int { return collect($this->lignes)->sum(fn($l) => (int)($l['recu'] ?? 0)); }
+    #[Computed] public function totalInvendable(): int { return collect($this->lignes)->sum(fn($l) => (int)($l['invendable'] ?? 0)); }
 };
 ?>
 
-<div class="space-y-6">
+<div class="space-y-8">
+    <!-- === STATS CARDS - Version encore plus petite === -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 
-    {{-- Barre de progression globale --}}
-    <div class="rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-4">
-        <div class="flex items-center justify-between mb-3 flex-wrap gap-3">
-            <flux:heading size="sm">Progression de la réception</flux:heading>
-            <div class="flex items-center gap-4 text-sm">
-                <span class="text-gray-500">
-                    Attendu : <strong class="text-gray-900 dark:text-white">{{ $this->totalAttendu }}</strong>
-                </span>
-                <span class="text-green-600">
-                    Reçu : <strong>{{ $this->totalRecu }}</strong>
-                </span>
-                <span class="text-red-500">
-                    Invendable : <strong>{{ $this->totalInvendable }}</strong>
-                </span>
+        <!-- Card Attendu -->
+        <flux:card class="bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 shadow-sm">
+            <div class="p-4">
+                <p class="text-xl font-medium text-gray-500 dark:text-gray-400">Attendu</p>
+                <p class="text-2xl font-semibold text-gray-900 dark:text-white mt-1 tabular-nums">
+                    {{ $this->totalAttendu }}
+                </p>
+                <p class="text-xl text-gray-400 mt-0.5">unités commandées</p>
             </div>
-        </div>
+        </flux:card>
 
-        @php
-            $pct = $this->totalAttendu > 0
-                ? min(100, round($this->totalRecu / $this->totalAttendu * 100))
-                : 0;
-        @endphp
+        <!-- Card Reçu -->
+        <flux:card class="bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 shadow-sm">
+            <div class="p-4">
+                <p class="text-xl font-medium text-gray-500 dark:text-gray-400">Reçu</p>
+                <p class="text-2xl font-semibold text-green-600 dark:text-green-500 mt-1 tabular-nums">
+                    {{ $this->totalRecu }}
+                </p>
+                <p class="text-xl text-gray-400 mt-0.5">unités réceptionnées</p>
+            </div>
+        </flux:card>
 
-        <div class="w-full bg-gray-100 dark:bg-zinc-700 rounded-full h-2.5">
-            <div
-                class="h-2.5 rounded-full transition-all duration-500
-                    {{ $pct >= 100 ? 'bg-green-500' : ($pct > 0 ? 'bg-rose-500' : 'bg-gray-300') }}"
-                style="width: {{ $pct }}%"
-            ></div>
-        </div>
-        <p class="text-xs text-gray-400 mt-1 text-right">{{ $pct }} % réceptionné</p>
+        <!-- Card Invendable -->
+        <flux:card class="bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 shadow-sm">
+            <div class="p-4">
+                <p class="text-xl font-medium text-gray-500 dark:text-gray-400">Invendable</p>
+                <p class="text-2xl font-semibold text-red-600 dark:text-red-500 mt-1 tabular-nums">
+                    {{ $this->totalInvendable }}
+                </p>
+                <p class="text-xl text-gray-400 mt-0.5">unités écartées</p>
+            </div>
+        </flux:card>
+
     </div>
 
-    {{-- Table des lignes --}}
+    <!-- === TABLEAU DES PRODUITS === -->
     <flux:table>
         <flux:table.columns>
             <flux:table.column>Produit</flux:table.column>
@@ -194,134 +157,88 @@ new class extends Component
         <flux:table.rows>
             @forelse($this->details as $detail)
                 @php
-                    $etat = $this->getEtatLigne($detail->id);
+                    $etat    = $this->getEtatLigne($detail->id);
+                    $maxRecu = $detail->destinations->sum('quantite') ?: $detail->quantite;
+                    $recu    = (int) ($lignes[$detail->id]['recu'] ?? 0);
+                    $invalid = $recu <= 0 || $recu > $maxRecu;
                 @endphp
 
-                <flux:table.row :key="$detail->id"
-                                class="{{ $etat === 'complet' ? 'bg-green-50 dark:bg-green-900/10' : ($etat === 'partiel' ? 'bg-amber-50 dark:bg-amber-900/10' : ($etat === 'depasse' ? 'bg-red-50 dark:bg-red-900/10' : '')) }}"
-                >
-
-                    {{-- Produit --}}
+                <flux:table.row :key="$detail->id">
                     <flux:table.cell>
-                        <p class="font-medium text-gray-900 dark:text-white text-sm">
-                            {{ $detail->product->designation }}
-                        </p>
-                        <p class="text-xs text-gray-400 font-mono">
-                            {{ $detail->product->product_code }}
-                        </p>
+                        <p class="font-medium text-sm">{{ $detail->product->designation }}</p>
+                        <p class="text-xs text-gray-400 font-mono">{{ $detail->product->product_code }}</p>
                     </flux:table.cell>
 
-                    {{-- Marque --}}
                     <flux:table.cell>
                         @if($detail->product->marque)
-                            <flux:badge size="sm" color="blue" inset="top bottom">
-                                {{ $detail->product->marque->name }}
-                            </flux:badge>
+                            <flux:badge size="sm" color="blue">{{ $detail->product->marque->name }}</flux:badge>
                         @else
                             <span class="text-gray-300 text-xs">—</span>
                         @endif
                     </flux:table.cell>
 
-                    {{-- Qté commandée --}}
                     <flux:table.cell variant="strong">
                         <span class="tabular-nums">{{ $detail->quantite }}</span>
                     </flux:table.cell>
 
-                    {{-- Répartition magasins --}}
                     <flux:table.cell>
-                        <div class="space-y-0.5">
+                        <div class="space-y-1 text-xs">
                             @foreach($detail->destinations as $dest)
-                                <div class="flex items-center justify-between gap-2 text-xs text-gray-500 dark:text-gray-400">
-                                    <span class="truncate max-w-20">{{ $dest->magasin->name ?? '—' }}</span>
-                                    <flux:badge size="sm" color="zinc" inset="top bottom" class="mt-2">
-                                        {{ $dest->quantite }}
-                                    </flux:badge>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500">{{ $dest->magasin->name ?? '—' }}</span>
+                                    <flux:badge size="sm" color="zinc">{{ $dest->quantite }}</flux:badge>
                                 </div>
                             @endforeach
                         </div>
                     </flux:table.cell>
 
-                    {{-- Input : Qté reçue --}}
                     <flux:table.cell>
-                        @php $maxRecu = $detail->destinations->sum('quantite') ?: $detail->quantite; @endphp
                         <div class="w-24">
                             <flux:input
                                 wire:model.live="lignes.{{ $detail->id }}.recu"
                                 type="number"
                                 min="0"
                                 max="{{ $maxRecu }}"
-                                step="1"
                                 size="sm"
-                                placeholder="0"
                             />
                         </div>
                         @error("lignes.{$detail->id}.recu")
-                        <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </flux:table.cell>
 
-                    {{-- Input : Invendable --}}
                     <flux:table.cell>
                         <div class="w-24">
                             <flux:input
                                 wire:model.live="lignes.{{ $detail->id }}.invendable"
                                 type="number"
                                 min="0"
-                                step="1"
                                 size="sm"
-                                placeholder="0"
                             />
                         </div>
                     </flux:table.cell>
 
-                    {{-- Statut --}}
                     <flux:table.cell>
                         @if($etat === 'depasse')
-                            @php $maxRepa = $detail->destinations->sum('quantite') ?: $detail->quantite; @endphp
-                            <div class="flex flex-col gap-0.5">
-                                <flux:badge size="sm" color="red" icon="x-circle" inset="top bottom">
-                                    {{ __('Dépassement') }}
-                                </flux:badge>
-
-                                <flux:badge size="sm" color="purple" inset="top bottom" class="mt-2">
-                                    {{ __('Qté commandée') }} : <strong>{{ $maxRepa }}</strong>
-                                </flux:badge>
-
-                            </div>
+                            <flux:badge color="red" size="sm">Dépassement</flux:badge>
                         @elseif($etat === 'complet')
-                            <flux:badge size="sm" color="green" icon="check-circle" inset="top bottom">
-                                Complet
-                            </flux:badge>
+                            <flux:badge color="green" size="sm">Complet</flux:badge>
                         @elseif($etat === 'partiel')
-                            <flux:badge size="sm" color="amber" icon="exclamation-circle" inset="top bottom">
-                                Partiel
-                            </flux:badge>
+                            <flux:badge color="amber" size="sm">Partiel</flux:badge>
                         @else
-                            <flux:badge size="sm" color="zinc" inset="top bottom">
-                                Non reçu
-                            </flux:badge>
+                            <flux:badge color="zinc" size="sm">Non reçu</flux:badge>
                         @endif
                     </flux:table.cell>
 
-                    {{-- Action : Sauvegarder la ligne --}}
                     <flux:table.cell>
-                        <flux:button
-                            size="sm"
-                            variant="ghost"
-                            icon="check"
-                            inset="top bottom"
-                            wire:click="saveLigne({{ $detail->id }})"
-                            wire:loading.attr="disabled"
-                            wire:target="saveLigne({{ $detail->id }})"
-                        >
+                        <flux:button size="sm" wire:click="saveLigne({{ $detail->id }})" :disabled="$invalid">
                             Sauvegarder
                         </flux:button>
                     </flux:table.cell>
-
                 </flux:table.row>
             @empty
                 <flux:table.row>
-                    <flux:table.cell colspan="8" class="py-12 text-center text-gray-400">
+                    <flux:table.cell colspan="8" class="text-center py-12 text-gray-400">
                         Aucun produit dans cette commande
                     </flux:table.cell>
                 </flux:table.row>
