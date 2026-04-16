@@ -355,8 +355,6 @@ new class extends Component
                     Article
                 </flux:table.column>
 
-                <flux:table.column class="hidden sm:table-cell">Code Bar</flux:table.column>
-
                 <flux:table.column
                     sortable
                     :sorted="$sortBy === 'designation'"
@@ -394,28 +392,6 @@ new class extends Component
                             </flux:badge>
                             @if($product->EAN)
                                 <p class="text-xs text-zinc-400 mt-0.5">EAN: {{ $product->EAN }}</p>
-                            @endif
-                        </flux:table.cell>
-
-                        <flux:table.cell class="hidden lg:table-cell text-center">
-                            @if($product->EAN)
-                                <div class="flex flex-col items-center gap-1">
-                                    <div class="barcode-wrapper" style="line-height:0">
-                                        {!! DNS1D::getBarcodeSVG(
-                                            $product->EAN,
-                                            strlen($product->EAN) === 8 ? 'EAN8' : 'EAN13',
-                                            1.3,
-                                            40,
-                                            'auto',
-                                            false
-                                        ) !!}
-                                    </div>
-                                    <span class="text-[10px] text-zinc-400 font-mono tracking-widest select-all">
-                {{ $product->EAN }}
-            </span>
-                                </div>
-                            @else
-                                <span class="text-xs text-zinc-300 dark:text-zinc-600">—</span>
                             @endif
                         </flux:table.cell>
 

@@ -108,7 +108,11 @@ new class extends Component
                 );
             });
 
-            $this->dispatch('notify', ['type' => 'success', 'message' => 'Ligne mise à jour avec succès.']);
+            \Flux\Flux::toast(
+                heading: 'Réception de produit sauvegardée',
+                text: 'La réception de produit a été enregistrée avec succès.',
+                variant: 'success'
+            );
 
         } catch (\Throwable $e) {
             Log::error('Erreur sauvegarde réception', ['error' => $e->getMessage()]);
