@@ -103,43 +103,40 @@ new class extends Component
 ?>
 
 <div class="space-y-8">
-    <!-- === STATS CARDS - Version encore plus petite === -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 
-        <!-- Card Attendu -->
-        <flux:card class="bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 shadow-sm">
-            <div class="p-4">
-                <p class="text-xl font-medium text-gray-500 dark:text-gray-400">Attendu</p>
-                <p class="text-2xl font-semibold text-gray-900 dark:text-white mt-1 tabular-nums">
+    <!-- === SINGLE HORIZONTAL CARD - HAUTEUR RÉDUITE === -->
+    <flux:card class="bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 shadow-sm">
+        <div class="grid grid-cols-3 divide-x divide-gray-100 dark:divide-zinc-700 py-3">
+
+            <!-- Attendu -->
+            <div class="px-6 text-center">
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-widest">Attendu</p>
+                <p class="text-2xl font-semibold text-gray-900 dark:text-white tabular-nums mt-0.5">
                     {{ $this->totalAttendu }}
                 </p>
-                <p class="text-xl text-gray-400 mt-0.5">unités commandées</p>
+                <p class="text-[10px] text-gray-400">unités commandées</p>
             </div>
-        </flux:card>
 
-        <!-- Card Reçu -->
-        <flux:card class="bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 shadow-sm">
-            <div class="p-4">
-                <p class="text-xl font-medium text-gray-500 dark:text-gray-400">Reçu</p>
-                <p class="text-2xl font-semibold text-green-600 dark:text-green-500 mt-1 tabular-nums">
+            <!-- Reçu -->
+            <div class="px-6 text-center">
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-widest">Reçu</p>
+                <p class="text-2xl font-semibold text-green-600 dark:text-green-500 tabular-nums mt-0.5">
                     {{ $this->totalRecu }}
                 </p>
-                <p class="text-xl text-gray-400 mt-0.5">unités réceptionnées</p>
+                <p class="text-[10px] text-gray-400">unités réceptionnées</p>
             </div>
-        </flux:card>
 
-        <!-- Card Invendable -->
-        <flux:card class="bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 shadow-sm">
-            <div class="p-4">
-                <p class="text-xl font-medium text-gray-500 dark:text-gray-400">Invendable</p>
-                <p class="text-2xl font-semibold text-red-600 dark:text-red-500 mt-1 tabular-nums">
+            <!-- Invendable -->
+            <div class="px-6 text-center">
+                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-widest">Invendable</p>
+                <p class="text-2xl font-semibold text-red-600 dark:text-red-500 tabular-nums mt-0.5">
                     {{ $this->totalInvendable }}
                 </p>
-                <p class="text-xl text-gray-400 mt-0.5">unités écartées</p>
+                <p class="text-[10px] text-gray-400">unités écartées</p>
             </div>
-        </flux:card>
 
-    </div>
+        </div>
+    </flux:card>
 
     <!-- === TABLEAU DES PRODUITS === -->
     <flux:table>
