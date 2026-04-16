@@ -48,7 +48,6 @@ new class extends Component
         // Commandes confirmées ayant un bon de commande
         return Commande::where('etat', 'commande')
             ->where('state', 1)
-            ->where('')
             ->with(['fournisseur', 'magasinLivraison'])
             ->whereHas('details')
             ->orderByDesc('created_at')
