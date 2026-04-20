@@ -8,6 +8,7 @@ use App\Models\Commande;
 use App\Models\Fournisseur;
 use App\Models\Magasin;
 use App\Models\Facture;
+use App\Enums\CommandeStatus;
 use Flux\Flux;
 use Illuminate\Support\Facades\DB;
 
@@ -42,7 +43,7 @@ new class extends Component
     #[Url(as: 'par_page', except: 10)]
     public int    $perPage       = 10;
 
-    public bool $showFilters = false;
+    public bool  $showFilters    = false;
     public array $updatingStatus = [];
 
     public function sort(string $column): void
@@ -65,7 +66,7 @@ new class extends Component
 
     public function toggleFilters(): void
     {
-        $this->showFilters = ! $this->showFilters;
+        $this->showFilters = !$this->showFilters;
     }
 
     public function resetFilters(): void
@@ -82,7 +83,7 @@ new class extends Component
 
     private function generateFactureNumber(): string
     {
-        $year = date('Y');
+        $year  = date('Y');
         $month = date('m');
 
         $count = Facture::whereYear('created_at', $year)
@@ -92,34 +93,30 @@ new class extends Component
         return sprintf('FAC-%s%s-%04d', $year, $month, $count);
     }
 
-    public function updateStatus(int $id, int $newStatus): void
+    public function updateStatus(int $id, int $newStatusValue): void
     {
         $this->updatingStatus[$id] = true;
 
         try {
             DB::beginTransaction();
 
-            $commande = Commande::with(['fournisseur'])->findOrFail($id);
-            $oldStatus = $commande->status;
+            $commande  = Commande::with(['fournisseur'])->findOrFail($id);
+            $oldStatus = $commande->status; // CommandeStatus (casté)
+            $newStatus = CommandeStatus::from($newStatusValue);
 
             $validTransitions = [
-                1 => [2, -1],
-                2 => [3, -1],
-                3 => [],
-                -1 => [],
+                CommandeStatus::Cree->value     => [CommandeStatus::Facturee, CommandeStatus::Annulee],
+                CommandeStatus::Facturee->value  => [CommandeStatus::Cloturee, CommandeStatus::Annulee],
+                CommandeStatus::Cloturee->value  => [],
+                CommandeStatus::Annulee->value   => [],
             ];
 
-            if (!in_array($newStatus, $validTransitions[$oldStatus] ?? [])) {
-                $statusLabels = [
-                    -1 => 'Annulée',
-                    1 => 'Créée',
-                    2 => 'Facturée',
-                    3 => 'Clôturée'
-                ];
+            $allowed = $validTransitions[$oldStatus->value] ?? [];
 
+            if (!in_array($newStatus, $allowed)) {
                 Flux::toast(
                     heading: 'Transition invalide',
-                    text: "Impossible de passer de \"{$statusLabels[$oldStatus]}\" à \"{$statusLabels[$newStatus]}\"",
+                    text: "Impossible de passer de \"{$oldStatus->label()}\" à \"{$newStatus->label()}\"",
                     variant: 'warning'
                 );
                 return;
@@ -127,25 +124,26 @@ new class extends Component
 
             $commande->status = $newStatus;
 
-            if ($newStatus === 3) {
+            if ($newStatus === CommandeStatus::Cloturee) {
                 $commande->date_cloture = now();
-            } elseif ($newStatus === 2) {
+
+            } elseif ($newStatus === CommandeStatus::Facturee) {
                 $commande->date_facturation = now();
 
                 $factureNumber = $this->generateFactureNumber();
 
                 $facture = Facture::create([
                     'fournisseur_id' => $commande->fournisseur_id,
-                    'type' => 'achat',
-                    'libelle' => 'Facture ' . $commande->libelle,
-                    'numero' => $factureNumber,
-                    'date_commande' => $commande->created_at,
-                    'montant' => $commande->montant_total,
+                    'type'           => 'achat',
+                    'libelle'        => 'Facture ' . $commande->libelle,
+                    'numero'         => $factureNumber,
+                    'date_commande'  => $commande->created_at,
+                    'montant'        => $commande->montant_total,
                     'date_reception' => null,
-                    'commande_id' => $commande->id,
-                    'remise' => $commande->remise ?? 0,
-                    'tax' => $commande->tax ?? 0,
-                    'state' => 1,
+                    'commande_id'    => $commande->id,
+                    'remise'         => $commande->remise ?? 0,
+                    'tax'            => $commande->tax ?? 0,
+                    'state'          => 1,
                 ]);
 
                 $this->dispatch('facture-created', facture: $facture);
@@ -155,7 +153,8 @@ new class extends Component
                     text: "La facture N°{$factureNumber} a été générée automatiquement",
                     variant: 'success'
                 );
-            } elseif ($newStatus === -1) {
+
+            } elseif ($newStatus === CommandeStatus::Annulee) {
                 $commande->date_annulation = now();
 
                 $facture = Facture::where('commande_id', $commande->id)->first();
@@ -165,7 +164,7 @@ new class extends Component
 
                     Flux::toast(
                         heading: 'Facture annulée',
-                        text: "La facture associée a été annulée",
+                        text: 'La facture associée a été annulée',
                         variant: 'warning'
                     );
                 }
@@ -180,16 +179,9 @@ new class extends Component
 
             $this->dispatch('commande-updated');
 
-            $statusLabels = [
-                -1 => 'Annulée',
-                1 => 'Créée',
-                2 => 'Facturée',
-                3 => 'Clôturée'
-            ];
-
             Flux::toast(
                 heading: 'Statut mis à jour',
-                text: "La commande \"{$commande->libelle}\" est maintenant \"{$statusLabels[$newStatus]}\"",
+                text: "La commande \"{$commande->libelle}\" est maintenant \"{$newStatus->label()}\"",
                 variant: 'success'
             );
 
@@ -198,7 +190,7 @@ new class extends Component
 
             Flux::toast(
                 heading: 'Erreur',
-                text: "Impossible de modifier le statut : " . $e->getMessage(),
+                text: 'Impossible de modifier le statut : ' . $e->getMessage(),
                 variant: 'danger'
             );
         } finally {
@@ -206,42 +198,18 @@ new class extends Component
         }
     }
 
-    public function getNextStatus(int $currentStatus): ?int
+    public function getNextStatus(CommandeStatus $current): ?CommandeStatus
     {
-        $nextStatus = match($currentStatus) {
-            1 => 2,
-            2 => 3,
-            default => null,
-        };
-        return $nextStatus;
-    }
-
-    public function getStatusLabel(int $status): string
-    {
-        return match($status) {
-            -1 => 'Annulée',
-            1 => 'Créée',
-            2 => 'Facturée',
-            3 => 'Clôturée',
-            default => '—',
+        return match($current) {
+            CommandeStatus::Cree     => CommandeStatus::Facturee,
+            CommandeStatus::Facturee => CommandeStatus::Cloturee,
+            default                  => null,
         };
     }
 
-    public function getStatusColor(int $status): string
+    public function canEdit(CommandeStatus $status): bool
     {
-        return match($status) {
-            -1 => 'red',
-            1 => 'blue',
-            2 => 'yellow',
-            3 => 'green',
-            default => 'zinc',
-        };
-    }
-
-    public function canEdit(int $status): bool
-    {
-        // Seules les commandes avec le statut "Créée" (1) peuvent être modifiées
-        return $status === 1;
+        return $status === CommandeStatus::Cree;
     }
 
     #[On('commande-created')]
@@ -257,7 +225,7 @@ new class extends Component
 
     public function edit(int $id): void
     {
-        $commande = Commande::find($id);
+        $commande = Commande::findOrFail($id);
 
         if (!$this->canEdit($commande->status)) {
             Flux::toast(
@@ -320,15 +288,15 @@ new class extends Component
     }
 
     #[Computed]
-    public function stats()
+    public function stats(): array
     {
         $base = $this->statsQuery();
 
         return [
-            'total'      => (clone $base)->count(),
-            'crees'      => (clone $base)->where('status', 1)->count(),
-            'facturees'  => (clone $base)->where('status', 2)->count(),
-            'montant'    => (clone $base)->sum('montant_total'),
+            'total'     => (clone $base)->count(),
+            'crees'     => (clone $base)->where('status', CommandeStatus::Cree->value)->count(),
+            'facturees' => (clone $base)->where('status', CommandeStatus::Facturee->value)->count(),
+            'montant'   => (clone $base)->sum('montant_total'),
         ];
     }
 
@@ -368,15 +336,12 @@ new class extends Component
         <flux:breadcrumbs.item>Liste</flux:breadcrumbs.item>
     </flux:breadcrumbs>
 
-    <!-- Heading + bouton -->
     <div class="flex items-center justify-between mb-6">
         <flux:heading size="xl" level="1">{{ __('Commandes') }}</flux:heading>
 
-        <flux:modal.trigger name="create-commande">
-            <flux:button variant="primary" class="w-full sm:w-auto" href="{{ route('orders.create') }}" wire:navigate>
-                Ajouter une commande
-            </flux:button>
-        </flux:modal.trigger>
+        <flux:button variant="primary" class="w-full sm:w-auto" href="{{ route('orders.create') }}" wire:navigate>
+            Ajouter une commande
+        </flux:button>
     </div>
 
     <!-- Stat Cards -->
@@ -385,17 +350,14 @@ new class extends Component
             <p class="text-sm text-zinc-500">Total Commandes</p>
             <p class="text-3xl font-bold mt-1">{{ $this->stats['total'] }}</p>
         </flux:card>
-
         <flux:card class="p-5">
-            <p class="text-sm text-zinc-500">Créées</p>
+            <p class="text-sm text-zinc-500">{{ CommandeStatus::Cree->label() }}</p>
             <p class="text-3xl font-bold mt-1 text-blue-500">{{ $this->stats['crees'] }}</p>
         </flux:card>
-
         <flux:card class="p-5">
-            <p class="text-sm text-zinc-500">Facturées</p>
+            <p class="text-sm text-zinc-500">{{ CommandeStatus::Facturee->label() }}</p>
             <p class="text-3xl font-bold mt-1 text-green-500">{{ $this->stats['facturees'] }}</p>
         </flux:card>
-
         <flux:card class="p-5">
             <p class="text-sm text-zinc-500">Montant total</p>
             <p class="text-2xl font-bold mt-1 text-zinc-700 dark:text-zinc-200">
@@ -406,7 +368,6 @@ new class extends Component
 
     <flux:card class="p-5">
 
-        <!-- En-tête tableau : recherche | toggle filtres | per page -->
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
             <div class="flex items-center gap-2">
                 <flux:input
@@ -415,8 +376,6 @@ new class extends Component
                     icon="magnifying-glass"
                     class="w-full sm:w-80"
                 />
-
-                <!-- Bouton toggle filtres avec badge compteur -->
                 <div class="relative">
                     <flux:button
                         wire:click="toggleFilters"
@@ -442,7 +401,6 @@ new class extends Component
             </flux:select>
         </div>
 
-        <!-- Panneau de filtres (togglable) -->
         @if($showFilters)
             <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 mb-4 bg-zinc-50 dark:bg-zinc-800/50">
                 <div class="flex items-center justify-between mb-3">
@@ -455,23 +413,19 @@ new class extends Component
                 </div>
 
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
-                    <!-- Filtre statut -->
                     <flux:radio.group wire:model.live="filterStatus" variant="segmented">
-                        <flux:radio label="Tous"      value=""   />
-                        <flux:radio label="Annulée"   value="-1" />
-                        <flux:radio label="Créée"     value="1"  />
-                        <flux:radio label="Facturée"  value="2"  />
-                        <flux:radio label="Clôturée"  value="3"  />
+                        <flux:radio label="Tous" value="" />
+                        @foreach(CommandeStatus::cases() as $case)
+                            <flux:radio label="{{ $case->label() }}" value="{{ $case->value }}" />
+                        @endforeach
                     </flux:radio.group>
 
-                    <!-- Filtre état (enum) -->
                     <flux:radio.group wire:model.live="filterEtat" variant="segmented">
-                        <flux:radio label="Tous"          value=""            />
-                        <flux:radio label="Pré-commande"  value="pre_commande" />
-                        <flux:radio label="Commande"      value="commande"    />
+                        <flux:radio label="Tous"         value="" />
+                        <flux:radio label="Pré-commande" value="pre_commande" />
+                        <flux:radio label="Commande"     value="commande" />
                     </flux:radio.group>
 
-                    <!-- Filtre fournisseur -->
                     <flux:select wire:model.live="filterFournisseur" class="w-full sm:w-56">
                         <flux:select.option value="">Tous les fournisseurs</flux:select.option>
                         @foreach ($this->fournisseurs as $fournisseur)
@@ -479,75 +433,31 @@ new class extends Component
                         @endforeach
                     </flux:select>
 
-                    <!-- Filtre date -->
                     <div class="flex items-center gap-2">
-                        <flux:input
-                            type="date"
-                            wire:model.live="filterDateFrom"
-                            label="Du"
-                            class="w-40"
-                        />
+                        <flux:input type="date" wire:model.live="filterDateFrom" label="Du" class="w-40" />
                         <span class="text-zinc-400 text-sm mt-5">→</span>
-                        <flux:input
-                            type="date"
-                            wire:model.live="filterDateTo"
-                            label="Au"
-                            class="w-40"
-                        />
+                        <flux:input type="date" wire:model.live="filterDateTo" label="Au" class="w-40" />
                     </div>
                 </div>
             </div>
         @endif
 
-        <!-- Table -->
         <flux:table :paginate="$this->commandes" variant="bordered">
             <flux:table.columns>
-                <flux:table.column
-                    sortable
-                    :sorted="$sortBy === 'libelle'"
-                    :direction="$sortDirection"
-                    wire:click="sort('libelle')"
-                >
+                <flux:table.column sortable :sorted="$sortBy === 'libelle'" :direction="$sortDirection" wire:click="sort('libelle')">
                     Libellé
                 </flux:table.column>
-
-                <flux:table.column class="hidden sm:table-cell">
-                    Fournisseur
-                </flux:table.column>
-
-                <flux:table.column class="hidden md:table-cell">
-                    Magasin livraison
-                </flux:table.column>
-
-                <flux:table.column
-                    sortable
-                    :sorted="$sortBy === 'montant_total'"
-                    :direction="$sortDirection"
-                    wire:click="sort('montant_total')"
-                    class="hidden lg:table-cell"
-                >
+                <flux:table.column class="hidden sm:table-cell">Fournisseur</flux:table.column>
+                <flux:table.column class="hidden md:table-cell">Magasin livraison</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'montant_total'" :direction="$sortDirection" wire:click="sort('montant_total')" class="hidden lg:table-cell">
                     Montant
                 </flux:table.column>
-
-                <flux:table.column
-                    sortable
-                    :sorted="$sortBy === 'status'"
-                    :direction="$sortDirection"
-                    wire:click="sort('status')"
-                >
+                <flux:table.column sortable :sorted="$sortBy === 'status'" :direction="$sortDirection" wire:click="sort('status')">
                     Statut
                 </flux:table.column>
-
-                <flux:table.column
-                    sortable
-                    :sorted="$sortBy === 'created_at'"
-                    :direction="$sortDirection"
-                    wire:click="sort('created_at')"
-                    class="hidden sm:table-cell"
-                >
+                <flux:table.column sortable :sorted="$sortBy === 'created_at'" :direction="$sortDirection" wire:click="sort('created_at')" class="hidden sm:table-cell">
                     Date
                 </flux:table.column>
-
                 <flux:table.column></flux:table.column>
             </flux:table.columns>
 
@@ -555,69 +465,50 @@ new class extends Component
                 @forelse ($this->commandes as $commande)
                     <flux:table.row :key="$commande->id" wire:key="commande-{{ $commande->id }}">
 
-                        <!-- Libellé -->
                         <flux:table.cell>
                             <p class="font-medium text-sm">{{ $commande->libelle ?? '—' }}</p>
-                            <!-- Fournisseur visible en mobile -->
-                            <p class="text-xs text-zinc-400 mt-0.5 sm:hidden">
-                                {{ $commande->fournisseur?->name ?? '—' }}
-                            </p>
-                            <!-- Date visible en mobile -->
-                            <p class="text-xs text-zinc-400 mt-0.5 sm:hidden">
-                                {{ $commande->created_at->translatedFormat('d F Y') }}
-                            </p>
+                            <p class="text-xs text-zinc-400 mt-0.5 sm:hidden">{{ $commande->fournisseur?->name ?? '—' }}</p>
+                            <p class="text-xs text-zinc-400 mt-0.5 sm:hidden">{{ $commande->created_at->translatedFormat('d F Y') }}</p>
                         </flux:table.cell>
 
-                        <!-- Fournisseur -->
                         <flux:table.cell class="hidden sm:table-cell">
                             @if ($commande->fournisseur)
-                                <flux:badge size="sm" color="zinc" inset="top bottom">
-                                    {{ $commande->fournisseur->name }}
-                                </flux:badge>
+                                <flux:badge size="sm" color="zinc" inset="top bottom">{{ $commande->fournisseur->name }}</flux:badge>
                             @else
                                 <span class="text-zinc-400 text-sm">—</span>
                             @endif
                         </flux:table.cell>
 
-                        <!-- Magasin livraison -->
                         <flux:table.cell class="hidden md:table-cell">
                             @if ($commande->magasinLivraison)
-                                <flux:badge size="sm" color="blue" inset="top bottom">
-                                    {{ $commande->magasinLivraison->name }}
-                                </flux:badge>
+                                <flux:badge size="sm" color="blue" inset="top bottom">{{ $commande->magasinLivraison->name }}</flux:badge>
                             @else
                                 <span class="text-zinc-400 text-sm">—</span>
                             @endif
                         </flux:table.cell>
 
-                        <!-- Montant -->
                         <flux:table.cell class="hidden lg:table-cell text-sm font-medium whitespace-nowrap">
                             {{ number_format($commande->montant_total, 2, ',', ' ') }} €
                         </flux:table.cell>
 
-                        <!-- Statut avec Toggle -->
+                        <!-- Statut -->
                         <flux:table.cell>
                             <div class="flex flex-col gap-2">
-                                <div class="flex items-center gap-2">
-                                    @php
-                                        $nextStatus = $this->getNextStatus($commande->status);
-                                    @endphp
+                                @php $nextStatus = $this->getNextStatus($commande->status); @endphp
 
-                                    @if($nextStatus && !isset($updatingStatus[$commande->id]))
-                                        <button
-                                            wire:click="updateStatus({{ $commande->id }}, {{ $nextStatus }})"
-                                            class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-colors"
-                                            style="background-color: {{ $this->getStatusColor($commande->status) === 'green' ? '#22c55e20' : '#3b82f620' }}; color: {{ $this->getStatusColor($commande->status) === 'green' ? '#16a34a' : '#2563eb' }}"
-                                        >
-                                            <flux:icon name="arrow-path" class="size-3" />
-                                            Passer à {{ $this->getStatusLabel($nextStatus) }}
-                                        </button>
-                                    @endif
-                                </div>
+                                @if($nextStatus && !isset($updatingStatus[$commande->id]))
+                                    <button
+                                        wire:click="updateStatus({{ $commande->id }}, {{ $nextStatus->value }})"
+                                        class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-colors bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400"
+                                    >
+                                        <flux:icon name="arrow-path" class="size-3" />
+                                        Passer à {{ $nextStatus->label() }}
+                                    </button>
+                                @endif
 
                                 <div class="flex flex-wrap gap-2">
-                                    <flux:badge size="sm" :color="$this->getStatusColor($commande->status)">
-                                        {{ $this->getStatusLabel($commande->status) }}
+                                    <flux:badge size="sm" :color="$commande->status->color()">
+                                        {{ $commande->status->label() }}
                                     </flux:badge>
                                     @if ($commande->etat)
                                         <flux:badge size="sm" color="purple">
@@ -638,12 +529,10 @@ new class extends Component
                             </div>
                         </flux:table.cell>
 
-                        <!-- Date -->
                         <flux:table.cell class="hidden sm:table-cell text-zinc-400 text-sm whitespace-nowrap">
                             {{ $commande->created_at->translatedFormat('d F Y') }}
                         </flux:table.cell>
 
-                        <!-- Actions -->
                         <flux:table.cell>
                             <flux:dropdown>
                                 <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom" />
@@ -653,12 +542,12 @@ new class extends Component
                                     </flux:menu.item>
 
                                     @if($this->canEdit($commande->status))
-                                        <flux:menu.item icon="pencil" href="{{ route('orders.edit', $commande->id) }}">
+                                        <flux:menu.item icon="pencil" href="{{ route('orders.edit', $commande->id) }}" wire:navigate>
                                             Modifier
                                         </flux:menu.item>
                                     @else
                                         <flux:menu.item icon="pencil" disabled class="opacity-50 cursor-not-allowed">
-                                            Modifier ({{ $this->getStatusLabel($commande->status) }})
+                                            Modifier ({{ $commande->status->label() }})
                                         </flux:menu.item>
                                     @endif
 

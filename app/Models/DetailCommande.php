@@ -26,4 +26,9 @@ class DetailCommande extends Model
     {
         return $this->hasMany(DestinationDetailCommande::class, 'detail_commande_id', 'id');
     }
+
+    public function historiqueQuantites(): HasMany
+    {
+        return $this->hasMany(HistoriqueQuantiteDetailCommande::class, 'detail_commande_id');
+    }
 }

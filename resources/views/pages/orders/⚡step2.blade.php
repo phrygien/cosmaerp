@@ -97,7 +97,6 @@ new class extends Component
         $addedIds     = $this->selectedProductIds;
         $filterStatut = $this->filterStatut;
 
-        // ── Sans recherche → Eloquent ────────────────────────────────────
         if (empty(trim($this->search))) {
             return Product::query()
                 ->where('state', 1)
@@ -110,7 +109,6 @@ new class extends Component
                 ->paginate(25);
         }
 
-        // ── Filtres Typesense ────────────────────────────────────────────
         $filters = collect(['state:=1']);
 
         if ($this->filterMarque !== '') {
@@ -121,7 +119,6 @@ new class extends Component
             $filters->push("categorie_id:={$this->filterCategorie}");
         }
 
-        // ── Map de tri ───────────────────────────────────────────────────
         $sortMap = [
             'designation'  => 'designation',
             'product_code' => 'product_code',
@@ -131,7 +128,6 @@ new class extends Component
 
         $sortField = $sortMap[$this->sortBy] ?? 'designation';
 
-        // ── Avec recherche → Typesense via Scout ─────────────────────────
         return Product::search($this->search)
             ->options([
                 'query_by'  => 'designation,designation_variant,product_code,article,EAN',
@@ -160,7 +156,6 @@ new class extends Component
         return $this->details->pluck('product_id')->toArray();
     }
 
-    /** Ouvre la modal en mode ajout */
     public function openRepartition(int $productId): void
     {
         if (in_array($productId, $this->selectedProductIds)) {
@@ -174,7 +169,6 @@ new class extends Component
         $this->showRepartitionModal = true;
     }
 
-    /** Ouvre la modal en mode modification */
     public function editRepartition(int $detailId): void
     {
         $detail = DetailCommande::find($detailId);
@@ -215,7 +209,6 @@ new class extends Component
         }
     }
 
-    /** Nombre de filtres avancés actifs (pour le badge) */
     #[Computed]
     public function activeFiltersCount(): int
     {

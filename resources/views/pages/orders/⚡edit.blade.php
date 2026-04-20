@@ -126,6 +126,34 @@ new class extends Component
             return;
         }
 
+        $historiquePayload = [];
+
+        foreach ($details as $detail) {
+            $dernierHistorique = \App\Models\HistoriqueQuantiteDetailCommande::where('detail_commande_id', $detail->id)
+                ->latest()
+                ->first();
+
+            $quantitePrecedente = $dernierHistorique?->nouvelle_quantite;
+
+            if ($quantitePrecedente === null || (float) $quantitePrecedente !== (float) $detail->quantite) {
+                $historiquePayload[] = [
+                    'detail_commande_id' => $detail->id,
+                    'commande_id'        => $detail->commande_id,
+                    'product_id'         => $detail->product_id,
+                    'ancienne_quantite'  => $quantitePrecedente ?? $detail->quantite,
+                    'nouvelle_quantite'  => $detail->quantite,
+                    'motif'              => 'Confirmation commande',
+                    'user_id'            => auth()->id(),
+                    'created_at'         => now(),
+                    'updated_at'         => now(),
+                ];
+            }
+        }
+
+        if (!empty($historiquePayload)) {
+            \App\Models\HistoriqueQuantiteDetailCommande::insert($historiquePayload);
+        }
+
         $totalNet = $details->sum(fn($d) => $d->pu_achat_net * $d->quantite);
         $totalTax = $details->sum(fn($d) => ($d->pu_achat_net * $d->tax / 100) * $d->quantite);
         $totalTTC = $totalNet + $totalTax;
