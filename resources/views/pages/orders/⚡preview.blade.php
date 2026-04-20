@@ -107,6 +107,7 @@ new class extends Component
             <flux:table>
                 <flux:table.columns>
                     <flux:table.column>Produit</flux:table.column>
+                    <flux:table.column>EAN</flux:table.column>
                     <flux:table.column>Marque</flux:table.column>
                     <flux:table.column>PU Achat HT</flux:table.column>
                     <flux:table.column>Remise</flux:table.column>
@@ -129,6 +130,28 @@ new class extends Component
                                 <p class="text-xs text-gray-400 font-mono">
                                     {{ $detail->product->product_code }}
                                 </p>
+                            </flux:table.cell>
+
+                            <flux:table.cell class="hidden lg:table-cell text-center">
+                                @if($detail->product->EAN)
+                                    <div class="flex flex-col items-center gap-1">
+                                        <div class="barcode-wrapper" style="line-height:0">
+                                            {!! DNS1D::getBarcodeSVG(
+                                                $detail->product->EAN,
+                                                strlen($detail->product->EAN) === 8 ? 'EAN8' : 'EAN13',
+                                                1.3,
+                                                40,
+                                                'auto',
+                                                false
+                                            ) !!}
+                                        </div>
+                                        <span class="text-[10px] text-zinc-400 font-mono tracking-widest select-all">
+                                        {{ $detail->product->EAN }}
+                                    </span>
+                                    </div>
+                                @else
+                                    <span class="text-xs text-zinc-300 dark:text-zinc-600">—</span>
+                                @endif
                             </flux:table.cell>
 
                             {{-- Marque --}}

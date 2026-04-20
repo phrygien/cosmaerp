@@ -11,7 +11,7 @@ Route::middleware(["auth", "verified"])->group(function () {
     Route::livewire("/permissions", "pages::permissions.page")->name(
         "permissions",
     );
-    Route::livewire("/users", "pages::users.page")->name("users");
+    Route::livewire("/users", "pagesb::users.page")->name("users");
     Route::livewire("/fournisseurs", "pages::fournisseurs.page")->name("fournisseurs");
     Route::livewire("/fournisseurs/{fournisseur}", "pages::fournisseurs.view")->name("fournisseurs.view");
 
