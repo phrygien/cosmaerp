@@ -495,7 +495,7 @@ new class extends Component
             <div class="flex justify-between pt-4 border-t border-gray-200 dark:border-gray-700 mt-6">
                 <flux:button wire:click="previousStep" variant="ghost">&larr; Précédent</flux:button>
                 <div class="flex gap-3">
-                    <flux:button wire:click="genererBonCommande" variant="primary" color="cyan" icon="document-arrow-down">
+                    <flux:button wire:click="genererBonCommande" variant="primary" color="cyan">
                         Générer le bon de commande
                     </flux:button>
                     <flux:button wire:click="confirmer" variant="primary">
