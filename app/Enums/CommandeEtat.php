@@ -10,7 +10,7 @@ enum CommandeEtat: string
     public function label(): string
     {
         return match ($this) {
-            self::PreCommande => __('Commande'),
+            self::PreCommande => __('Précommande'),
             self::Commande => __('Commande'),
         };
     }
