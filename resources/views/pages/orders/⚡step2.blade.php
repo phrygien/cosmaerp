@@ -588,15 +588,15 @@ new class extends Component
                                 {{-- Type de modification --}}
                                 <flux:table.cell>
                                     @if($isNew)
-                                        <flux:badge size="sm" color="blue" icon="plus" inset="top bottom">
+                                        <flux:badge size="sm" color="blue" inset="top bottom">
                                             Nouveau
                                         </flux:badge>
                                     @elseif($isAdded)
-                                        <flux:badge size="sm" color="green" icon="arrow-trending-up" inset="top bottom">
+                                        <flux:badge size="sm" color="green" inset="top bottom">
                                             Augmentation
                                         </flux:badge>
                                     @else
-                                        <flux:badge size="sm" color="orange" icon="arrow-trending-down" inset="top bottom">
+                                        <flux:badge size="sm" color="orange" inset="top bottom">
                                             Réduction
                                         </flux:badge>
                                     @endif
