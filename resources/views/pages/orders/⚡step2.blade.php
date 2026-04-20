@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\DetailCommande;
 use App\Models\Marque;
 use App\Models\Category;
+use App\Models\HistoriqueQuantiteDetailCommande;
 
 new class extends Component
 {
@@ -27,7 +28,10 @@ new class extends Component
     public bool   $showAdvancedFilters = false;
     public string $filterMarque        = '';
     public string $filterCategorie     = '';
-    public string $filterStatut        = ''; // '' | 'added' | 'available'
+    public string $filterStatut        = '';
+
+    // ── Historique ───────────────────────────────────────────────────────
+    public string $filterHistoType = ''; // '' | 'new' | 'added' | 'reduced'
 
     public function updatingSearch(): void
     {
@@ -51,6 +55,12 @@ new class extends Component
     {
         $this->resetPage();
         unset($this->products);
+    }
+
+    public function updatingFilterHistoType(): void
+    {
+        $this->resetPage();
+        unset($this->historiques);
     }
 
     public function resetAdvancedFilters(): void
@@ -156,6 +166,25 @@ new class extends Component
         return $this->details->pluck('product_id')->toArray();
     }
 
+    #[Computed(cache: false)]
+    public function historiques()
+    {
+        return HistoriqueQuantiteDetailCommande::query()
+            ->where('commande_id', $this->commande_id)
+            ->with(['product', 'user'])
+            ->when($this->filterHistoType === 'new',     fn($q) => $q->whereNull('ancienne_quantite'))
+            ->when($this->filterHistoType === 'added',   fn($q) => $q->whereNotNull('ancienne_quantite')->whereColumn('nouvelle_quantite', '>', 'ancienne_quantite'))
+            ->when($this->filterHistoType === 'reduced', fn($q) => $q->whereNotNull('ancienne_quantite')->whereColumn('nouvelle_quantite', '<', 'ancienne_quantite'))
+            ->latest()
+            ->paginate(15);
+    }
+
+    #[Computed]
+    public function historiquesCount(): int
+    {
+        return HistoriqueQuantiteDetailCommande::where('commande_id', $this->commande_id)->count();
+    }
+
     public function openRepartition(int $productId): void
     {
         if (in_array($productId, $this->selectedProductIds)) {
@@ -195,7 +224,7 @@ new class extends Component
     public function onRepartitionSaved(): void
     {
         $this->closeModal();
-        unset($this->details, $this->selectedProductIds, $this->products);
+        unset($this->details, $this->selectedProductIds, $this->products, $this->historiques, $this->historiquesCount);
     }
 
     public function removeDetail(int $detailId): void
@@ -222,255 +251,412 @@ new class extends Component
 <div class="space-y-6">
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        {{-- ── Catalogue produits ── --}}
-        <div class="lg:col-span-2 space-y-4">
-            <div class="flex items-center justify-between">
-                <flux:heading size="lg">Catalogue produits</flux:heading>
-                <span class="text-sm text-gray-500">{{ $this->products->total() }} produit(s)</span>
-            </div>
+        {{-- ── Panneau gauche avec onglets Alpine ── --}}
+        <div class="lg:col-span-2 space-y-4" x-data="{ activeTab: 'catalogue' }">
 
-            {{-- Barre de recherche + bouton filtres avancés --}}
-            <div class="flex gap-2">
-                <div class="flex-1">
-                    <flux:input
-                        wire:model.live.debounce.300ms="search"
-                        placeholder="Rechercher par désignation, code, article, EAN…"
-                        icon="magnifying-glass"
-                        clearable
-                    />
-                </div>
+            {{-- Barre d'onglets --}}
+            <div class="flex items-center gap-1 border-b border-gray-200 dark:border-gray-700">
 
-                <flux:button
-                    wire:click="toggleAdvancedFilters"
-                    variant="{{ $this->activeFiltersCount > 0 ? 'primary' : 'ghost' }}"
-                    icon="adjustments-horizontal"
-                    class="shrink-0"
+                <button
+                    @click="activeTab = 'catalogue'"
+                    :class="activeTab === 'catalogue'
+                        ? 'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                        : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-b-2 border-transparent'"
+                    class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors focus:outline-none"
                 >
-                    Filtres
-                    @if($this->activeFiltersCount > 0)
-                        <flux:badge size="sm" color="white" class="ml-1">
-                            {{ $this->activeFiltersCount }}
-                        </flux:badge>
+                    <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/>
+                    </svg>
+                    Catalogue
+                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                        {{ $this->products->total() }}
+                    </span>
+                </button>
+
+                <button
+                    @click="activeTab = 'historique'"
+                    :class="activeTab === 'historique'
+                        ? 'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                        : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-b-2 border-transparent'"
+                    class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors focus:outline-none"
+                >
+                    <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                    </svg>
+                    Historique
+                    @if($this->historiquesCount > 0)
+                        <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300">
+                            {{ $this->historiquesCount }}
+                        </span>
                     @endif
-                </flux:button>
+                </button>
+
             </div>
 
-            {{-- Panneau filtres avancés --}}
-            @if($showAdvancedFilters)
-                <div
-                    x-data
-                    x-show="true"
-                    x-transition:enter="transition ease-out duration-200"
-                    x-transition:enter-start="opacity-0 -translate-y-2"
-                    x-transition:enter-end="opacity-100 translate-y-0"
-                    class="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-4 space-y-4"
-                >
-                    <div class="flex items-center justify-between">
-                        <p class="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                            Filtres avancés
-                        </p>
+            {{-- ══ Panneau Catalogue ══ --}}
+            <div x-show="activeTab === 'catalogue'" class="space-y-4">
+
+                {{-- Barre de recherche + bouton filtres avancés --}}
+                <div class="flex gap-2">
+                    <div class="flex-1">
+                        <flux:input
+                            wire:model.live.debounce.300ms="search"
+                            placeholder="Rechercher par désignation, code, article, EAN…"
+                            icon="magnifying-glass"
+                            clearable
+                        />
+                    </div>
+
+                    <flux:button
+                        wire:click="toggleAdvancedFilters"
+                        variant="{{ $this->activeFiltersCount > 0 ? 'primary' : 'ghost' }}"
+                        icon="adjustments-horizontal"
+                        class="shrink-0"
+                    >
+                        Filtres
                         @if($this->activeFiltersCount > 0)
-                            <flux:button
-                                size="sm"
-                                variant="ghost"
-                                wire:click="resetAdvancedFilters"
-                                icon="x-mark"
-                                class="text-gray-400 hover:text-red-500"
-                            >
-                                Réinitialiser
-                            </flux:button>
+                            <flux:badge size="sm" color="white" class="ml-1">
+                                {{ $this->activeFiltersCount }}
+                            </flux:badge>
                         @endif
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-
-                        {{-- Marque --}}
-                        <div>
-                            <flux:label class="mb-1">Marque</flux:label>
-                            <flux:select wire:model.live="filterMarque" size="sm">
-                                <flux:select.option value="">Toutes les marques</flux:select.option>
-                                @foreach($this->marques as $marque)
-                                    <flux:select.option value="{{ $marque->code }}">
-                                        {{ $marque->name }}
-                                    </flux:select.option>
-                                @endforeach
-                            </flux:select>
-                        </div>
-
-                        {{-- Catégorie --}}
-                        <div>
-                            <flux:label class="mb-1">Catégorie</flux:label>
-                            <flux:select wire:model.live="filterCategorie" size="sm">
-                                <flux:select.option value="">Toutes les catégories</flux:select.option>
-                                @foreach($this->categories as $cat)
-                                    <flux:select.option value="{{ $cat->code }}">
-                                        {{ $cat->name }}
-                                    </flux:select.option>
-                                @endforeach
-                            </flux:select>
-                        </div>
-
-                        {{-- Statut ajout --}}
-                        <div>
-                            <flux:label class="mb-1">Statut dans la commande</flux:label>
-                            <flux:select wire:model.live="filterStatut" size="sm">
-                                <flux:select.option value="">Tous</flux:select.option>
-                                <flux:select.option value="added">Déjà ajoutés</flux:select.option>
-                                <flux:select.option value="available">Disponibles</flux:select.option>
-                            </flux:select>
-                        </div>
-
-                    </div>
+                    </flux:button>
                 </div>
-            @endif
 
-            {{-- Table produits --}}
-
-            <flux:table :paginate="$this->products" container:class="max-h-[600px]">
-                <flux:table.columns sticky class="bg-white dark:bg-zinc-900 p-3">
-                    <flux:table.column
-                        sortable
-                        :sorted="$sortBy === 'product_code'"
-                        :direction="$sortDirection"
-                        wire:click="sort('product_code')"
+                {{-- Panneau filtres avancés --}}
+                @if($showAdvancedFilters)
+                    <div
+                        x-data
+                        x-show="true"
+                        x-transition:enter="transition ease-out duration-200"
+                        x-transition:enter-start="opacity-0 -translate-y-2"
+                        x-transition:enter-end="opacity-100 translate-y-0"
+                        class="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-4 space-y-4"
                     >
-                        Code
-                    </flux:table.column>
+                        <div class="flex items-center justify-between">
+                            <p class="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                Filtres avancés
+                            </p>
+                            @if($this->activeFiltersCount > 0)
+                                <flux:button
+                                    size="sm"
+                                    variant="ghost"
+                                    wire:click="resetAdvancedFilters"
+                                    icon="x-mark"
+                                    class="text-gray-400 hover:text-red-500"
+                                >
+                                    Réinitialiser
+                                </flux:button>
+                            @endif
+                        </div>
 
-                    <flux:table.column
-                        sortable
-                        :sorted="$sortBy === 'designation'"
-                        :direction="$sortDirection"
-                        wire:click="sort('designation')"
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+
+                            <div>
+                                <flux:label class="mb-1">Marque</flux:label>
+                                <flux:select wire:model.live="filterMarque" size="sm">
+                                    <flux:select.option value="">Toutes les marques</flux:select.option>
+                                    @foreach($this->marques as $marque)
+                                        <flux:select.option value="{{ $marque->code }}">{{ $marque->name }}</flux:select.option>
+                                    @endforeach
+                                </flux:select>
+                            </div>
+
+                            <div>
+                                <flux:label class="mb-1">Catégorie</flux:label>
+                                <flux:select wire:model.live="filterCategorie" size="sm">
+                                    <flux:select.option value="">Toutes les catégories</flux:select.option>
+                                    @foreach($this->categories as $cat)
+                                        <flux:select.option value="{{ $cat->code }}">{{ $cat->name }}</flux:select.option>
+                                    @endforeach
+                                </flux:select>
+                            </div>
+
+                            <div>
+                                <flux:label class="mb-1">Statut dans la commande</flux:label>
+                                <flux:select wire:model.live="filterStatut" size="sm">
+                                    <flux:select.option value="">Tous</flux:select.option>
+                                    <flux:select.option value="added">Déjà ajoutés</flux:select.option>
+                                    <flux:select.option value="available">Disponibles</flux:select.option>
+                                </flux:select>
+                            </div>
+
+                        </div>
+                    </div>
+                @endif
+
+                {{-- Table produits --}}
+                <flux:table :paginate="$this->products" container:class="max-h-[600px]">
+                    <flux:table.columns sticky class="bg-white dark:bg-zinc-900 p-3">
+                        <flux:table.column
+                            sortable
+                            :sorted="$sortBy === 'product_code'"
+                            :direction="$sortDirection"
+                            wire:click="sort('product_code')"
+                        >
+                            Code
+                        </flux:table.column>
+
+                        <flux:table.column
+                            sortable
+                            :sorted="$sortBy === 'designation'"
+                            :direction="$sortDirection"
+                            wire:click="sort('designation')"
+                        >
+                            Désignation
+                        </flux:table.column>
+
+                        <flux:table.column
+                            sortable
+                            :sorted="$sortBy === 'ean'"
+                            :direction="$sortDirection"
+                            wire:click="sort('ean')"
+                        >
+                            EAN
+                        </flux:table.column>
+
+                        <flux:table.column>Marque</flux:table.column>
+                        <flux:table.column>Catégorie</flux:table.column>
+                        <flux:table.column>Statut</flux:table.column>
+                        <flux:table.column>Action</flux:table.column>
+                    </flux:table.columns>
+
+                    <flux:table.rows>
+                        @forelse($this->products as $product)
+                            @php $isSelected = in_array($product->id, $this->selectedProductIds); @endphp
+
+                            <flux:table.row :key="$product->id">
+
+                                <flux:table.cell>
+                                    <span class="font-mono text-xs text-gray-500">{{ $product->product_code }}</span>
+                                </flux:table.cell>
+
+                                <flux:table.cell>
+                                    <p class="font-medium text-gray-900 dark:text-white text-sm">
+                                        {{ $product->designation }}
+                                    </p>
+                                    @if($product->designation_variant)
+                                        <p class="text-xs text-gray-400 mt-0.5">{{ $product->designation_variant }}</p>
+                                    @endif
+                                </flux:table.cell>
+
+                                <flux:table.cell>
+                                    @if($product->EAN)
+                                        <span class="font-mono text-xs text-gray-500 tracking-wider">{{ $product->EAN }}</span>
+                                    @else
+                                        <span class="text-gray-300 text-xs">—</span>
+                                    @endif
+                                </flux:table.cell>
+
+                                <flux:table.cell>
+                                    @if($product->marque)
+                                        <flux:badge size="sm" color="blue" inset="top bottom">{{ $product->marque->name }}</flux:badge>
+                                    @else
+                                        <span class="text-gray-300 text-xs">—</span>
+                                    @endif
+                                </flux:table.cell>
+
+                                <flux:table.cell>
+                                    @if($product->categorie)
+                                        <flux:badge size="sm" color="zinc" inset="top bottom">{{ $product->categorie->name }}</flux:badge>
+                                    @else
+                                        <span class="text-gray-300 text-xs">—</span>
+                                    @endif
+                                </flux:table.cell>
+
+                                <flux:table.cell>
+                                    @if($isSelected)
+                                        <flux:badge size="sm" color="green" inset="top bottom" icon="check">Ajouté</flux:badge>
+                                    @else
+                                        <flux:badge size="sm" color="zinc" inset="top bottom">Disponible</flux:badge>
+                                    @endif
+                                </flux:table.cell>
+
+                                <flux:table.cell>
+                                    @if($isSelected)
+                                        @php $detail = $this->details->firstWhere('product_id', $product->id); @endphp
+                                        <flux:button
+                                            size="sm"
+                                            variant="ghost"
+                                            icon="pencil-square"
+                                            inset="top bottom"
+                                            class="text-indigo-500 hover:text-indigo-700"
+                                            wire:click="editRepartition({{ $detail->id }})"
+                                            wire:loading.attr="disabled"
+                                            wire:target="editRepartition({{ $detail->id }})"
+                                        >
+                                            Modifier
+                                        </flux:button>
+                                    @else
+                                        <flux:button
+                                            size="sm"
+                                            variant="ghost"
+                                            icon="plus-circle"
+                                            inset="top bottom"
+                                            wire:click="openRepartition({{ $product->id }})"
+                                            wire:loading.attr="disabled"
+                                            wire:target="openRepartition({{ $product->id }})"
+                                        >
+                                            Ajouter
+                                        </flux:button>
+                                    @endif
+                                </flux:table.cell>
+
+                            </flux:table.row>
+                        @empty
+                            <flux:table.row>
+                                <flux:table.cell colspan="7" class="py-12 text-center text-gray-400">
+                                    Aucun produit trouvé
+                                </flux:table.cell>
+                            </flux:table.row>
+                        @endforelse
+                    </flux:table.rows>
+                </flux:table>
+
+            </div>
+
+            {{-- ══ Panneau Historique ══ --}}
+            <div x-show="activeTab === 'historique'" class="space-y-4">
+
+                {{-- Filtres --}}
+                <div class="flex flex-wrap gap-2">
+                    <flux:button
+                        size="sm"
+                        variant="{{ $filterHistoType === '' ? 'primary' : 'ghost' }}"
+                        wire:click="$set('filterHistoType', '')"
                     >
-                        Désignation
-                    </flux:table.column>
-
-                    <flux:table.column
-                        sortable
-                        :sorted="$sortBy === 'ean'"
-                        :direction="$sortDirection"
-                        wire:click="sort('ean')"
+                        Tous
+                    </flux:button>
+                    <flux:button
+                        size="sm"
+                        variant="{{ $filterHistoType === 'new' ? 'primary' : 'ghost' }}"
+                        icon="plus-circle"
+                        wire:click="$set('filterHistoType', 'new')"
                     >
-                        EAN
-                    </flux:table.column>
+                        Ajouts
+                    </flux:button>
+                    <flux:button
+                        size="sm"
+                        variant="{{ $filterHistoType === 'added' ? 'primary' : 'ghost' }}"
+                        icon="arrow-trending-up"
+                        wire:click="$set('filterHistoType', 'added')"
+                    >
+                        Augmentations
+                    </flux:button>
+                    <flux:button
+                        size="sm"
+                        variant="{{ $filterHistoType === 'reduced' ? 'primary' : 'ghost' }}"
+                        icon="arrow-trending-down"
+                        wire:click="$set('filterHistoType', 'reduced')"
+                    >
+                        Réductions
+                    </flux:button>
+                </div>
 
-                    <flux:table.column>Marque</flux:table.column>
-                    <flux:table.column>Catégorie</flux:table.column>
-                    <flux:table.column>Statut</flux:table.column>
-                    <flux:table.column>Action</flux:table.column>
-                </flux:table.columns>
+                {{-- Timeline --}}
+                @if($this->historiques->isEmpty())
+                    <div class="rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-700 py-16 text-center text-gray-400">
+                        <svg class="size-8 mx-auto mb-2 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                        </svg>
+                        <p class="text-sm">Aucune modification enregistrée</p>
+                    </div>
+                @else
+                    <div class="relative pl-7">
+                        <div class="absolute left-2.5 top-2 bottom-2 w-px bg-gray-200 dark:bg-gray-700"></div>
 
-                <flux:table.rows>
-                    @forelse($this->products as $product)
-                        @php $isSelected = in_array($product->id, $this->selectedProductIds); @endphp
+                        <div class="space-y-3">
+                            @foreach($this->historiques as $item)
+                                @php
+                                    $isNew   = is_null($item->ancienne_quantite);
+                                    $isAdded = !$isNew && $item->nouvelle_quantite > $item->ancienne_quantite;
+                                    $diff    = $isNew
+                                        ? $item->nouvelle_quantite
+                                        : abs($item->nouvelle_quantite - $item->ancienne_quantite);
+                                @endphp
 
-                        <flux:table.row :key="$product->id">
+                                <div wire:key="histo-{{ $item->id }}" class="relative">
 
-                            {{-- Code --}}
-                            <flux:table.cell>
-                                <span class="font-mono text-xs text-gray-500">{{ $product->product_code }}</span>
-                            </flux:table.cell>
+                                    {{-- Point timeline --}}
+                                    <div class="absolute -left-5 top-3.5 size-2.5 rounded-full border-2 border-white dark:border-gray-900
+                                        {{ $isNew ? 'bg-blue-500' : ($isAdded ? 'bg-emerald-500' : 'bg-orange-500') }}">
+                                    </div>
 
-                            {{-- Désignation --}}
-                            <flux:table.cell>
-                                <p class="font-medium text-gray-900 dark:text-white text-sm">
-                                    {{ $product->designation }}
-                                </p>
-                                @if($product->designation_variant)
-                                    <p class="text-xs text-gray-400 mt-0.5">{{ $product->designation_variant }}</p>
-                                @endif
-                            </flux:table.cell>
+                                    <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3">
 
-                            {{-- EAN --}}
-                            <flux:table.cell>
-                                @if($product->EAN)
-                                    <span class="font-mono text-xs text-gray-500 tracking-wider">
-                                        {{ $product->EAN }}
-                                    </span>
-                                @else
-                                    <span class="text-gray-300 text-xs">—</span>
-                                @endif
-                            </flux:table.cell>
+                                        <div class="flex items-start justify-between gap-2">
+                                            <div class="min-w-0 flex-1">
+                                                <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                                                    {{ $item->product->designation ?? '—' }}
+                                                </p>
+                                                <p class="text-xs text-gray-400 font-mono">
+                                                    {{ $item->product->product_code ?? '' }}
+                                                </p>
+                                            </div>
 
-                            {{-- Marque --}}
-                            <flux:table.cell>
-                                @if($product->marque)
-                                    <flux:badge size="sm" color="blue" inset="top bottom">
-                                        {{ $product->marque->name }}
-                                    </flux:badge>
-                                @else
-                                    <span class="text-gray-300 text-xs">—</span>
-                                @endif
-                            </flux:table.cell>
+                                            @if($isNew)
+                                                <flux:badge size="sm" color="blue" icon="plus" inset="top bottom">
+                                                    Nouveau · {{ $item->nouvelle_quantite }} unité(s)
+                                                </flux:badge>
+                                            @elseif($isAdded)
+                                                <flux:badge size="sm" color="green" icon="arrow-trending-up" inset="top bottom">
+                                                    +{{ $diff }} unité(s)
+                                                </flux:badge>
+                                            @else
+                                                <flux:badge size="sm" color="orange" icon="arrow-trending-down" inset="top bottom">
+                                                    −{{ $diff }} unité(s)
+                                                </flux:badge>
+                                            @endif
+                                        </div>
 
-                            {{-- Catégorie --}}
-                            <flux:table.cell>
-                                @if($product->categorie)
-                                    <flux:badge size="sm" color="zinc" inset="top bottom">
-                                        {{ $product->categorie->name }}
-                                    </flux:badge>
-                                @else
-                                    <span class="text-gray-300 text-xs">—</span>
-                                @endif
-                            </flux:table.cell>
+                                        {{-- Quantité avant → après --}}
+                                        @if(!$isNew)
+                                            <div class="mt-1.5 flex items-center gap-1.5 text-xs text-gray-500">
+                                                <span class="font-mono tabular-nums">{{ $item->ancienne_quantite }}</span>
+                                                <svg class="size-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                                                </svg>
+                                                <span class="font-mono tabular-nums font-semibold text-gray-700 dark:text-gray-300">
+                                                    {{ $item->nouvelle_quantite }}
+                                                </span>
+                                            </div>
+                                        @endif
 
-                            {{-- Statut ajout --}}
-                            <flux:table.cell>
-                                @if($isSelected)
-                                    <flux:badge size="sm" color="green" inset="top bottom" icon="check">
-                                        Ajouté
-                                    </flux:badge>
-                                @else
-                                    <flux:badge size="sm" color="zinc" inset="top bottom">
-                                        Disponible
-                                    </flux:badge>
-                                @endif
-                            </flux:table.cell>
+                                        {{-- Motif --}}
+                                        @if($item->motif)
+                                            <p class="mt-2 text-xs text-gray-500 italic border-l-2 border-gray-200 dark:border-gray-600 pl-2">
+                                                {{ $item->motif }}
+                                            </p>
+                                        @endif
 
-                            {{-- Action --}}
-                            <flux:table.cell>
-                                @if($isSelected)
-                                    @php
-                                        $detail = $this->details->firstWhere('product_id', $product->id);
-                                    @endphp
-                                    <flux:button
-                                        size="sm"
-                                        variant="ghost"
-                                        icon="pencil-square"
-                                        inset="top bottom"
-                                        class="text-indigo-500 hover:text-indigo-700"
-                                        wire:click="editRepartition({{ $detail->id }})"
-                                        wire:loading.attr="disabled"
-                                        wire:target="editRepartition({{ $detail->id }})"
-                                    >
-                                        Modifier
-                                    </flux:button>
-                                @else
-                                    <flux:button
-                                        size="sm"
-                                        variant="ghost"
-                                        icon="plus-circle"
-                                        inset="top bottom"
-                                        wire:click="openRepartition({{ $product->id }})"
-                                        wire:loading.attr="disabled"
-                                        wire:target="openRepartition({{ $product->id }})"
-                                    >
-                                        Ajouter
-                                    </flux:button>
-                                @endif
-                            </flux:table.cell>
+                                        {{-- Meta : utilisateur + date --}}
+                                        <div class="mt-2 flex items-center gap-3 text-xs text-gray-400">
+                                            <span class="flex items-center gap-1">
+                                                <svg class="size-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/>
+                                                </svg>
+                                                {{ $item->user->name ?? 'Système' }}
+                                            </span>
+                                            <span class="flex items-center gap-1">
+                                                <svg class="size-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6l4 2m6-2a10 10 0 1 1-20 0 10 10 0 0 1 20 0Z"/>
+                                                </svg>
+                                                {{ $item->created_at->diffForHumans() }}
+                                            </span>
+                                        </div>
 
-                        </flux:table.row>
-                    @empty
-                        <flux:table.row>
-                            <flux:table.cell colspan="7" class="py-12 text-center text-gray-400">
-                                Aucun produit trouvé
-                            </flux:table.cell>
-                        </flux:table.row>
-                    @endforelse
-                </flux:table.rows>
-            </flux:table>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <div class="mt-2">
+                        {{ $this->historiques->links() }}
+                    </div>
+                @endif
+
+            </div>
+
         </div>
 
         {{-- ── Récapitulatif ── --}}
@@ -513,7 +699,6 @@ new class extends Component
                                         class="text-indigo-400 hover:text-indigo-600"
                                         wire:click="editRepartition({{ $detail->id }})"
                                     />
-
                                     <flux:button
                                         size="sm"
                                         variant="ghost"
@@ -551,9 +736,10 @@ new class extends Component
                 </div>
             @endif
         </div>
+
     </div>
 
-    {{-- ── Modal répartition (ajout ou modification) ── --}}
+    {{-- ── Modal répartition ── --}}
     <flux:modal wire:model="showRepartitionModal" name="repartition-modal" class="w-full max-w-2xl">
         @if($showRepartitionModal && $selectedProductId)
             @livewire('pages::orders.repartition', [
