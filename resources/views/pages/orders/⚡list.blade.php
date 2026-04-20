@@ -146,6 +146,11 @@ new class extends Component
                     'state'          => 1,
                 ]);
 
+                // Update pre-commande to commande
+                $commande->update([
+                   'etat' => 'commande'
+                ]);
+
                 $this->dispatch('facture-created', facture: $facture);
 
                 Flux::toast(
