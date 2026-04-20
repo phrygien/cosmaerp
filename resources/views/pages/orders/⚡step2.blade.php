@@ -529,7 +529,6 @@ new class extends Component
                     <flux:button
                         size="sm"
                         variant="{{ $filterHistoType === 'new' ? 'primary' : 'ghost' }}"
-                        icon="plus-circle"
                         wire:click="$set('filterHistoType', 'new')"
                     >
                         Ajouts
@@ -537,7 +536,6 @@ new class extends Component
                     <flux:button
                         size="sm"
                         variant="{{ $filterHistoType === 'added' ? 'primary' : 'ghost' }}"
-                        icon="arrow-trending-up"
                         wire:click="$set('filterHistoType', 'added')"
                     >
                         Augmentations
@@ -545,7 +543,6 @@ new class extends Component
                     <flux:button
                         size="sm"
                         variant="{{ $filterHistoType === 'reduced' ? 'primary' : 'ghost' }}"
-                        icon="arrow-trending-down"
                         wire:click="$set('filterHistoType', 'reduced')"
                     >
                         Réductions
