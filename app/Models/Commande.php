@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CommandeEtat;
 use App\Enums\CommandeStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
@@ -18,6 +19,7 @@ class Commande extends Model
     {
         return [
             'status' => CommandeStatus::class,
+            'etat' => CommandeEtat::class,
         ];
     }
 

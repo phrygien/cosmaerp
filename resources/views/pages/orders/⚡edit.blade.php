@@ -6,6 +6,8 @@ use Livewire\Attributes\Url;
 use App\Models\Commande;
 use App\Models\Fournisseur;
 use App\Models\Magasin;
+use App\Enums\CommandeStatus;
+use App\Enums\CommandeEtat;
 use Flux\Flux;
 
 new class extends Component
@@ -28,13 +30,13 @@ new class extends Component
     {
         $commande = Commande::findOrFail($commande_id);
 
-        $this->commande_id           = $commande->id;
-        $this->libelle               = $commande->libelle;
-        $this->fournisseur_id        = $commande->fournisseur_id;
-        $this->magasin_livraison_id  = $commande->magasin_livraison_id;
-        $this->remise_facture        = $commande->remise_facture;
-        $this->montant_minimum       = $commande->montant_minimum;
-        $this->nombre_jour           = $commande->nombre_jour;
+        $this->commande_id          = $commande->id;
+        $this->libelle              = $commande->libelle;
+        $this->fournisseur_id       = $commande->fournisseur_id;
+        $this->magasin_livraison_id = $commande->magasin_livraison_id;
+        $this->remise_facture       = $commande->remise_facture;
+        $this->montant_minimum      = $commande->montant_minimum;
+        $this->nombre_jour          = $commande->nombre_jour;
     }
 
     #[Computed]
@@ -126,6 +128,7 @@ new class extends Component
             return;
         }
 
+        // ─── Historique des quantités ──────────────────────────────────────
         $historiquePayload = [];
 
         foreach ($details as $detail) {
@@ -142,7 +145,7 @@ new class extends Component
                     'product_id'         => $detail->product_id,
                     'ancienne_quantite'  => $quantitePrecedente ?? $detail->quantite,
                     'nouvelle_quantite'  => $detail->quantite,
-                    'motif'              => 'Confirmation commande',
+                    'motif'              => 'Modification commande',
                     'user_id'            => auth()->id(),
                     'created_at'         => now(),
                     'updated_at'         => now(),
@@ -153,6 +156,7 @@ new class extends Component
         if (!empty($historiquePayload)) {
             \App\Models\HistoriqueQuantiteDetailCommande::insert($historiquePayload);
         }
+        // ──────────────────────────────────────────────────────────────────
 
         $totalNet = $details->sum(fn($d) => $d->pu_achat_net * $d->quantite);
         $totalTax = $details->sum(fn($d) => ($d->pu_achat_net * $d->tax / 100) * $d->quantite);
@@ -163,7 +167,7 @@ new class extends Component
         }
 
         $commande->update([
-            'etat'          => 'commande',
+            'etat'          => CommandeEtat::Commande,
             'state'         => 1,
             'montant_total' => round($totalTTC, 2),
         ]);
@@ -205,15 +209,19 @@ new class extends Component
             <flux:text class="mt-1 text-gray-500">{{ $this->commande->libelle }}</flux:text>
         </div>
         <div class="flex items-center gap-3">
-            <flux:badge color="{{ match($this->commande->etat ?? '') {
-                'en_cours'     => 'amber',
-                'commande'     => 'green',
-                'pre_commande' => 'blue',
-                'annulee'      => 'red',
-                default        => 'zinc',
-            } }}">
-                {{ ucfirst(str_replace('_', ' ', $this->commande->etat ?? 'draft')) }}
-            </flux:badge>
+
+            @if($this->commande->status)
+                <flux:badge :color="$this->commande->status->color()">
+                    {{ $this->commande->status->label() }}
+                </flux:badge>
+            @endif
+
+            @if($this->commande->etat)
+                <flux:badge :color="$this->commande->etat->color()">
+                    {{ $this->commande->etat->label() }}
+                </flux:badge>
+            @endif
+
             <flux:button wire:click="confirmAnnuler" variant="danger" icon="x-circle">
                 Annuler
             </flux:button>
@@ -255,9 +263,9 @@ new class extends Component
 
             @foreach($steps as $step => $label)
                 @php
-                    $done = $currentStep > $step;
+                    $done   = $currentStep > $step;
                     $active = $currentStep === $step;
-                    $last = $step === count($steps);
+                    $last   = $step === count($steps);
                 @endphp
 
                 <li class="relative md:flex md:flex-1">

@@ -6,9 +6,9 @@ use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
 use App\Models\Commande;
 use App\Models\Fournisseur;
-use App\Models\Magasin;
 use App\Models\Facture;
 use App\Enums\CommandeStatus;
+use App\Enums\CommandeEtat;
 use Flux\Flux;
 use Illuminate\Support\Facades\DB;
 
@@ -101,7 +101,7 @@ new class extends Component
             DB::beginTransaction();
 
             $commande  = Commande::with(['fournisseur'])->findOrFail($id);
-            $oldStatus = $commande->status; // CommandeStatus (casté)
+            $oldStatus = $commande->status;
             $newStatus = CommandeStatus::from($newStatusValue);
 
             $validTransitions = [
@@ -413,6 +413,8 @@ new class extends Component
                 </div>
 
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
+
+                    <!-- Filtre statut généré depuis l'enum -->
                     <flux:radio.group wire:model.live="filterStatus" variant="segmented">
                         <flux:radio label="Tous" value="" />
                         @foreach(CommandeStatus::cases() as $case)
@@ -420,10 +422,12 @@ new class extends Component
                         @endforeach
                     </flux:radio.group>
 
+                    <!-- Filtre état généré depuis l'enum -->
                     <flux:radio.group wire:model.live="filterEtat" variant="segmented">
-                        <flux:radio label="Tous"         value="" />
-                        <flux:radio label="Pré-commande" value="pre_commande" />
-                        <flux:radio label="Commande"     value="commande" />
+                        <flux:radio label="Tous" value="" />
+                        @foreach(CommandeEtat::cases() as $case)
+                            <flux:radio label="{{ $case->label() }}" value="{{ $case->value }}" />
+                        @endforeach
                     </flux:radio.group>
 
                     <flux:select wire:model.live="filterFournisseur" class="w-full sm:w-56">
@@ -510,9 +514,11 @@ new class extends Component
                                     <flux:badge size="sm" :color="$commande->status->color()">
                                         {{ $commande->status->label() }}
                                     </flux:badge>
+
+                                    {{-- Etat via enum --}}
                                     @if ($commande->etat)
-                                        <flux:badge size="sm" color="purple">
-                                            {{ $commande->etat === 'pre_commande' ? 'Pré-commande' : 'Commande' }}
+                                        <flux:badge size="sm" :color="$commande->etat->color()">
+                                            {{ $commande->etat->label() }}
                                         </flux:badge>
                                     @endif
                                 </div>
