@@ -552,108 +552,112 @@ new class extends Component
                     </flux:button>
                 </div>
 
-                {{-- Timeline --}}
-                @if($this->historiques->isEmpty())
-                    <div class="rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-700 py-16 text-center text-gray-400">
-                        <svg class="size-8 mx-auto mb-2 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
-                        </svg>
-                        <p class="text-sm">Aucune modification enregistrée</p>
-                    </div>
-                @else
-                    <div class="relative pl-7">
-                        <div class="absolute left-2.5 top-2 bottom-2 w-px bg-gray-200 dark:bg-gray-700"></div>
+                {{-- Table historique --}}
+                <flux:table :paginate="$this->historiques">
+                    <flux:table.columns>
+                        <flux:table.column>Produit</flux:table.column>
+                        <flux:table.column>Modification</flux:table.column>
+                        <flux:table.column>Quantité</flux:table.column>
+                        <flux:table.column>Motif</flux:table.column>
+                        <flux:table.column>Utilisateur</flux:table.column>
+                        <flux:table.column>Date</flux:table.column>
+                    </flux:table.columns>
 
-                        <div class="space-y-3">
-                            @foreach($this->historiques as $item)
-                                @php
-                                    $isNew   = is_null($item->ancienne_quantite);
-                                    $isAdded = !$isNew && $item->nouvelle_quantite > $item->ancienne_quantite;
-                                    $diff    = $isNew
-                                        ? $item->nouvelle_quantite
-                                        : abs($item->nouvelle_quantite - $item->ancienne_quantite);
-                                @endphp
+                    <flux:table.rows>
+                        @forelse($this->historiques as $item)
+                            @php
+                                $isNew   = is_null($item->ancienne_quantite);
+                                $isAdded = !$isNew && $item->nouvelle_quantite > $item->ancienne_quantite;
+                                $diff    = $isNew
+                                    ? $item->nouvelle_quantite
+                                    : abs($item->nouvelle_quantite - $item->ancienne_quantite);
+                            @endphp
 
-                                <div wire:key="histo-{{ $item->id }}" class="relative">
+                            <flux:table.row :key="$item->id" wire:key="histo-{{ $item->id }}">
 
-                                    {{-- Point timeline --}}
-                                    <div class="absolute -left-5 top-3.5 size-2.5 rounded-full border-2 border-white dark:border-gray-900
-                                        {{ $isNew ? 'bg-blue-500' : ($isAdded ? 'bg-emerald-500' : 'bg-orange-500') }}">
-                                    </div>
+                                {{-- Produit --}}
+                                <flux:table.cell>
+                                    <p class="font-medium text-gray-900 dark:text-white text-sm truncate max-w-[180px]">
+                                        {{ $item->product->designation ?? '—' }}
+                                    </p>
+                                    <p class="text-xs text-gray-400 font-mono">
+                                        {{ $item->product->product_code ?? '' }}
+                                    </p>
+                                </flux:table.cell>
 
-                                    <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3">
+                                {{-- Type de modification --}}
+                                <flux:table.cell>
+                                    @if($isNew)
+                                        <flux:badge size="sm" color="blue" icon="plus" inset="top bottom">
+                                            Nouveau
+                                        </flux:badge>
+                                    @elseif($isAdded)
+                                        <flux:badge size="sm" color="green" icon="arrow-trending-up" inset="top bottom">
+                                            Augmentation
+                                        </flux:badge>
+                                    @else
+                                        <flux:badge size="sm" color="orange" icon="arrow-trending-down" inset="top bottom">
+                                            Réduction
+                                        </flux:badge>
+                                    @endif
+                                </flux:table.cell>
 
-                                        <div class="flex items-start justify-between gap-2">
-                                            <div class="min-w-0 flex-1">
-                                                <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
-                                                    {{ $item->product->designation ?? '—' }}
-                                                </p>
-                                                <p class="text-xs text-gray-400 font-mono">
-                                                    {{ $item->product->product_code ?? '' }}
-                                                </p>
-                                            </div>
-
-                                            @if($isNew)
-                                                <flux:badge size="sm" color="blue" icon="plus" inset="top bottom">
-                                                    Nouveau · {{ $item->nouvelle_quantite }} unité(s)
-                                                </flux:badge>
-                                            @elseif($isAdded)
-                                                <flux:badge size="sm" color="green" icon="arrow-trending-up" inset="top bottom">
-                                                    +{{ $diff }} unité(s)
-                                                </flux:badge>
-                                            @else
-                                                <flux:badge size="sm" color="orange" icon="arrow-trending-down" inset="top bottom">
-                                                    −{{ $diff }} unité(s)
-                                                </flux:badge>
-                                            @endif
-                                        </div>
-
-                                        {{-- Quantité avant → après --}}
-                                        @if(!$isNew)
-                                            <div class="mt-1.5 flex items-center gap-1.5 text-xs text-gray-500">
-                                                <span class="font-mono tabular-nums">{{ $item->ancienne_quantite }}</span>
-                                                <svg class="size-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
-                                                </svg>
-                                                <span class="font-mono tabular-nums font-semibold text-gray-700 dark:text-gray-300">
-                                                    {{ $item->nouvelle_quantite }}
-                                                </span>
-                                            </div>
-                                        @endif
-
-                                        {{-- Motif --}}
-                                        @if($item->motif)
-                                            <p class="mt-2 text-xs text-gray-500 italic border-l-2 border-gray-200 dark:border-gray-600 pl-2">
-                                                {{ $item->motif }}
-                                            </p>
-                                        @endif
-
-                                        {{-- Meta : utilisateur + date --}}
-                                        <div class="mt-2 flex items-center gap-3 text-xs text-gray-400">
-                                            <span class="flex items-center gap-1">
-                                                <svg class="size-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/>
-                                                </svg>
-                                                {{ $item->user->name ?? 'Système' }}
+                                {{-- Quantité avant → après --}}
+                                <flux:table.cell>
+                                    @if($isNew)
+                                        <span class="font-mono text-sm tabular-nums text-gray-700 dark:text-gray-300">
+                                            {{ $item->nouvelle_quantite }}
+                                        </span>
+                                    @else
+                                        <span class="flex items-center gap-1.5 font-mono text-sm tabular-nums">
+                                            <span class="text-gray-400">{{ $item->ancienne_quantite }}</span>
+                                            <svg class="size-3 shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                                            </svg>
+                                            <span class="font-semibold text-gray-900 dark:text-white">{{ $item->nouvelle_quantite }}</span>
+                                            <span class="{{ $isAdded ? 'text-emerald-600 dark:text-emerald-400' : 'text-orange-600 dark:text-orange-400' }} text-xs">
+                                                ({{ $isAdded ? '+' : '−' }}{{ $diff }})
                                             </span>
-                                            <span class="flex items-center gap-1">
-                                                <svg class="size-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6l4 2m6-2a10 10 0 1 1-20 0 10 10 0 0 1 20 0Z"/>
-                                                </svg>
-                                                {{ $item->created_at->diffForHumans() }}
-                                            </span>
-                                        </div>
+                                        </span>
+                                    @endif
+                                </flux:table.cell>
 
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
+                                {{-- Motif --}}
+                                <flux:table.cell>
+                                    @if($item->motif)
+                                        <span class="text-xs text-gray-500 italic">{{ $item->motif }}</span>
+                                    @else
+                                        <span class="text-gray-300 dark:text-gray-600 text-xs">—</span>
+                                    @endif
+                                </flux:table.cell>
 
-                    <div class="mt-2">
-                        {{ $this->historiques->links() }}
-                    </div>
-                @endif
+                                {{-- Utilisateur --}}
+                                <flux:table.cell>
+                                    <span class="text-sm text-gray-600 dark:text-gray-300">
+                                        {{ $item->user->name ?? 'Système' }}
+                                    </span>
+                                </flux:table.cell>
+
+                                {{-- Date --}}
+                                <flux:table.cell class="whitespace-nowrap">
+                                    <span class="text-xs text-gray-500" title="{{ $item->created_at->format('d/m/Y H:i') }}">
+                                        {{ $item->created_at->diffForHumans() }}
+                                    </span>
+                                </flux:table.cell>
+
+                            </flux:table.row>
+                        @empty
+                            <flux:table.row>
+                                <flux:table.cell colspan="6" class="py-12 text-center text-gray-400">
+                                    <svg class="size-8 mx-auto mb-2 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                                    </svg>
+                                    Aucune modification enregistrée
+                                </flux:table.cell>
+                            </flux:table.row>
+                        @endforelse
+                    </flux:table.rows>
+                </flux:table>
 
             </div>
 
