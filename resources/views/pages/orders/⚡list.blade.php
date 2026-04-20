@@ -332,15 +332,15 @@ new class extends Component
 
 <div>
     <flux:breadcrumbs class="mb-5">
-        <flux:breadcrumbs.item href="#">Commande</flux:breadcrumbs.item>
+        <flux:breadcrumbs.item href="#">Précommande</flux:breadcrumbs.item>
         <flux:breadcrumbs.item>Liste</flux:breadcrumbs.item>
     </flux:breadcrumbs>
 
     <div class="flex items-center justify-between mb-6">
-        <flux:heading size="xl" level="1">{{ __('Commandes') }}</flux:heading>
+        <flux:heading size="xl" level="1">{{ __('Précommande') }}</flux:heading>
 
         <flux:button variant="primary" class="w-full sm:w-auto" href="{{ route('orders.create') }}" wire:navigate>
-            Ajouter une commande
+            Nouvelle précommande
         </flux:button>
     </div>
 

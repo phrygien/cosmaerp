@@ -182,7 +182,7 @@ new class extends Component
         }
 
         $commande->update([
-            'etat'          => 'commande',
+            'etat'          => 'pre_commande',
             'state'         => 1,
             'montant_total' => round($totalTTC, 2),
         ]);
@@ -287,12 +287,12 @@ new class extends Component
 
 <div class="max-w-7xl mx-auto">
     <flux:breadcrumbs class="mb-5">
-        <flux:breadcrumbs.item href="#">Commande</flux:breadcrumbs.item>
+        <flux:breadcrumbs.item href="#">Précommande</flux:breadcrumbs.item>
         <flux:breadcrumbs.item>Nouvelle</flux:breadcrumbs.item>
     </flux:breadcrumbs>
 
     <div class="flex items-center justify-between mb-6">
-        <flux:heading size="xl" level="1">{{ __('Nouvelle Commande') }}</flux:heading>
+        <flux:heading size="xl" level="1">{{ __('Nouvelle précommande') }}</flux:heading>
 
         {{-- Bouton Annuler global --}}
         <flux:button wire:click="confirmAnnuler" variant="danger" icon="x-circle">
@@ -306,9 +306,9 @@ new class extends Component
             <flux:heading size="lg">Annuler la création ?</flux:heading>
             <flux:text>
                 @if($commande_id)
-                    Cette action supprimera définitivement la commande en cours, ainsi que tous ses produits et destinations associés. Cette opération est irréversible.
+                    Cette action supprimera définitivement la précommande en cours, ainsi que tous ses produits et destinations associés. Cette opération est irréversible.
                 @else
-                    Êtes-vous sûr de vouloir annuler la création de cette commande ?
+                    Êtes-vous sûr de vouloir annuler la création de cette précommande ?
                 @endif
             </flux:text>
             <div class="flex justify-end gap-3 pt-2">
@@ -499,7 +499,7 @@ new class extends Component
                         Générer le bon de commande
                     </flux:button>
                     <flux:button wire:click="confirmer" variant="primary">
-                        Confirmer la commande
+                        Confirmer la pre-commande
                     </flux:button>
                 </div>
             </div>

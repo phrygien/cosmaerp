@@ -52,7 +52,7 @@
             <flux:sidebar.group
                 expandable
                 icon="shopping-cart"
-                heading="Commandes"
+                heading="Précommande"
                 class="grid"
                 :expanded="request()->routeIs('orders.*')"
             >
@@ -70,7 +70,7 @@
             <flux:sidebar.group
                 expandable
                 icon="queue-list"
-                heading="Réception des commande"
+                heading="Réception"
                 class="grid"
                 :expanded="request()->routeIs('reception_commande.*')"
             >
