@@ -210,6 +210,77 @@ new class extends Component
 
         $this->redirect(route('orders.list'), navigate: true);
     }
+
+    public function genererBonCommande(): void
+    {
+        if (!$this->commande_id) {
+            Flux::toast(
+                heading: 'Erreur',
+                text: 'Aucune commande en cours.',
+                variant: 'danger'
+            );
+            return;
+        }
+
+        $commande = Commande::find($this->commande_id);
+
+        if (!$commande) {
+            Flux::toast(
+                heading: 'Erreur',
+                text: 'Commande introuvable.',
+                variant: 'danger'
+            );
+            return;
+        }
+
+        $details = \App\Models\DetailCommande::where('commande_id', $this->commande_id)->get();
+
+        if ($details->isEmpty()) {
+            Flux::toast(
+                heading: 'Commande vide',
+                text: 'Veuillez ajouter au moins un produit avant de générer le bon.',
+                variant: 'warning'
+            );
+            return;
+        }
+
+        // Recalcul du montant net
+        $totalNet = $details->sum(fn($d) => $d->pu_achat_net * $d->quantite);
+
+        // Données communes du bon de commande
+        $bonData = [
+            'code_fournisseur'      => $commande->fournisseur?->code ?? null,
+            'numero_compte'         => $commande->fournisseur?->numero_compte ?? null,
+            'date_commande'         => now(),
+            'date_livraison_prevue' => $commande->nombre_jour > 0
+                ? now()->addDays($commande->nombre_jour)
+                : null,
+            'magasin_facturation_id' => $commande->magasin_livraison_id,
+            'magasin_livraison_id'   => $commande->magasin_livraison_id,
+            'montant_commande_net'   => round($totalNet, 2),
+            'state'                  => 1,
+        ];
+
+        // Mise à jour si existant, création sinon
+        $bonCommande = \App\Models\BonCommande::where('commande_id', $this->commande_id)->first();
+
+        if ($bonCommande) {
+            $bonCommande->update($bonData);
+        } else {
+            \App\Models\BonCommande::create(array_merge($bonData, [
+                'commande_id' => $commande->id,
+            ]));
+        }
+
+        Flux::toast(
+            heading: 'Bon de commande',
+            text: 'Le bon de commande a été mis à jour avec succès.',
+            variant: 'success'
+        );
+
+        $this->redirect(route('orders.bon-commande', $this->commande_id), navigate: true);
+    }
+
 };
 
 ?>
@@ -288,8 +359,7 @@ new class extends Component
                                     <path fill-rule="evenodd" d="M19.916 4.626a.75.75 0 0 1 .208 1.04l-9 13.5a.75.75 0 0 1-1.154.114l-6-6a.75.75 0 0 1 1.06-1.06l5.353 5.353 8.493-12.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"/>
                                 </svg>
                             </span>
-                            <span class="text-sm font-medium
-                                         text-gray-900 dark:text-zinc-100">
+                            <span class="text-sm font-medium text-gray-900 dark:text-zinc-100">
                                 {{ $label }}
                             </span>
                         </span>
@@ -424,10 +494,14 @@ new class extends Component
 
             <div class="flex justify-between pt-4 border-t border-gray-200 dark:border-gray-700 mt-6">
                 <flux:button wire:click="previousStep" variant="ghost">&larr; Précédent</flux:button>
-                {{-- Remplacer l'ancien bouton par celui-ci --}}
-                <flux:button wire:click="confirmer" variant="primary">
-                    Confirmer la commande
-                </flux:button>
+                <div class="flex gap-3">
+                    <flux:button wire:click="genererBonCommande" variant="primary" color="cyan" icon="document-arrow-down">
+                        Générer le bon de commande
+                    </flux:button>
+                    <flux:button wire:click="confirmer" variant="primary">
+                        Confirmer la commande
+                    </flux:button>
+                </div>
             </div>
         @endif
 
