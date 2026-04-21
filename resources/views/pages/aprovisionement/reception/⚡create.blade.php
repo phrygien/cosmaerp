@@ -6,6 +6,7 @@ use Livewire\Attributes\Url;
 use App\Models\ReceptionCommande;
 use App\Models\Commande;
 use App\Models\BonCommande;
+use App\Models\StockMagasin;
 use App\Enums\CommandeStatus;
 use Flux\Flux;
 
@@ -147,6 +148,25 @@ new class extends Component
             'status' => CommandeStatus::Cloturee,
             'date_cloture' => now()
         ]);
+
+        // Mise a jour du stock magasin via les destinations
+        $details->load('destinations');
+
+        foreach ($details as $detail) {
+            foreach ($detail->destinations as $destination) {
+                StockMagasin::updateOrCreate(
+                    [
+                        'magasin_id' => $destination->magasin_id,
+                        'product_id' => $detail->product_id,
+                    ],
+                    []
+                );
+
+                StockMagasin::where('magasin_id', $destination->magasin_id)
+                    ->where('product_id', $detail->product_id)
+                    ->increment('quantite', $destination->quantite);
+            }
+        }
 
         Flux::toast(
             heading: 'Réception confirmée',
