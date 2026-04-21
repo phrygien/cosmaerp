@@ -51,7 +51,7 @@ new class extends Component
 ?>
 
 <div>
-    <flux:modal name="create-Dépôt" class="md:w-lg" :dismissible="false">
+    <flux:modal name="create-magasin" class="md:w-lg" :dismissible="false">
         <div class="space-y-5">
 
             <!-- Header -->
