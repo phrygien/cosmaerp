@@ -6,6 +6,7 @@ use Livewire\Attributes\Url;
 use App\Models\ReceptionCommande;
 use App\Models\Commande;
 use App\Models\BonCommande;
+use App\Enums\CommandeStatus;
 use Flux\Flux;
 
 new class extends Component
