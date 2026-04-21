@@ -53,7 +53,7 @@ new class extends Component
     #[Computed]
     public function magasins()
     {
-        return Magasin::where('state', 1)->orderBy('name')->get();
+        return Magasin::where('state', 1)->where('base_stock', \App\Enums\BaseStore::BaseStock)->orderBy('name')->get();
     }
 
     protected function rules(): array
