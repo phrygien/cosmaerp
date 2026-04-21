@@ -35,7 +35,7 @@ new class extends Component
                 {{-- En-tête --}}
                 <div class="pr-8">
                     <flux:heading size="lg">
-                        {{ __('Réception') }} — {{ $bon->numero_compte ?? 'Numero' . $bon->id }}
+                        {{ __('Réception') }} — {{ $bon->numero_compte ?? ' Bon de commande № ' . $bon->id }}
                     </flux:heading>
                     <flux:text class="mt-1 text-zinc-500">
                         {{ $bon->commande?->fournisseur?->nom ?? '—' }}
