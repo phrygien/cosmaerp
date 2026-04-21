@@ -170,7 +170,7 @@ new class extends Component
                                     <td class="py-2 px-3 hidden md:table-cell"></td>
                                     <td class="py-2 px-3 text-center">
                                         <flux:badge size="sm" :color="$badge['color']" inset="top bottom">
-                                            {{ $badge['label'] }}
+                                            <flux:icon name="check-circle" class="size-3" />
                                         </flux:badge>
                                     </td>
                                 </tr>
