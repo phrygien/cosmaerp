@@ -15,7 +15,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'store_url',
     'adress',
     'telephone',
-    'email'
+    'email',
+    'base_stock'
 ])]
 class Magasin extends Model
 {

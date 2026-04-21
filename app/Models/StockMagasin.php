@@ -33,4 +33,25 @@ class StockMagasin extends Model
     {
         return $this->belongsTo(DetailCommande::class, 'detail_commande_id', 'id');
     }
+
+    /**
+     * Génère un code unique basé sur le magasin, le produit et la date.
+     * Format : MAG{magasin_id}-PROD{product_id}-{YYYYMMDD}
+     * Exemple : MAG01-PROD05-20250421
+     */
+    public static function generateGenCode(int $magasinId, int $productId, ?\DateTimeInterface $date = null): string
+    {
+        $date    = $date ?? now();
+        $base    = sprintf('MAG%02d-PROD%02d-%s', $magasinId, $productId, $date->format('Ymd'));
+        $suffix  = 1;
+        $genCode = $base;
+
+        // Garantir l'unicité en ajoutant un suffixe si nécessaire
+        while (static::where('gen_code', $genCode)->exists()) {
+            $genCode = $base . '-' . $suffix;
+            $suffix++;
+        }
+
+        return $genCode;
+    }
 }

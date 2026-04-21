@@ -1,6 +1,7 @@
 <?php
 
 use Livewire\Component;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use App\Models\ReceptionCommande;
@@ -131,7 +132,6 @@ new class extends Component
             return;
         }
 
-        // Vérifier qu'au moins une réception a été saisie
         $receptions = ReceptionCommande::where('commande_id', $this->commande_id)->get();
 
         if ($receptions->isEmpty()) {
@@ -143,38 +143,54 @@ new class extends Component
             return;
         }
 
-        // Marquer la commande comme réceptionnée
-        Commande::find($this->commande_id)?->update([
-            'status' => CommandeStatus::Cloturee,
-            'date_cloture' => now()
-        ]);
+        try {
+            DB::transaction(function () use ($details) {
+                // Marquer la commande comme réceptionnée
+                Commande::find($this->commande_id)?->update([
+                    'status'       => CommandeStatus::Cloturee,
+                    'date_cloture' => now(),
+                ]);
 
-        // Mise a jour du stock magasin via les destinations
-        $details->load('destinations');
+                // Mise à jour du stock magasin via les destinations
+                $details->load('destinations');
 
-        foreach ($details as $detail) {
-            foreach ($detail->destinations as $destination) {
-                StockMagasin::updateOrCreate(
-                    [
-                        'magasin_id' => $destination->magasin_id,
-                        'product_id' => $detail->product_id,
-                    ],
-                    []
-                );
+                foreach ($details as $detail) {
+                    foreach ($detail->destinations as $destination) {
+                        \App\Models\StockMagasin::updateOrCreate(
+                            [
+                                'magasin_id' => $destination->magasin_id,
+                                'product_id' => $detail->product_id,
+                            ],
+                            [
+                                'gen_code' => \App\Models\StockMagasin::generateGenCode(
+                                    $destination->magasin_id,
+                                    $detail->product_id
+                                ),
+                            ]
+                        );
 
-                StockMagasin::where('magasin_id', $destination->magasin_id)
-                    ->where('product_id', $detail->product_id)
-                    ->increment('quantite', $destination->quantite);
-            }
+                        \App\Models\StockMagasin::where('magasin_id', $destination->magasin_id)
+                            ->where('product_id', $detail->product_id)
+                            ->increment('quantite', $destination->quantite);
+                    }
+                }
+            });
+
+            Flux::toast(
+                heading: 'Réception confirmée',
+                text: 'La réception de commande a été enregistrée avec succès.',
+                variant: 'success'
+            );
+
+            $this->redirect(route('reception_commande.list'), navigate: true);
+
+        } catch (\Throwable $e) {
+            Flux::toast(
+                heading: 'Erreur',
+                text: 'Une erreur est survenue lors de la confirmation : ' . $e->getMessage(),
+                variant: 'danger'
+            );
         }
-
-        Flux::toast(
-            heading: 'Réception confirmée',
-            text: 'La réception de commande a été enregistrée avec succès.',
-            variant: 'success'
-        );
-
-        $this->redirect(route('receptions.list'), navigate: true);
     }
 };
 ?>
