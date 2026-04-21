@@ -15,7 +15,7 @@ Route::middleware(["auth", "verified"])->group(function () {
     // Admin / Utilisateurs
     Route::livewire("/roles", "pages::roles.page")->name("roles");
     Route::livewire("/permissions", "pages::permissions.page")->name("permissions");
-    Route::livewire("/users", "pagesb::users.page")->name("users");
+    Route::livewire("/users", "pages::users.page")->name("users");
 
     // Fournisseurs
     Route::livewire("/fournisseurs", "pages::fournisseurs.page")->name("fournisseurs");
