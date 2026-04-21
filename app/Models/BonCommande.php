@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Table(name: 'bon_commande')]
@@ -25,5 +26,10 @@ class BonCommande extends Model
     public function magasinLivraison(): BelongsTo
     {
         return $this->belongsTo(Magasin::class, 'magasin_livraison_id', 'id');
+    }
+
+    public function receptions(): HasMany
+    {
+        return $this->hasMany(ReceptionCommande::class, 'bon_commande_id');
     }
 }

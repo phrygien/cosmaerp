@@ -4,6 +4,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
+use App\Models\BonCommande;
 use App\Models\ReceptionCommande;
 use Flux\Flux;
 
@@ -28,18 +29,21 @@ new class extends Component
 
     public bool $showFilters = false;
 
+    /** IDs des bons de commande dont les lignes sont dépliées */
+    public array $expandedIds = [];
+
     public function sort(string $column): void
     {
         if ($this->sortBy === $column) {
             $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
         } else {
-            $this->sortBy = $column;
+            $this->sortBy        = $column;
             $this->sortDirection = 'asc';
         }
     }
 
-    public function updatedSearch(): void    { $this->resetPage(); }
-    public function updatedPerPage(): void   { $this->resetPage(); }
+    public function updatedSearch(): void     { $this->resetPage(); }
+    public function updatedPerPage(): void    { $this->resetPage(); }
     public function updatedFilterState(): void { $this->resetPage(); }
 
     public function toggleFilters(): void
@@ -47,9 +51,29 @@ new class extends Component
         $this->showFilters = ! $this->showFilters;
     }
 
+    public function toggleExpand(int $id): void
+    {
+        if (in_array($id, $this->expandedIds)) {
+            $this->expandedIds = array_values(array_diff($this->expandedIds, [$id]));
+        } else {
+            $this->expandedIds[] = $id;
+        }
+    }
+
+    public function expandAll(): void
+    {
+        $this->expandedIds = $this->bonCommandes->pluck('id')->toArray();
+    }
+
+    public function collapseAll(): void
+    {
+        $this->expandedIds = [];
+    }
+
     public function resetFilters(): void
     {
         $this->reset(['search', 'filterState', 'perPage']);
+        $this->expandedIds = [];
         $this->resetPage();
 
         Flux::toast(
@@ -63,34 +87,38 @@ new class extends Component
     public function stats(): array
     {
         return [
-            'total'    => ReceptionCommande::count(),
-            'recu'     => ReceptionCommande::where('state', 'received')->count(),
-            'partiel'  => ReceptionCommande::where('state', 'partial')->count(),
-            'attente'  => ReceptionCommande::where('state', 'pending')->count(),
+            'total'   => ReceptionCommande::count(),
+            'recu'    => ReceptionCommande::where('state', 'received')->count(),
+            'partiel' => ReceptionCommande::where('state', 'partial')->count(),
+            'attente' => ReceptionCommande::where('state', 'pending')->count(),
         ];
     }
 
     #[Computed]
-    public function receptions()
+    public function bonCommandes()
     {
-        return ReceptionCommande::query()
+        return BonCommande::query()
             ->with([
-                'bon_commande.magasinLivraison',
                 'commande.fournisseur',
-                'detail_commande.product',
+                'magasinLivraison',
+                // Receptions avec leur détail produit — chargées uniquement si dépliées
+                'receptions.detail_commande.product',
             ])
+            ->withCount('receptions')
+            ->withSum('receptions', 'recu')
+            ->withSum('receptions', 'invendable')
             ->when($this->search, fn($q) =>
             $q->whereHas('commande.fournisseur', fn($q) =>
             $q->where('nom', 'like', "%{$this->search}%")
             )
-                ->orWhereHas('detail_commande.product', fn($q) =>
-                $q->where('nom', 'like', "%{$this->search}%")
-                )
-                ->orWhereHas('bon_commande', fn($q) =>
-                $q->where('code_fournisseur', 'like', "%{$this->search}%")
-                )
+                ->orWhere('code_fournisseur', 'like', "%{$this->search}%")
+                ->orWhere('numero_compte', 'like', "%{$this->search}%")
             )
-            ->when($this->filterState !== '', fn($q) => $q->where('state', $this->filterState))
+            ->when($this->filterState !== '', fn($q) =>
+            $q->whereHas('receptions', fn($q) =>
+            $q->where('state', $this->filterState)
+            )
+            )
             ->tap(fn($q) => $this->sortBy ? $q->orderBy($this->sortBy, $this->sortDirection) : $q)
             ->paginate($this->perPage);
     }
@@ -118,7 +146,7 @@ new class extends Component
     {{-- Stat Cards --}}
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
         <flux:card class="p-5">
-            <p class="text-sm text-zinc-500">{{ __('Total') }}</p>
+            <p class="text-sm text-zinc-500">{{ __('Total réceptions') }}</p>
             <p class="text-3xl font-bold mt-1">{{ $this->stats['total'] }}</p>
         </flux:card>
         <flux:card class="p-5">
@@ -137,12 +165,12 @@ new class extends Component
 
     <flux:card class="p-5 mt-5">
 
-        {{-- En-tête : recherche | toggle filtres | per page --}}
+        {{-- En-tête --}}
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
             <div class="flex items-center gap-2">
                 <flux:input
                     wire:model.live.debounce.400ms="search"
-                    placeholder="{{ __('Fournisseur, produit, code fournisseur...') }}"
+                    placeholder="{{ __('Fournisseur, n° compte, code fournisseur...') }}"
                     icon="magnifying-glass"
                     class="w-full sm:w-72"
                 />
@@ -164,12 +192,25 @@ new class extends Component
                 </div>
             </div>
 
-            <flux:select wire:model.live="perPage" class="w-full sm:w-20">
-                <flux:select.option value="10">10</flux:select.option>
-                <flux:select.option value="15">15</flux:select.option>
-                <flux:select.option value="25">25</flux:select.option>
-                <flux:select.option value="50">50</flux:select.option>
-            </flux:select>
+            <div class="flex items-center gap-2">
+                {{-- Expand / Collapse all --}}
+                @if (count($this->expandedIds) > 0)
+                    <flux:button wire:click="collapseAll" variant="ghost" size="sm" icon="chevron-up">
+                        {{ __('Tout réduire') }}
+                    </flux:button>
+                @else
+                    <flux:button wire:click="expandAll" variant="ghost" size="sm" icon="chevron-down">
+                        {{ __('Tout déplier') }}
+                    </flux:button>
+                @endif
+
+                <flux:select wire:model.live="perPage" class="w-full sm:w-20">
+                    <flux:select.option value="10">10</flux:select.option>
+                    <flux:select.option value="15">15</flux:select.option>
+                    <flux:select.option value="25">25</flux:select.option>
+                    <flux:select.option value="50">50</flux:select.option>
+                </flux:select>
+            </div>
         </div>
 
         {{-- Panneau de filtres --}}
@@ -183,118 +224,95 @@ new class extends Component
                         </flux:button>
                     @endif
                 </div>
-
-                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
-                    <flux:radio.group wire:model.live="filterState" variant="segmented">
-                        <flux:radio label="{{ __('Tous') }}"        value=""         />
-                        <flux:radio label="{{ __('En attente') }}"  value="pending"  />
-                        <flux:radio label="{{ __('Reçu') }}"        value="received" />
-                        <flux:radio label="{{ __('Partiel') }}"     value="partial"  />
-                        <flux:radio label="{{ __('Rejeté') }}"      value="rejected" />
-                    </flux:radio.group>
-                </div>
+                <flux:radio.group wire:model.live="filterState" variant="segmented">
+                    <flux:radio label="{{ __('Tous') }}"       value=""         />
+                    <flux:radio label="{{ __('En attente') }}" value="pending"  />
+                    <flux:radio label="{{ __('Reçu') }}"       value="received" />
+                    <flux:radio label="{{ __('Partiel') }}"    value="partial"  />
+                    <flux:radio label="{{ __('Rejeté') }}"     value="rejected" />
+                </flux:radio.group>
             </div>
         @endif
 
         {{-- Table --}}
-        <flux:table :paginate="$this->receptions" variant="bordered">
+        <flux:table :paginate="$this->bonCommandes" variant="bordered">
             <flux:table.columns>
+                {{-- Chevron expand --}}
+                <flux:table.column class="w-8"></flux:table.column>
+
                 <flux:table.column
                     sortable
                     :sorted="$sortBy === 'created_at'"
                     :direction="$sortDirection"
                     wire:click="sort('created_at')"
                 >
-                    {{ __('Date réception') }}
+                    {{ __('Date') }}
                 </flux:table.column>
 
-                <flux:table.column>{{ __('Fournisseur') }}</flux:table.column>
                 <flux:table.column>{{ __('Bon de commande') }}</flux:table.column>
-                <flux:table.column>{{ __('Produit') }}</flux:table.column>
+                <flux:table.column>{{ __('Fournisseur') }}</flux:table.column>
 
                 <flux:table.column class="hidden md:table-cell">
                     {{ __('Livraison prévue') }}
                 </flux:table.column>
 
-                <flux:table.column
-                    sortable
-                    :sorted="$sortBy === 'recu'"
-                    :direction="$sortDirection"
-                    wire:click="sort('recu')"
-                >
-                    {{ __('Reçu / Commandé') }}
+                <flux:table.column class="hidden sm:table-cell text-center">
+                    {{ __('Réceptions') }}
                 </flux:table.column>
 
                 <flux:table.column
                     sortable
-                    :sorted="$sortBy === 'invendable'"
+                    :sorted="$sortBy === 'montant_commande_net'"
                     :direction="$sortDirection"
-                    wire:click="sort('invendable')"
-                    class="hidden sm:table-cell"
+                    wire:click="sort('montant_commande_net')"
+                    class="hidden md:table-cell"
                 >
-                    {{ __('Invendable') }}
+                    {{ __('Montant net') }}
                 </flux:table.column>
 
-                <flux:table.column
-                    sortable
-                    :sorted="$sortBy === 'state'"
-                    :direction="$sortDirection"
-                    wire:click="sort('state')"
-                >
-                    {{ __('État') }}
-                </flux:table.column>
+                <flux:table.column class="text-center">{{ __('Invendable') }}</flux:table.column>
+                <flux:table.column>{{ __('Magasin livraison') }}</flux:table.column>
             </flux:table.columns>
 
             <flux:table.rows>
-                @forelse ($this->receptions as $reception)
-                    <flux:table.row :key="$reception->id" wire:key="reception-{{ $reception->id }}">
+                @forelse ($this->bonCommandes as $bon)
+                    @php $isExpanded = in_array($bon->id, $this->expandedIds); @endphp
 
-                        {{-- Date réception --}}
+                    {{-- Ligne principale : Bon de commande --}}
+                    <flux:table.row
+                        :key="$bon->id"
+                        wire:key="bon-{{ $bon->id }}"
+                        wire:click="toggleExpand({{ $bon->id }})"
+                        class="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors {{ $isExpanded ? 'bg-zinc-50 dark:bg-zinc-800/40' : '' }}"
+                    >
+                        {{-- Chevron --}}
+                        <flux:table.cell>
+                            <flux:icon
+                                name="{{ $isExpanded ? 'chevron-down' : 'chevron-right' }}"
+                                class="size-4 text-zinc-400 transition-transform"
+                            />
+                        </flux:table.cell>
+
+                        {{-- Date --}}
                         <flux:table.cell class="text-sm whitespace-nowrap">
-                            <div>{{ $reception->created_at->format('d/m/Y') }}</div>
-                            <div class="text-zinc-400 text-xs">{{ $reception->created_at->format('H:i') }}</div>
+                            <div>{{ $bon->created_at->format('d/m/Y') }}</div>
+                            <div class="text-zinc-400 text-xs">{{ $bon->created_at->format('H:i') }}</div>
+                        </flux:table.cell>
+
+                        {{-- Bon de commande --}}
+                        <flux:table.cell>
+                            <p class="font-semibold text-sm">
+                                {{ $bon->numero_compte ?? '#' . $bon->id }}
+                            </p>
+                            @if ($bon->code_fournisseur)
+                                <p class="text-xs text-zinc-400 mt-0.5">{{ $bon->code_fournisseur }}</p>
+                            @endif
                         </flux:table.cell>
 
                         {{-- Fournisseur --}}
                         <flux:table.cell>
-                            @if ($reception->commande?->fournisseur)
-                                <p class="font-medium text-sm">{{ $reception->commande->fournisseur->nom }}</p>
-                                @if ($reception->bon_commande?->code_fournisseur)
-                                    <p class="text-xs text-zinc-400 mt-0.5">{{ $reception->bon_commande->code_fournisseur }}</p>
-                                @endif
-                            @else
-                                <span class="text-zinc-400">—</span>
-                            @endif
-                        </flux:table.cell>
-
-                        {{-- Bon de commande --}}
-                        <flux:table.cell class="text-sm">
-                            @if ($reception->bon_commande)
-                                <div>{{ $reception->bon_commande->numero_compte ?? '#' . $reception->bon_commande->id }}</div>
-                                @if ($reception->bon_commande->magasinLivraison)
-                                    <p class="text-xs text-zinc-400 mt-0.5">{{ $reception->bon_commande->magasinLivraison->nom }}</p>
-                                @endif
-                            @else
-                                <span class="text-zinc-400">—</span>
-                            @endif
-                        </flux:table.cell>
-
-                        {{-- Produit --}}
-                        <flux:table.cell>
-                            @if ($reception->detail_commande?->product)
-                                <p class="font-medium text-sm">{{ $reception->detail_commande->product->nom }}</p>
-                                <p class="text-xs text-zinc-400 mt-0.5">
-                                    {{ number_format($reception->detail_commande->pu_achat_net, 2) }} €
-                                    @if ($reception->detail_commande->taux_remise > 0)
-                                        · <span class="text-green-500">-{{ $reception->detail_commande->taux_remise }}%</span>
-                                    @endif
-                                </p>
-                                {{-- Infos mobiles --}}
-                                <div class="text-xs text-zinc-400 mt-1 md:hidden">
-                                    @if ($reception->bon_commande?->date_livraison_prevue)
-                                        <div>{{ __('Livraison') }}: {{ \Carbon\Carbon::parse($reception->bon_commande->date_livraison_prevue)->format('d/m/Y') }}</div>
-                                    @endif
-                                </div>
+                            @if ($bon->commande?->fournisseur)
+                                <p class="font-medium text-sm">{{ $bon->commande->fournisseur->nom }}</p>
                             @else
                                 <span class="text-zinc-400">—</span>
                             @endif
@@ -302,12 +320,12 @@ new class extends Component
 
                         {{-- Livraison prévue --}}
                         <flux:table.cell class="hidden md:table-cell text-sm whitespace-nowrap">
-                            @if ($reception->bon_commande?->date_livraison_prevue)
+                            @if ($bon->date_livraison_prevue)
                                 @php
-                                    $dateLivraison = \Carbon\Carbon::parse($reception->bon_commande->date_livraison_prevue);
-                                    $isLate = $dateLivraison->isPast() && $reception->state !== 'received';
+                                    $dateLivraison = \Carbon\Carbon::parse($bon->date_livraison_prevue);
+                                    $isLate = $dateLivraison->isPast();
                                 @endphp
-                                <span @class(['text-red-500' => $isLate])>
+                                <span @class(['text-red-500 font-medium' => $isLate])>
                                     {{ $dateLivraison->format('d/m/Y') }}
                                 </span>
                                 @if ($isLate)
@@ -318,53 +336,132 @@ new class extends Component
                             @endif
                         </flux:table.cell>
 
-                        {{-- Reçu / Commandé --}}
-                        <flux:table.cell variant="strong">
-                            @php
-                                $quantite = $reception->detail_commande?->quantite ?? 0;
-                                $recu     = $reception->recu ?? 0;
-                                $pct      = $quantite > 0 ? round(($recu / $quantite) * 100) : 0;
-                            @endphp
-                            <div>{{ $recu }} / {{ $quantite }}</div>
-                            <div class="text-xs text-zinc-400">{{ $pct }}%</div>
+                        {{-- Nb réceptions --}}
+                        <flux:table.cell class="hidden sm:table-cell text-center">
+                            <flux:badge size="sm" color="zinc" inset="top bottom">
+                                {{ $bon->receptions_count }}
+                            </flux:badge>
                         </flux:table.cell>
 
-                        {{-- Invendable --}}
-                        <flux:table.cell class="hidden sm:table-cell">
-                            @if ($reception->invendable > 0)
-                                <flux:badge size="sm" color="red" inset="top bottom">{{ $reception->invendable }}</flux:badge>
+                        {{-- Montant net --}}
+                        <flux:table.cell class="hidden md:table-cell" variant="strong">
+                            @if ($bon->montant_commande_net)
+                                {{ number_format($bon->montant_commande_net, 2) }} €
+                            @else
+                                <span class="text-zinc-400">—</span>
+                            @endif
+                        </flux:table.cell>
+
+                        {{-- Invendable total --}}
+                        <flux:table.cell class="text-center">
+                            @if ($bon->receptions_sum_invendable > 0)
+                                <flux:badge size="sm" color="red" inset="top bottom">
+                                    {{ $bon->receptions_sum_invendable }}
+                                </flux:badge>
                             @else
                                 <span class="text-zinc-400">0</span>
                             @endif
                         </flux:table.cell>
 
-                        {{-- État --}}
-                        <flux:table.cell>
-                            @php
-                                $badge = match($reception->state) {
-                                    'received' => ['color' => 'green',  'label' => __('Reçu')],
-                                    'partial'  => ['color' => 'yellow', 'label' => __('Partiel')],
-                                    'rejected' => ['color' => 'red',    'label' => __('Rejeté')],
-                                    default    => ['color' => 'zinc',   'label' => __('En attente')],
-                                };
-                            @endphp
-                            <flux:badge size="sm" :color="$badge['color']" inset="top bottom">
-                                {{ $badge['label'] }}
-                            </flux:badge>
+                        {{-- Magasin livraison --}}
+                        <flux:table.cell class="text-sm">
+                            {{ $bon->magasinLivraison?->nom ?? '—' }}
                         </flux:table.cell>
-
                     </flux:table.row>
+
+                    {{-- Lignes enfants : Réceptions (si déplié) --}}
+                    @if ($isExpanded)
+                        @forelse ($bon->receptions as $reception)
+                            <flux:table.row
+                                :key="'reception-' . $reception->id"
+                                wire:key="reception-{{ $reception->id }}"
+                                class="bg-blue-50/30 dark:bg-blue-900/10 border-l-2 border-blue-300 dark:border-blue-700"
+                            >
+                                {{-- Indentation --}}
+                                <flux:table.cell>
+                                    <div class="w-4 border-b border-l border-zinc-300 dark:border-zinc-600 h-4 ml-2 rounded-bl"></div>
+                                </flux:table.cell>
+
+                                {{-- Date réception --}}
+                                <flux:table.cell class="text-xs text-zinc-500 whitespace-nowrap">
+                                    {{ $reception->created_at->format('d/m/Y H:i') }}
+                                </flux:table.cell>
+
+                                {{-- Produit --}}
+                                <flux:table.cell colspan="2">
+                                    @if ($reception->detail_commande?->product)
+                                        <p class="text-sm font-medium">{{ $reception->detail_commande->product->nom }}</p>
+                                        <p class="text-xs text-zinc-400 mt-0.5">
+                                            {{ number_format($reception->detail_commande->pu_achat_net, 2) }} €
+                                            @if ($reception->detail_commande->taux_remise > 0)
+                                                · <span class="text-green-500">-{{ $reception->detail_commande->taux_remise }}%</span>
+                                            @endif
+                                        </p>
+                                    @else
+                                        <span class="text-zinc-400 text-sm">—</span>
+                                    @endif
+                                </flux:table.cell>
+
+                                {{-- Reçu / Commandé --}}
+                                <flux:table.cell class="hidden md:table-cell">
+                                    @php
+                                        $quantite = $reception->detail_commande?->quantite ?? 0;
+                                        $recu     = $reception->recu ?? 0;
+                                        $pct      = $quantite > 0 ? round(($recu / $quantite) * 100) : 0;
+                                    @endphp
+                                    <p class="text-sm font-medium">{{ $recu }} / {{ $quantite }}</p>
+                                    <p class="text-xs text-zinc-400">{{ $pct }}%</p>
+                                </flux:table.cell>
+
+                                {{-- — --}}
+                                <flux:table.cell class="hidden sm:table-cell"></flux:table.cell>
+                                <flux:table.cell class="hidden md:table-cell"></flux:table.cell>
+
+                                {{-- Invendable --}}
+                                <flux:table.cell class="text-center">
+                                    @if ($reception->invendable > 0)
+                                        <flux:badge size="sm" color="red" inset="top bottom">{{ $reception->invendable }}</flux:badge>
+                                    @else
+                                        <span class="text-zinc-400 text-xs">0</span>
+                                    @endif
+                                </flux:table.cell>
+
+                                {{-- État --}}
+                                <flux:table.cell>
+                                    @php
+                                        $badge = match($reception->state) {
+                                            'received' => ['color' => 'green',  'label' => __('Reçu')],
+                                            'partial'  => ['color' => 'yellow', 'label' => __('Partiel')],
+                                            'rejected' => ['color' => 'red',    'label' => __('Rejeté')],
+                                            default    => ['color' => 'zinc',   'label' => __('En attente')],
+                                        };
+                                    @endphp
+                                    <flux:badge size="sm" :color="$badge['color']" inset="top bottom">
+                                        {{ $badge['label'] }}
+                                    </flux:badge>
+                                </flux:table.cell>
+                            </flux:table.row>
+                        @empty
+                            <flux:table.row wire:key="bon-{{ $bon->id }}-empty">
+                                <flux:table.cell colspan="9">
+                                    <p class="text-xs text-center text-zinc-400 py-2">
+                                        {{ __('Aucune réception pour ce bon de commande') }}
+                                    </p>
+                                </flux:table.cell>
+                            </flux:table.row>
+                        @endforelse
+                    @endif
 
                 @empty
                     <flux:table.row>
-                        <flux:table.cell colspan="8">
+                        <flux:table.cell colspan="9">
                             <div class="flex flex-col items-center justify-center py-12 text-center">
                                 <flux:icon name="inbox" class="text-zinc-400 mb-3" style="width: 40px; height: 40px;" />
                                 <p class="text-zinc-400 font-medium text-sm">
                                     @if ($search || $filterState !== '')
-                                        {{ __('Aucune réception trouvée pour ces filtres') }}
+                                        {{ __('Aucun bon de commande trouvé pour ces filtres') }}
                                     @else
-                                        {{ __('Aucune réception enregistrée') }}
+                                        {{ __('Aucun bon de commande enregistré') }}
                                     @endif
                                 </p>
                                 @if ($search || $filterState !== '')
