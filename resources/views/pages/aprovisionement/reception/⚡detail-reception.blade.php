@@ -176,7 +176,7 @@ new class extends Component
                                 </tr>
                             @empty
                                 <tr class="bg-blue-50/10 dark:bg-blue-900/5">
-                                    <td colspan="6" class="py-2 pl-8 text-xs text-zinc-400 italic">
+                                    <td colspan="6" class="py-2 pl-8 text-xs text-red-400 italic">
                                         {{ __('Aucune réception pour ce produit') }}
                                     </td>
                                 </tr>
@@ -184,7 +184,7 @@ new class extends Component
 
                         @empty
                             <tr>
-                                <td colspan="6" class="py-8 text-center text-zinc-400">
+                                <td colspan="6" class="py-8 text-center text-red-400">
                                     <flux:icon name="inbox" class="mx-auto mb-2" style="width:32px;height:32px;" />
                                     {{ __('Aucun produit dans cette commande') }}
                                 </td>
