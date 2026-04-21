@@ -365,7 +365,7 @@ new class extends Component
                                         <flux:icon name="cube" class="size-4 text-zinc-400 shrink-0" />
                                         <div>
                                             <p class="text-sm font-semibold text-zinc-700 dark:text-zinc-200">
-                                                {{ $detail->product?->nom ?? '—' }}
+                                                {{ $detail->product?->designation ?? '—' }}
                                             </p>
                                             <p class="text-xs text-zinc-400 mt-0.5">
                                                 PU net : {{ number_format($detail->pu_achat_net, 2) }} €
