@@ -47,7 +47,7 @@ new class extends Component
     {
         // Commandes confirmées ayant un bon de commande
         return Commande::where('etat', \App\Enums\CommandeEtat::Commande)
-            ->where('state', \App\Enums\CommandeStatus::Cloturee)
+            ->where('status', \App\Enums\CommandeStatus::Cloturee)
             ->with(['fournisseur', 'magasinLivraison'])
             ->whereHas('details')
             ->orderByDesc('created_at')
