@@ -143,8 +143,8 @@ new class extends Component
 
         // Marquer la commande comme réceptionnée
         Commande::find($this->commande_id)?->update([
-           'etat' => 3,
-           'date_cloture' => now()
+            'status' => CommandeStatus::Cloturee,
+            'date_cloture' => now()
         ]);
 
         Flux::toast(
