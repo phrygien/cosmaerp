@@ -193,17 +193,17 @@ new class extends Component
     <!-- Stat Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <flux:card class="p-5">
-            <p class="text-sm text-zinc-500">Total Depot</p>
+            <p class="text-sm text-zinc-500">Total dépôt</p>
             <p class="text-3xl font-bold mt-1">{{ $this->stats['total'] }}</p>
         </flux:card>
 
         <flux:card class="p-5">
-            <p class="text-sm text-zinc-500">Depot Actifs</p>
+            <p class="text-sm text-zinc-500">Dépôt Actifs</p>
             <p class="text-3xl font-bold mt-1 text-green-500">{{ $this->stats['active'] }}</p>
         </flux:card>
 
         <flux:card class="p-5">
-            <p class="text-sm text-zinc-500">Depot Inactifs</p>
+            <p class="text-sm text-zinc-500">Dépôt Inactifs</p>
             <p class="text-3xl font-bold mt-1 text-zinc-400">{{ $this->stats['inactive'] }}</p>
         </flux:card>
     </div>

@@ -35,7 +35,7 @@
         </flux:sidebar.item>
 
         <flux:sidebar.item icon="building-storefront" :href="route('magasin')" :current="request()->routeIs('magasin')" wire:navigate>
-            {{ __('Magasin') }}
+            {{ __('Dépôt') }}
         </flux:sidebar.item>
 
         <flux:sidebar.group expandable expanded icon="shopping-cart" heading="Précommande" class="grid">
