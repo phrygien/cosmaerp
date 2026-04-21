@@ -75,7 +75,7 @@ new class extends Component
 <div class="flex h-full w-full flex-1 flex-col gap-3">
 
     {{-- Metric cards --}}
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-5">
 
         <flux:card class="flex flex-col gap-1 p-4 py-6 sm:py-8 justify-center">
             <flux:subheading>Total en stock</flux:subheading>
