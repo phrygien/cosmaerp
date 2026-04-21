@@ -89,7 +89,7 @@ new class extends Component
             ->withSum('receptions', 'invendable')
             ->when($this->search, fn($q) =>
             $q->whereHas('commande.fournisseur', fn($q) =>
-            $q->where('nom', 'like', "%{$this->search}%")
+            $q->where('name', 'like', "%{$this->search}%")
             )
                 ->orWhere('code_fournisseur', 'like', "%{$this->search}%")
                 ->orWhere('numero_compte', 'like', "%{$this->search}%")
@@ -248,7 +248,7 @@ new class extends Component
 
                         <flux:table.cell>
                             @if ($bon->commande?->fournisseur)
-                                <p class="font-medium text-sm">{{ $bon->commande->fournisseur->nom }}</p>
+                                <p class="font-medium text-sm">{{ $bon->commande->fournisseur->name }}</p>
                             @else
                                 <span class="text-zinc-400">—</span>
                             @endif
@@ -290,7 +290,7 @@ new class extends Component
                         </flux:table.cell>
 
                         <flux:table.cell class="text-sm">
-                            {{ $bon->magasinLivraison?->nom ?? '—' }}
+                            {{ $bon->magasinLivraison?->name ?? '—' }}
                         </flux:table.cell>
                     </flux:table.row>
 
