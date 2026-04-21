@@ -29,8 +29,6 @@ new class extends Component
 
     public bool $showFilters = false;
 
-    public array $expandedIds = [];
-
     public function sort(string $column): void
     {
         if ($this->sortBy === $column) {
@@ -50,29 +48,14 @@ new class extends Component
         $this->showFilters = ! $this->showFilters;
     }
 
-    public function toggleExpand(int $id): void
+    public function openDetail(int $id): void
     {
-        if (in_array($id, $this->expandedIds)) {
-            $this->expandedIds = array_values(array_diff($this->expandedIds, [$id]));
-        } else {
-            $this->expandedIds[] = $id;
-        }
-    }
-
-    public function expandAll(): void
-    {
-        $this->expandedIds = $this->bonCommandes->pluck('id')->toArray();
-    }
-
-    public function collapseAll(): void
-    {
-        $this->expandedIds = [];
+        $this->dispatch('open-detail-reception', id: $id);
     }
 
     public function resetFilters(): void
     {
         $this->reset(['search', 'filterState', 'perPage']);
-        $this->expandedIds = [];
         $this->resetPage();
 
         Flux::toast(
@@ -99,8 +82,6 @@ new class extends Component
         return BonCommande::query()
             ->with([
                 'commande.fournisseur',
-                'commande.details.product',      // tous les produits de la commande
-                'receptions.detail_commande',    // pour filtrer par detail_commande_id
                 'magasinLivraison',
             ])
             ->withCount('receptions')
@@ -191,16 +172,6 @@ new class extends Component
             </div>
 
             <div class="flex items-center gap-2">
-                @if (count($this->expandedIds) > 0)
-                    <flux:button wire:click="collapseAll" variant="ghost" size="sm" icon="chevron-up">
-                        {{ __('Tout réduire') }}
-                    </flux:button>
-                @else
-                    <flux:button wire:click="expandAll" variant="ghost" size="sm" icon="chevron-down">
-                        {{ __('Tout déplier') }}
-                    </flux:button>
-                @endif
-
                 <flux:select wire:model.live="perPage" class="w-full sm:w-20">
                     <flux:select.option value="10">10</flux:select.option>
                     <flux:select.option value="15">15</flux:select.option>
@@ -234,7 +205,6 @@ new class extends Component
         {{-- Table --}}
         <flux:table :paginate="$this->bonCommandes" variant="bordered">
             <flux:table.columns>
-                <flux:table.column class="w-8"></flux:table.column>
                 <flux:table.column
                     sortable
                     :sorted="$sortBy === 'created_at'"
@@ -258,22 +228,12 @@ new class extends Component
 
             <flux:table.rows>
                 @forelse ($this->bonCommandes as $bon)
-                    @php $isExpanded = in_array($bon->id, $this->expandedIds); @endphp
-
-                    {{-- ── Ligne Bon de commande ────────────────────────────── --}}
                     <flux:table.row
                         :key="$bon->id"
                         wire:key="bon-{{ $bon->id }}"
-                        wire:click="toggleExpand({{ $bon->id }})"
-                        class="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors {{ $isExpanded ? 'bg-zinc-50 dark:bg-zinc-800/40 font-medium' : '' }}"
+                        wire:click="openDetail({{ $bon->id }})"
+                        class="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors"
                     >
-                        <flux:table.cell>
-                            <flux:icon
-                                name="{{ $isExpanded ? 'chevron-down' : 'chevron-right' }}"
-                                class="size-4 text-zinc-400"
-                            />
-                        </flux:table.cell>
-
                         <flux:table.cell class="text-sm whitespace-nowrap">
                             <div>{{ $bon->created_at->format('d/m/Y') }}</div>
                             <div class="text-zinc-400 text-xs">{{ $bon->created_at->format('H:i') }}</div>
@@ -334,183 +294,9 @@ new class extends Component
                         </flux:table.cell>
                     </flux:table.row>
 
-                    {{-- ── Lignes enfants groupées par produit (DetailCommande) ── --}}
-                    @if ($isExpanded)
-                        @forelse ($bon->commande?->details ?? [] as $detail)
-                            @php
-                                // Réceptions liées à ce detail_commande
-                                $receptionsDetail = $bon->receptions
-                                    ->where('detail_commande_id', $detail->id);
-
-                                $totalRecu      = $receptionsDetail->sum('recu');
-                                $totalInvendable = $receptionsDetail->sum('invendable');
-                                $pct = $detail->quantite > 0
-                                    ? round(($totalRecu / $detail->quantite) * 100)
-                                    : 0;
-                            @endphp
-
-                            {{-- Ligne produit (niveau 2) --}}
-                            <flux:table.row
-                                wire:key="detail-{{ $bon->id }}-{{ $detail->id }}"
-                                class="bg-zinc-50/80 dark:bg-zinc-800/30"
-                            >
-                                {{-- Indentation niveau 2 --}}
-                                <flux:table.cell>
-                                    <div class="w-3 border-b border-l border-zinc-300 dark:border-zinc-600 h-4 ml-3 rounded-bl"></div>
-                                </flux:table.cell>
-
-                                {{-- Produit --}}
-                                <flux:table.cell colspan="3">
-                                    <div class="flex items-center gap-2 pl-1">
-                                        <flux:icon name="cube" class="size-4 text-zinc-400 shrink-0" />
-                                        <div>
-                                            <p class="text-sm font-semibold text-zinc-700 dark:text-zinc-200">
-                                                {{ $detail->product?->designation ?? '—' }}
-                                            </p>
-                                            <p class="text-xs text-zinc-400 mt-0.5">
-                                                PU net : {{ number_format($detail->pu_achat_net, 2) }} €
-                                                @if ($detail->taux_remise > 0)
-                                                    · <span class="text-green-500">-{{ $detail->taux_remise }}%</span>
-                                                @endif
-                                                · TVA {{ $detail->tax }}%
-                                            </p>
-                                        </div>
-                                    </div>
-                                </flux:table.cell>
-
-                                {{-- Livraison prévue : vide --}}
-                                <flux:table.cell class="hidden md:table-cell"></flux:table.cell>
-
-                                {{-- Progression globale du produit --}}
-                                <flux:table.cell class="hidden sm:table-cell text-center">
-                                    <div class="text-xs font-medium">{{ $totalRecu }} / {{ $detail->quantite }}</div>
-                                    <div class="w-full bg-zinc-200 dark:bg-zinc-700 rounded-full h-1.5 mt-1">
-                                        <div
-                                            class="h-1.5 rounded-full {{ $pct >= 100 ? 'bg-green-500' : ($pct > 0 ? 'bg-yellow-400' : 'bg-zinc-300') }}"
-                                            style="width: {{ min($pct, 100) }}%"
-                                        ></div>
-                                    </div>
-                                    <div class="text-xs text-zinc-400 mt-0.5">{{ $pct }}%</div>
-                                </flux:table.cell>
-
-                                {{-- Montant ligne --}}
-                                <flux:table.cell class="hidden md:table-cell" variant="strong">
-                                    {{ number_format($detail->pu_achat_net * $detail->quantite, 2) }} €
-                                </flux:table.cell>
-
-                                {{-- Invendable total produit --}}
-                                <flux:table.cell class="text-center">
-                                    @if ($totalInvendable > 0)
-                                        <flux:badge size="sm" color="red" inset="top bottom">{{ $totalInvendable }}</flux:badge>
-                                    @else
-                                        <span class="text-zinc-400 text-xs">0</span>
-                                    @endif
-                                </flux:table.cell>
-
-                                {{-- État synthèse --}}
-                                <flux:table.cell>
-                                    @php
-                                        $synthese = match(true) {
-                                            $pct >= 100  => ['color' => 'green',  'label' => __('Complet')],
-                                            $pct > 0     => ['color' => 'yellow', 'label' => __('Partiel')],
-                                            default      => ['color' => 'zinc',   'label' => __('En attente')],
-                                        };
-                                    @endphp
-                                    <flux:badge size="sm" :color="$synthese['color']" inset="top bottom">
-                                        {{ $synthese['label'] }}
-                                    </flux:badge>
-                                </flux:table.cell>
-                            </flux:table.row>
-
-                            {{-- Lignes réceptions de ce produit (niveau 3) --}}
-                            @forelse ($receptionsDetail as $reception)
-                                <flux:table.row
-                                    wire:key="reception-{{ $reception->id }}"
-                                    class="bg-blue-50/20 dark:bg-blue-900/10"
-                                >
-                                    {{-- Indentation niveau 3 --}}
-                                    <flux:table.cell>
-                                        <div class="w-3 border-b border-l border-blue-200 dark:border-blue-800 h-4 ml-6 rounded-bl"></div>
-                                    </flux:table.cell>
-
-                                    {{-- Date réception --}}
-                                    <flux:table.cell class="text-xs text-zinc-500 whitespace-nowrap">
-                                        {{ $reception->created_at->format('d/m/Y') }}
-                                        <div class="text-zinc-400">{{ $reception->created_at->format('H:i') }}</div>
-                                    </flux:table.cell>
-
-                                    {{-- Référence réception --}}
-                                    <flux:table.cell colspan="2">
-                                        <p class="text-xs text-zinc-500 pl-2">
-                                            {{ __('Réception') }} #{{ $reception->id }}
-                                        </p>
-                                    </flux:table.cell>
-
-                                    {{-- Livraison : vide --}}
-                                    <flux:table.cell class="hidden md:table-cell"></flux:table.cell>
-
-                                    {{-- Reçu --}}
-                                    <flux:table.cell class="hidden sm:table-cell text-center">
-                                        @php
-                                            $pctLine = $detail->quantite > 0
-                                                ? round(($reception->recu / $detail->quantite) * 100)
-                                                : 0;
-                                        @endphp
-                                        <div class="text-xs font-medium">{{ $reception->recu }} / {{ $detail->quantite }}</div>
-                                        <div class="text-xs text-zinc-400">{{ $pctLine }}%</div>
-                                    </flux:table.cell>
-
-                                    {{-- Montant : vide --}}
-                                    <flux:table.cell class="hidden md:table-cell"></flux:table.cell>
-
-                                    {{-- Invendable --}}
-                                    <flux:table.cell class="text-center">
-                                        @if ($reception->invendable > 0)
-                                            <flux:badge size="sm" color="red" inset="top bottom">{{ $reception->invendable }}</flux:badge>
-                                        @else
-                                            <span class="text-zinc-400 text-xs">0</span>
-                                        @endif
-                                    </flux:table.cell>
-
-                                    {{-- État --}}
-                                    <flux:table.cell>
-                                        @php
-                                            $badge = match($reception->state) {
-                                                'received' => ['color' => 'green',  'label' => __('Reçu')],
-                                                'partial'  => ['color' => 'yellow', 'label' => __('Partiel')],
-                                                'rejected' => ['color' => 'red',    'label' => __('Rejeté')],
-                                                default    => ['color' => 'zinc',   'label' => __('En attente')],
-                                            };
-                                        @endphp
-                                        <flux:badge size="sm" :color="$badge['color']" inset="top bottom">
-                                            {{ $badge['label'] }}
-                                        </flux:badge>
-                                    </flux:table.cell>
-                                </flux:table.row>
-                            @empty
-                                <flux:table.row wire:key="detail-{{ $detail->id }}-no-reception">
-                                    <flux:table.cell colspan="9">
-                                        <p class="text-xs text-center text-zinc-400 py-1 pl-10">
-                                            {{ __('Aucune réception pour ce produit') }}
-                                        </p>
-                                    </flux:table.cell>
-                                </flux:table.row>
-                            @endforelse
-
-                        @empty
-                            <flux:table.row wire:key="bon-{{ $bon->id }}-no-detail">
-                                <flux:table.cell colspan="9">
-                                    <p class="text-xs text-center text-zinc-400 py-2">
-                                        {{ __('Aucun produit dans cette commande') }}
-                                    </p>
-                                </flux:table.cell>
-                            </flux:table.row>
-                        @endforelse
-                    @endif
-
                 @empty
                     <flux:table.row>
-                        <flux:table.cell colspan="9">
+                        <flux:table.cell colspan="8">
                             <div class="flex flex-col items-center justify-center py-12 text-center">
                                 <flux:icon name="inbox" class="text-zinc-400 mb-3" style="width: 40px; height: 40px;" />
                                 <p class="text-zinc-400 font-medium text-sm">
@@ -532,4 +318,7 @@ new class extends Component
             </flux:table.rows>
         </flux:table>
     </flux:card>
+
+    {{-- Modal détail réception --}}
+    <livewire:pages::aprovisionement.reception.detail-reception />
 </div>
