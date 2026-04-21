@@ -176,17 +176,16 @@ new class extends Component
 
 <div>
     <flux:breadcrumbs class="mb-5">
-        <flux:breadcrumbs.item href="#">Depot</flux:breadcrumbs.item>
+        <flux:breadcrumbs.item href="#">Dépôt</flux:breadcrumbs.item>
         <flux:breadcrumbs.item>Liste</flux:breadcrumbs.item>
     </flux:breadcrumbs>
 
-    <!-- Heading + bouton -->
     <div class="flex items-center justify-between mb-6">
-        <flux:heading size="xl" level="1">{{ __('Depot') }}</flux:heading>
+        <flux:heading size="xl" level="1">{{ __('Dépôt') }}</flux:heading>
 
         <flux:modal.trigger name="create-magasin">
             <flux:button variant="primary" class="w-full sm:w-auto">
-                Ajouter un depot
+                Ajouter un dépôt
             </flux:button>
         </flux:modal.trigger>
     </div>

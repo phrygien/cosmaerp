@@ -1,6 +1,6 @@
 <?php
 use Livewire\Component;
-use App\Models\Magasin;
+use App\Models\Dépôt;
 
 new class extends Component
 {
@@ -24,7 +24,7 @@ new class extends Component
             'state'     => 'required|boolean',
         ]);
 
-        Magasin::create([
+        Dépôt::create([
             'name'      => $this->name,
             'type'      => $this->type,
             'store_url' => $this->store_url ?: null,
@@ -38,12 +38,12 @@ new class extends Component
         $this->type  = 'online';
         $this->state = 1;
 
-        $this->dispatch('magasin-created');
-        $this->modal('create-magasin')->close();
+        $this->dispatch('Dépôt-created');
+        $this->modal('create-Dépôt')->close();
 
         \Flux\Flux::toast(
-            heading: 'Magasin créé',
-            text: 'Magasin créé avec succès',
+            heading: 'Dépôt créé',
+            text: 'Dépôt créé avec succès',
             variant: 'success'
         );
     }
@@ -51,20 +51,20 @@ new class extends Component
 ?>
 
 <div>
-    <flux:modal name="create-magasin" class="md:w-lg" :dismissible="false">
+    <flux:modal name="create-Dépôt" class="md:w-lg" :dismissible="false">
         <div class="space-y-5">
 
             <!-- Header -->
             <div>
-                <flux:heading size="lg">Ajouter un depot</flux:heading>
-                <flux:text class="mt-1">Remplissez les informations du nouveau depot.</flux:text>
+                <flux:heading size="lg">Ajouter un Dépôt</flux:heading>
+                <flux:text class="mt-1">Remplissez les informations du nouveau Dépôt.</flux:text>
             </div>
 
             <!-- Nom -->
             <flux:input
                 wire:model="name"
                 label="Nom"
-                placeholder="Ex: Depot BUC"
+                placeholder="Ex: Dépôt BUC"
                 required
             />
 
@@ -84,7 +84,7 @@ new class extends Component
                 <flux:radio
                     value="physic"
                     label="Physique"
-                    description="Depot en point de vente"
+                    description="Dépôt en point de vente"
                     icon="building-storefront"
                 />
             </flux:radio.group>
@@ -93,9 +93,9 @@ new class extends Component
             @if ($type === 'online')
                 <flux:input
                     wire:model="store_url"
-                    label="URL du magasin"
+                    label="URL du Dépôt"
                     type="url"
-                    placeholder="Ex: https://magasin.com"
+                    placeholder="Ex: https://Dépôt.com"
                     icon="globe-alt"
                 />
             @endif
@@ -116,7 +116,7 @@ new class extends Component
                     wire:model="email"
                     label="Email"
                     type="email"
-                    placeholder="Ex: contact@magasin.com"
+                    placeholder="Ex: contact@Dépôt.com"
                     icon="envelope"
                 />
                 <flux:input
@@ -143,7 +143,7 @@ new class extends Component
                 <flux:spacer />
                 <flux:button
                     variant="ghost"
-                    x-on:click="$flux.modal('create-magasin').close()"
+                    x-on:click="$flux.modal('create-Dépôt').close()"
                 >
                     Annuler
                 </flux:button>
