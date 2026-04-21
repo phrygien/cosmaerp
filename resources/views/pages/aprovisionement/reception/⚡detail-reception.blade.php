@@ -28,26 +28,24 @@ new class extends Component
 ?>
 
 <div>
-    <flux:modal name="detail-reception" class="w-full max-w-5xl">
+    <flux:modal name="detail-reception" class="w-full max-w-4xl">
         @if ($bon)
             <div class="space-y-6">
 
                 {{-- En-tête --}}
-                <div class="flex items-start justify-between gap-4">
-                    <div>
-                        <flux:heading size="lg">
-                            {{ __('Réception') }} — {{ $bon->numero_compte ?? '#' . $bon->id }}
-                        </flux:heading>
-                        <flux:text class="mt-1 text-zinc-500">
-                            {{ $bon->commande?->fournisseur?->nom ?? '—' }}
-                            · {{ $bon->created_at->format('d/m/Y') }}
-                            @if ($bon->magasinLivraison)
-                                · {{ $bon->magasinLivraison->nom }}
-                            @endif
-                        </flux:text>
-                    </div>
+                <div class="pr-8">
+                    <flux:heading size="lg">
+                        {{ __('Réception') }} — {{ $bon->numero_compte ?? '#' . $bon->id }}
+                    </flux:heading>
+                    <flux:text class="mt-1 text-zinc-500">
+                        {{ $bon->commande?->fournisseur?->nom ?? '—' }}
+                        · {{ $bon->created_at->format('d/m/Y') }}
+                        @if ($bon->magasinLivraison)
+                            · {{ $bon->magasinLivraison->nom }}
+                        @endif
+                    </flux:text>
 
-                    <div class="flex gap-2 shrink-0">
+                    <div class="flex flex-wrap gap-2 mt-3">
                         @if ($bon->date_livraison_prevue)
                             @php
                                 $dateLivraison = \Carbon\Carbon::parse($bon->date_livraison_prevue);
@@ -77,7 +75,6 @@ new class extends Component
                             <th class="py-2.5 px-3 text-center font-semibold text-zinc-600 dark:text-zinc-300 hidden sm:table-cell">{{ __('Qté commandée') }}</th>
                             <th class="py-2.5 px-3 text-center font-semibold text-zinc-600 dark:text-zinc-300">{{ __('Reçu') }}</th>
                             <th class="py-2.5 px-3 text-center font-semibold text-zinc-600 dark:text-zinc-300">{{ __('Invendable') }}</th>
-                            <th class="py-2.5 px-3 text-center font-semibold text-zinc-600 dark:text-zinc-300 hidden md:table-cell">{{ __('Progression') }}</th>
                             <th class="py-2.5 px-3 text-right font-semibold text-zinc-600 dark:text-zinc-300 hidden md:table-cell">{{ __('Montant ligne') }}</th>
                             <th class="py-2.5 px-3 text-center font-semibold text-zinc-600 dark:text-zinc-300">{{ __('État') }}</th>
                         </tr>
@@ -130,17 +127,6 @@ new class extends Component
                                         <span class="text-zinc-400">0</span>
                                     @endif
                                 </td>
-                                <td class="py-3 px-3 hidden md:table-cell">
-                                    <div class="flex items-center gap-2 min-w-[120px]">
-                                        <div class="flex-1 bg-zinc-200 dark:bg-zinc-700 rounded-full h-2">
-                                            <div
-                                                class="h-2 rounded-full {{ $pct >= 100 ? 'bg-green-500' : ($pct > 0 ? 'bg-yellow-400' : 'bg-zinc-300') }}"
-                                                style="width: {{ min($pct, 100) }}%"
-                                            ></div>
-                                        </div>
-                                        <span class="text-xs text-zinc-500 w-8 text-right">{{ $pct }}%</span>
-                                    </div>
-                                </td>
                                 <td class="py-3 px-3 text-right hidden md:table-cell font-medium text-zinc-700 dark:text-zinc-200">
                                     {{ number_format($detail->pu_achat_net * $detail->quantite, 2) }} €
                                 </td>
@@ -186,7 +172,6 @@ new class extends Component
                                         @endif
                                     </td>
                                     <td class="py-2 px-3 hidden md:table-cell"></td>
-                                    <td class="py-2 px-3 hidden md:table-cell"></td>
                                     <td class="py-2 px-3 text-center">
                                         <flux:badge size="sm" :color="$badge['color']" inset="top bottom">
                                             {{ $badge['label'] }}
@@ -195,7 +180,7 @@ new class extends Component
                                 </tr>
                             @empty
                                 <tr class="bg-blue-50/10 dark:bg-blue-900/5">
-                                    <td colspan="7" class="py-2 pl-8 text-xs text-zinc-400 italic">
+                                    <td colspan="6" class="py-2 pl-8 text-xs text-zinc-400 italic">
                                         {{ __('Aucune réception pour ce produit') }}
                                     </td>
                                 </tr>
@@ -203,7 +188,7 @@ new class extends Component
 
                         @empty
                             <tr>
-                                <td colspan="7" class="py-8 text-center text-zinc-400">
+                                <td colspan="6" class="py-8 text-center text-zinc-400">
                                     <flux:icon name="inbox" class="mx-auto mb-2" style="width:32px;height:32px;" />
                                     {{ __('Aucun produit dans cette commande') }}
                                 </td>
@@ -230,7 +215,6 @@ new class extends Component
                                         <span class="text-zinc-400">0</span>
                                     @endif
                                 </td>
-                                <td class="hidden md:table-cell"></td>
                                 <td class="py-3 px-3 text-right hidden md:table-cell">
                                     {{ $bon->montant_commande_net ? number_format($bon->montant_commande_net, 2) . ' €' : '—' }}
                                 </td>
