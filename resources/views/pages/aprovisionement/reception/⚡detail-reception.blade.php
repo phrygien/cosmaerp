@@ -35,7 +35,7 @@ new class extends Component
                 {{-- En-tête --}}
                 <div class="pr-8">
                     <flux:heading size="lg">
-                        {{ __('Réception') }} — {{ $bon->numero_compte ?? '#' . $bon->id }}
+                        {{ __('Réception') }} — {{ $bon->numero_compte ?? 'Numero' . $bon->id }}
                     </flux:heading>
                     <flux:text class="mt-1 text-zinc-500">
                         {{ $bon->commande?->fournisseur?->nom ?? '—' }}
@@ -146,9 +146,6 @@ new class extends Component
                                         'rejected' => ['color' => 'red',    'label' => __('Rejeté')],
                                         default    => ['color' => 'zinc',   'label' => __('En attente')],
                                     };
-                                    $pctLine = $detail->quantite > 0
-                                        ? round(($reception->recu / $detail->quantite) * 100)
-                                        : 0;
                                 @endphp
                                 <tr class="bg-blue-50/20 dark:bg-blue-900/10 border-l-2 border-rose-200 dark:border-rose-800">
                                     <td class="py-2 pl-8 pr-3">
@@ -162,7 +159,6 @@ new class extends Component
                                     <td class="py-2 px-3 text-center text-xs text-zinc-500 hidden sm:table-cell">—</td>
                                     <td class="py-2 px-3 text-center text-xs font-medium">
                                         {{ $reception->recu }}
-                                        <span class="text-zinc-400">({{ $pctLine }}%)</span>
                                     </td>
                                     <td class="py-2 px-3 text-center">
                                         @if ($reception->invendable > 0)
