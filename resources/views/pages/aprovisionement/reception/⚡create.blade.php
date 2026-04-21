@@ -158,20 +158,19 @@ new class extends Component
                     foreach ($detail->destinations as $destination) {
                         \App\Models\StockMagasin::updateOrCreate(
                             [
-                                'magasin_id' => $destination->magasin_id,
-                                'product_id' => $detail->product_id,
+                                'magasin_id'         => $destination->magasin_id,
+                                'product_id'         => $detail->product_id,
+                                'detail_commande_id' => $detail->id, // ✅ ajouté dans la clé de recherche
                             ],
                             [
-                                'gen_code' => \App\Models\StockMagasin::generateGenCode(
+                                'gen_code'           => \App\Models\StockMagasin::generateGenCode(
                                     $destination->magasin_id,
                                     $detail->product_id
                                 ),
+                                'nb_item'            => $destination->quantite,
+                                'deposite_date'      => now(),
                             ]
                         );
-
-                        \App\Models\StockMagasin::where('magasin_id', $destination->magasin_id)
-                            ->where('product_id', $detail->product_id)
-                            ->increment('quantite', $destination->quantite);
                     }
                 }
             });
