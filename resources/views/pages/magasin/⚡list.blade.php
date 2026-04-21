@@ -176,17 +176,17 @@ new class extends Component
 
 <div>
     <flux:breadcrumbs class="mb-5">
-        <flux:breadcrumbs.item href="#">Magasin</flux:breadcrumbs.item>
+        <flux:breadcrumbs.item href="#">Depot</flux:breadcrumbs.item>
         <flux:breadcrumbs.item>Liste</flux:breadcrumbs.item>
     </flux:breadcrumbs>
 
     <!-- Heading + bouton -->
     <div class="flex items-center justify-between mb-6">
-        <flux:heading size="xl" level="1">{{ __('Magasins') }}</flux:heading>
+        <flux:heading size="xl" level="1">{{ __('Depot') }}</flux:heading>
 
         <flux:modal.trigger name="create-magasin">
             <flux:button variant="primary" class="w-full sm:w-auto">
-                Ajouter un magasin
+                Ajouter un depot
             </flux:button>
         </flux:modal.trigger>
     </div>
@@ -194,17 +194,17 @@ new class extends Component
     <!-- Stat Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <flux:card class="p-5">
-            <p class="text-sm text-zinc-500">Total Magasins</p>
+            <p class="text-sm text-zinc-500">Total Depot</p>
             <p class="text-3xl font-bold mt-1">{{ $this->stats['total'] }}</p>
         </flux:card>
 
         <flux:card class="p-5">
-            <p class="text-sm text-zinc-500">Magasins Actifs</p>
+            <p class="text-sm text-zinc-500">Depot Actifs</p>
             <p class="text-3xl font-bold mt-1 text-green-500">{{ $this->stats['active'] }}</p>
         </flux:card>
 
         <flux:card class="p-5">
-            <p class="text-sm text-zinc-500">Magasins Inactifs</p>
+            <p class="text-sm text-zinc-500">Depot Inactifs</p>
             <p class="text-3xl font-bold mt-1 text-zinc-400">{{ $this->stats['inactive'] }}</p>
         </flux:card>
     </div>
@@ -216,7 +216,7 @@ new class extends Component
             <div class="flex items-center gap-2">
                 <flux:input
                     wire:model.live.debounce="search"
-                    placeholder="Rechercher un magasin..."
+                    placeholder="Rechercher un depot..."
                     icon="magnifying-glass"
                     class="w-full sm:w-80"
                 />

@@ -56,15 +56,15 @@ new class extends Component
 
             <!-- Header -->
             <div>
-                <flux:heading size="lg">Ajouter un magasin</flux:heading>
-                <flux:text class="mt-1">Remplissez les informations du nouveau magasin.</flux:text>
+                <flux:heading size="lg">Ajouter un depot</flux:heading>
+                <flux:text class="mt-1">Remplissez les informations du nouveau depot.</flux:text>
             </div>
 
             <!-- Nom -->
             <flux:input
                 wire:model="name"
                 label="Nom"
-                placeholder="Ex: Magasin Paris"
+                placeholder="Ex: Depot BUC"
                 required
             />
 
@@ -84,7 +84,7 @@ new class extends Component
                 <flux:radio
                     value="physic"
                     label="Physique"
-                    description="Magasin en point de vente"
+                    description="Depot en point de vente"
                     icon="building-storefront"
                 />
             </flux:radio.group>
