@@ -150,7 +150,7 @@ new class extends Component
                                         ? round(($reception->recu / $detail->quantite) * 100)
                                         : 0;
                                 @endphp
-                                <tr class="bg-blue-50/20 dark:bg-blue-900/10 border-l-2 border-blue-200 dark:border-blue-800">
+                                <tr class="bg-blue-50/20 dark:bg-blue-900/10 border-l-2 border-rose-200 dark:border-rose-800">
                                     <td class="py-2 pl-8 pr-3">
                                         <div class="flex items-center gap-1.5 text-xs text-zinc-500">
                                             <flux:icon name="arrow-turn-down-right" class="size-3 text-zinc-300" />
