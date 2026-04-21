@@ -124,7 +124,7 @@ new class extends Component
     </div>
 
     {{-- Stat Cards --}}
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6 hidden">
         <flux:card class="p-5">
             <p class="text-sm text-zinc-500">{{ __('Total réceptions') }}</p>
             <p class="text-3xl font-bold mt-1">{{ $this->stats['total'] }}</p>

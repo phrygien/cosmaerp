@@ -160,7 +160,7 @@ new class extends Component
                             [
                                 'magasin_id'         => $destination->magasin_id,
                                 'product_id'         => $detail->product_id,
-                                'detail_commande_id' => $detail->id, // ✅ ajouté dans la clé de recherche
+                                'detail_commande_id' => $detail->id,
                             ],
                             [
                                 'gen_code'           => \App\Models\StockMagasin::generateGenCode(
@@ -184,6 +184,7 @@ new class extends Component
             $this->redirect(route('reception_commande.list'), navigate: true);
 
         } catch (\Throwable $e) {
+            DB::rollBack();
             Flux::toast(
                 heading: 'Erreur',
                 text: 'Une erreur est survenue lors de la confirmation : ' . $e->getMessage(),
