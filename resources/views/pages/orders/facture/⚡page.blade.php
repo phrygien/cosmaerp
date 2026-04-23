@@ -40,11 +40,14 @@ new class extends Component
 <style>
     .fac-header-bar { background: #831843; padding: 28px 36px 24px; display: flex; justify-content: space-between; align-items: flex-start; }
     .fac-header-bar h1 { color: #fff; }
+    .remise-badge { display: inline-flex; align-items: center; gap: 4px; background: #fce7f3; color: #9f1239; font-size: 0.7rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
     @media print {
         body > *:not(#facture-print) { display: none !important; }
         #facture-print { box-shadow: none !important; border: none !important; }
         nav, header, footer, [wire\:click], flux-button { display: none !important; }
         .fac-header-bar { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .remise-badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .remise-globale-row { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     }
 </style>
 
@@ -65,7 +68,7 @@ new class extends Component
 
     <div class="rounded-xl border border-zinc-200 dark:border-zinc-700 overflow-hidden" id="facture-print">
 
-        {{-- Bandeau en-tête rose foncé --}}
+        {{-- Bandeau en-tête --}}
         <div class="fac-header-bar flex flex-col sm:flex-row sm:justify-between gap-4"
              style="background:#831843; padding: 28px 36px 24px;">
             <div>
@@ -127,6 +130,15 @@ new class extends Component
                                 </span>
                             </div>
                         @endif
+
+                        {{-- Remise globale commande --}}
+                        @if($this->commande->remise_facture > 0)
+                            <div class="flex justify-between text-sm">
+                                <span class="text-zinc-500">Remise commande</span>
+                                <span class="remise-badge">{{ $this->commande->remise_facture }}%</span>
+                            </div>
+                        @endif
+
                         <div class="flex justify-end pt-1">
                             <span class="inline-block text-xs px-3 py-1 rounded-full font-medium"
                                   style="background:#fce7f3; color:#9f1239;">
@@ -158,34 +170,75 @@ new class extends Component
                     @foreach ($this->facture->detailsFacture as $ligne)
                         @php
                             $detailCommande = $ligne->detailCommande;
+                            $product = $detailCommande?->product;
                             $puHT = $detailCommande?->pu_achat_HT
                                 ?? ($ligne->quantite_commande > 0 ? $ligne->montant_HT / $ligne->quantite_commande : 0);
+                            $tauxRemise = $detailCommande?->taux_remise ?? 0;
+                            $hasRemise  = $ligne->montant_remise > 0;
                         @endphp
                         <tr class="hover:bg-rose-50/40 dark:hover:bg-zinc-800/40 transition-colors">
+
+                            {{-- Colonne produit enrichie --}}
                             <td class="py-3 px-2.5">
                                 <p class="font-medium text-zinc-800 dark:text-zinc-100">
-                                    {{ $detailCommande?->product?->designation ?? '—' }}
+                                    {{ $product?->designation ?? '—' }}
                                 </p>
-                                @if($detailCommande?->product?->reference)
-                                    <p class="text-xs text-zinc-400 mt-0.5">Réf. {{ $detailCommande->product->reference }}</p>
+                                @if($product?->reference)
+                                    <p class="text-xs text-zinc-400 mt-0.5">Réf. {{ $product->reference }}</p>
+                                @endif
+                                @if($product?->code_barre ?? $product?->barcode ?? null)
+                                    <p class="text-xs text-zinc-400">
+                                        CB : {{ $product->code_barre ?? $product->barcode }}
+                                    </p>
+                                @endif
+                                @if($product?->famille?->name ?? $product?->category?->name ?? null)
+                                    <p class="text-xs text-zinc-400">
+                                        {{ $product->famille?->name ?? $product->category?->name }}
+                                    </p>
+                                @endif
+                                @if($product?->unite ?? $product?->conditionnement ?? null)
+                                    <p class="text-xs text-zinc-400">
+                                        Unité : {{ $product->unite ?? $product->conditionnement }}
+                                    </p>
+                                @endif
+                                {{-- Taux TVA du détail commande --}}
+                                @if($detailCommande?->tax)
+                                    <p class="text-xs text-zinc-400">TVA : {{ $detailCommande->tax }}%</p>
                                 @endif
                             </td>
-                            <td class="py-3 px-2.5 text-right text-zinc-600 dark:text-zinc-400">{{ $ligne->quantite_commande }}</td>
-                            <td class="py-3 px-2.5 text-right text-zinc-600 dark:text-zinc-400">{{ number_format($puHT, 2, ',', ' ') }} €</td>
-                            <td class="py-3 px-2.5 text-right text-zinc-600 dark:text-zinc-400">{{ number_format($ligne->montant_HT, 2, ',', ' ') }} €</td>
+
+                            <td class="py-3 px-2.5 text-right text-zinc-600 dark:text-zinc-400">
+                                {{ $ligne->quantite_commande }}
+                            </td>
+
+                            <td class="py-3 px-2.5 text-right text-zinc-600 dark:text-zinc-400">
+                                {{ number_format($puHT, 2, ',', ' ') }} €
+                            </td>
+
+                            <td class="py-3 px-2.5 text-right text-zinc-600 dark:text-zinc-400">
+                                {{ number_format($ligne->montant_HT, 2, ',', ' ') }} €
+                            </td>
+
+                            {{-- Remise ligne : montant + taux bien visibles --}}
                             <td class="py-3 px-2.5 text-right">
-                                @if($ligne->montant_remise > 0)
-                                    <span style="color:#be185d;">
-                                        - {{ number_format($ligne->montant_remise, 2, ',', ' ') }} €
-                                        @if($detailCommande?->taux_remise)
-                                            <span class="text-xs text-zinc-400">({{ $detailCommande->taux_remise }}%)</span>
+                                @if($hasRemise)
+                                    <div class="flex flex-col items-end gap-0.5">
+                                        <span class="font-medium" style="color:#be185d;">
+                                            - {{ number_format($ligne->montant_remise, 2, ',', ' ') }} €
+                                        </span>
+                                        @if($tauxRemise)
+                                            <span class="remise-badge">{{ $tauxRemise }}%</span>
                                         @endif
-                                    </span>
+                                    </div>
                                 @else
                                     <span class="text-zinc-300">—</span>
                                 @endif
                             </td>
-                            <td class="py-3 px-2.5 text-right text-zinc-600 dark:text-zinc-400">{{ number_format($ligne->montant_final_ht, 2, ',', ' ') }} €</td>
+
+                            <td class="py-3 px-2.5 text-right text-zinc-600 dark:text-zinc-400">
+                                {{ number_format($ligne->montant_final_ht, 2, ',', ' ') }} €
+                            </td>
+
                             <td class="py-3 px-2.5 text-right font-medium" style="color:#9f1239;">
                                 {{ number_format($ligne->montant_final_net, 2, ',', ' ') }} €
                             </td>
@@ -196,44 +249,76 @@ new class extends Component
             </div>
 
             {{-- Totaux --}}
+            @php
+                $totalHT      = $this->facture->detailsFacture->sum('montant_HT');
+                $totalRemise  = $this->facture->detailsFacture->sum('montant_remise');
+                $totalHtNet   = $this->facture->detailsFacture->sum('montant_final_ht');
+                $totalTtc     = $this->facture->detailsFacture->sum('montant_final_net');
+                $montantTva   = $totalTtc - $totalHtNet;
+                $tauxRemiseGlobal = $this->facture->remise ?? 0;
+            @endphp
             <div class="flex justify-end mt-8">
-                <div class="w-full sm:w-72 space-y-2 text-sm">
-                    <div class="flex justify-between">
-                        <span class="text-zinc-500">Total HT</span>
-                        <span class="font-medium">{{ number_format($this->facture->detailsFacture->sum('montant_HT'), 2, ',', ' ') }} €</span>
+                <div class="w-full sm:w-80 text-sm">
+
+                    {{-- Sous-total HT brut --}}
+                    <div class="flex justify-between py-1.5 border-b border-zinc-100 dark:border-zinc-800">
+                        <span class="text-zinc-500">Total HT brut</span>
+                        <span class="font-medium">{{ number_format($totalHT, 2, ',', ' ') }} €</span>
                     </div>
-                    @if($this->facture->remise > 0)
-                        <div class="flex justify-between">
-                            <span class="text-zinc-500">Remise globale ({{ $this->facture->remise }}%)</span>
+
+                    {{-- Remise(s) lignes --}}
+                    @if($totalRemise > 0)
+                        <div class="flex justify-between py-1.5 border-b border-zinc-100 dark:border-zinc-800">
+                            <span class="text-zinc-500">
+                                Remises lignes
+                                @if($tauxRemiseGlobal > 0)
+                                    <span class="text-xs ml-1 text-zinc-400">(dont {{ $tauxRemiseGlobal }}% global)</span>
+                                @endif
+                            </span>
                             <span class="font-medium" style="color:#be185d;">
-                                - {{ number_format($this->facture->detailsFacture->sum('montant_remise'), 2, ',', ' ') }} €
+                                - {{ number_format($totalRemise, 2, ',', ' ') }} €
                             </span>
                         </div>
                     @endif
-                    <div class="flex justify-between">
+
+                    {{-- Total HT net (après remises) --}}
+                    <div class="flex justify-between py-1.5 border-b border-zinc-100 dark:border-zinc-800">
                         <span class="text-zinc-500">Total HT net</span>
-                        <span class="font-medium">{{ number_format($this->facture->detailsFacture->sum('montant_final_ht'), 2, ',', ' ') }} €</span>
+                        <span class="font-medium">{{ number_format($totalHtNet, 2, ',', ' ') }} €</span>
                     </div>
+
+                    {{-- TVA --}}
                     @if($this->facture->tax > 0)
-                        @php
-                            $totalHtNet = $this->facture->detailsFacture->sum('montant_final_ht');
-                            $totalTtc   = $this->facture->detailsFacture->sum('montant_final_net');
-                            $montantTva = $totalTtc - $totalHtNet;
-                        @endphp
-                        <div class="flex justify-between">
+                        <div class="flex justify-between py-1.5 border-b border-zinc-100 dark:border-zinc-800">
                             <span class="text-zinc-500">TVA ({{ $this->facture->tax }}%)</span>
                             <span class="font-medium">{{ number_format($montantTva, 2, ',', ' ') }} €</span>
                         </div>
                     @endif
-                    <div class="flex justify-between items-baseline px-4 py-3 rounded-lg mt-2" style="background:#831843;">
+
+                    {{-- Total TTC --}}
+                    <div class="flex justify-between items-baseline px-4 py-3 rounded-lg mt-3" style="background:#831843;">
                         <span class="text-sm" style="color:#fecdd3;">Total TTC</span>
                         <span class="text-lg font-medium text-white">
                             {{ number_format(
-                                $this->facture->montant ?? $this->facture->detailsFacture->sum('montant_final_net'),
+                                $this->facture->montant ?? $totalTtc,
                                 2, ',', ' '
                             ) }} €
                         </span>
                     </div>
+
+                    {{-- Récap économies si remise --}}
+                    @if($totalRemise > 0)
+                        <div class="mt-3 px-4 py-2.5 rounded-lg flex justify-between items-center"
+                             style="background:#fce7f3;">
+                            <span class="text-xs font-medium" style="color:#9f1239;">
+                                💰 Économie réalisée
+                            </span>
+                            <span class="text-sm font-semibold" style="color:#9f1239;">
+                                {{ number_format($totalRemise, 2, ',', ' ') }} €
+                            </span>
+                        </div>
+                    @endif
+
                 </div>
             </div>
         </div>
