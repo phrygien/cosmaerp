@@ -135,7 +135,6 @@ new class extends Component
                 <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
                 @foreach ($this->facture->detailsFacture as $ligne)
                     @php
-                        {{-- PU HT depuis DetailCommande si disponible, sinon calcul depuis DetailFacture --}}
                         $detailCommande = $ligne->detailCommande;
                         $puHT = $detailCommande?->pu_achat_HT
                             ?? ($ligne->quantite_commande > 0 ? $ligne->montant_HT / $ligne->quantite_commande : 0);
