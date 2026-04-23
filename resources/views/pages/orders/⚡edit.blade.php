@@ -145,7 +145,7 @@ new class extends Component
                     'product_id'         => $detail->product_id,
                     'ancienne_quantite'  => $quantitePrecedente ?? $detail->quantite,
                     'nouvelle_quantite'  => $detail->quantite,
-                    'motif'              => 'Modification commande',
+                    'motif'              => 'Modification precommande et bon de commande',
                     'user_id'            => auth()->id(),
                     'created_at'         => now(),
                     'updated_at'         => now(),
@@ -156,7 +156,6 @@ new class extends Component
         if (!empty($historiquePayload)) {
             \App\Models\HistoriqueQuantiteDetailCommande::insert($historiquePayload);
         }
-        // ──────────────────────────────────────────────────────────────────
 
         $totalNet = $details->sum(fn($d) => $d->pu_achat_net * $d->quantite);
         $totalTax = $details->sum(fn($d) => ($d->pu_achat_net * $d->tax / 100) * $d->quantite);
@@ -167,13 +166,12 @@ new class extends Component
         }
 
         $commande->update([
-            'etat'          => CommandeEtat::Commande,
+            'etat'          => CommandeEtat::PreCommande,
             'state'         => 1,
             'montant_total' => round($totalTTC, 2),
         ]);
 
-        \App\Models\BonCommande::create([
-            'commande_id'            => $commande->id,
+        $bonCommandeData = [
             'code_fournisseur'       => $commande->fournisseur?->code ?? null,
             'numero_compte'          => $commande->fournisseur?->numero_compte ?? null,
             'date_commande'          => now(),
@@ -184,7 +182,18 @@ new class extends Component
             'magasin_livraison_id'   => $commande->magasin_livraison_id,
             'montant_commande_net'   => round($totalNet, 2),
             'state'                  => 1,
-        ]);
+        ];
+
+        $bonCommande = \App\Models\BonCommande::where('commande_id', $commande->id)->first();
+
+        if ($bonCommande) {
+            $bonCommande->update($bonCommandeData);
+        } else {
+            \App\Models\BonCommande::create(array_merge($bonCommandeData, [
+                'commande_id' => $commande->id,
+            ]));
+        }
+        // ──────────────────────────────────────────────────────────────────
 
         Flux::toast(
             heading: 'Commande confirmée',
