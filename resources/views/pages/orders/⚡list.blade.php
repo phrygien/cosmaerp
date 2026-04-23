@@ -212,6 +212,15 @@ new class extends Component
         };
     }
 
+    public function getNextStatusColor(CommandeStatus $current): string
+    {
+        return match($current) {
+            CommandeStatus::Cree     => 'blue',    // → Facturée
+            CommandeStatus::Facturee => 'green',   // → Clôturée
+            default                  => 'zinc',
+        };
+    }
+
     public function canEdit(CommandeStatus $status): bool
     {
         return $status === CommandeStatus::Cree;
@@ -533,7 +542,8 @@ new class extends Component
 
                             @elseif($nextStatus)
                                 <flux:button
-                                    variant="filled"
+                                    variant="primary"
+                                    :color="$this->getNextStatusColor($commande->status)"
                                     size="sm"
                                     icon="arrow-path"
                                     wire:click="updateStatus({{ $commande->id }}, {{ $nextStatus->value }})"
