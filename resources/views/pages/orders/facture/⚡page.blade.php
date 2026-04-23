@@ -41,7 +41,7 @@ new class extends Component
 <div class="max-w-5xl mx-auto">
 
     <flux:breadcrumbs class="mb-5">
-        <flux:breadcrumbs.item href="{{ route('orders') }}" wire:navigate>Précommande</flux:breadcrumbs.item>
+        <flux:breadcrumbs.item href="{{ route('orders.list') }}" wire:navigate>Précommande</flux:breadcrumbs.item>
         <flux:breadcrumbs.item>Facture</flux:breadcrumbs.item>
     </flux:breadcrumbs>
 
