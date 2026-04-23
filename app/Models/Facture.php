@@ -20,4 +20,9 @@ class Facture extends Model
     {
         return $this->belongsTo(Commande::class, 'commande_id', 'id');
     }
+
+    public function detailsFacture(): HasMany
+    {
+        return $this->hasMany(DetailFacture::class, 'facture_id', 'id');
+    }
 }

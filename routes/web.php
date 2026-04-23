@@ -37,6 +37,7 @@ Route::middleware(["auth", "verified"])->group(function () {
         Route::livewire("/list", "pages::orders.page")->name("list");
         Route::livewire("/create", "pages::orders.create")->name("create");
         Route::livewire("/edit/{commande_id}", "pages::orders.edit")->name("edit");
+        Route::livewire("/facture/{commande_id}", "pages::orders.facture.page")->name("facture");
     });
 
     // Réception / Approvisionnement
