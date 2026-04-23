@@ -146,7 +146,6 @@ new class extends Component
                     'state'          => 1,
                 ]);
 
-                // Update pre-commande to commande
                 $commande->update([
                     'etat' => 'commande'
                 ]);
@@ -203,6 +202,22 @@ new class extends Component
         }
     }
 
+    public function toggleCloture(int $id): void
+    {
+        $commande = Commande::findOrFail($id);
+
+        if ($commande->status !== CommandeStatus::Facturee) {
+            Flux::toast(
+                heading: 'Action impossible',
+                text: 'Seules les commandes facturées peuvent être clôturées',
+                variant: 'warning'
+            );
+            return;
+        }
+
+        $this->updateStatus($id, CommandeStatus::Cloturee->value);
+    }
+
     public function getNextStatus(CommandeStatus $current): ?CommandeStatus
     {
         return match($current) {
@@ -215,8 +230,8 @@ new class extends Component
     public function getNextStatusColor(CommandeStatus $current): string
     {
         return match($current) {
-            CommandeStatus::Cree     => 'blue',    // → Facturée
-            CommandeStatus::Facturee => 'green',   // → Clôturée
+            CommandeStatus::Cree     => 'blue',
+            CommandeStatus::Facturee => 'green',
             default                  => 'zinc',
         };
     }
@@ -428,7 +443,6 @@ new class extends Component
 
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
 
-                    <!-- Filtre statut généré depuis l'enum -->
                     <flux:radio.group wire:model.live="filterStatus" variant="segmented">
                         <flux:radio label="Tous" value="" />
                         @foreach(CommandeStatus::cases() as $case)
@@ -436,7 +450,6 @@ new class extends Component
                         @endforeach
                     </flux:radio.group>
 
-                    <!-- Filtre état généré depuis l'enum -->
                     <flux:radio.group wire:model.live="filterEtat" variant="segmented">
                         <flux:radio label="Tous" value="" />
                         @foreach(CommandeEtat::cases() as $case)
@@ -512,7 +525,7 @@ new class extends Component
                             {{ number_format($commande->montant_total, 2, ',', ' ') }} €
                         </flux:table.cell>
 
-                        {{-- Cellule Statut : badges uniquement --}}
+                        {{-- Cellule Statut avec badges --}}
                         <flux:table.cell>
                             <div class="flex flex-wrap gap-2">
                                 <flux:badge size="sm" :color="$commande->status->color()">
@@ -527,29 +540,36 @@ new class extends Component
                             </div>
                         </flux:table.cell>
 
-                        {{-- Cellule Action : bouton de transition de statut --}}
+                        {{-- Cellule Action avec Toggle pour clôturer --}}
                         <flux:table.cell class="hidden md:table-cell">
-                            @php $nextStatus = $this->getNextStatus($commande->status); @endphp
+                            @if($commande->status === CommandeStatus::Facturee && !isset($updatingStatus[$commande->id]))
+                                <button
+                                    wire:click="toggleCloture({{ $commande->id }})"
+                                    type="button"
+                                    role="switch"
+                                    aria-checked="false"
+                                    class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 hover:opacity-80"
+                                    style="background-color: #d1d5db"
+                                >
+                                    <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-1" />
+                                    <span class="sr-only">Clôturer la commande</span>
+                                </button>
+                                <span class="text-xs text-zinc-400 ml-2">Clôturer</span>
 
-                            @if(isset($updatingStatus[$commande->id]))
-                                <flux:button variant="ghost" size="sm" disabled>
-                                    <svg class="animate-spin h-3 w-3 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            @elseif($commande->status === CommandeStatus::Cloturee)
+                                <flux:badge size="sm" color="green" class="gap-1">
+                                    <flux:icon name="check-circle" class="size-3" />
+                                    Clôturée
+                                </flux:badge>
+
+                            @elseif(isset($updatingStatus[$commande->id]))
+                                <div class="flex items-center gap-2">
+                                    <svg class="animate-spin h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
                                     </svg>
-                                    Mise à jour...
-                                </flux:button>
-
-                            @elseif($nextStatus)
-                                <flux:button
-                                    variant="primary"
-                                    :color="$this->getNextStatusColor($commande->status)"
-                                    size="sm"
-                                    icon="arrow-path"
-                                    wire:click="updateStatus({{ $commande->id }}, {{ $nextStatus->value }})"
-                                >
-                                    {{ $nextStatus->label() }}
-                                </flux:button>
+                                    <span class="text-xs text-zinc-400">Mise à jour...</span>
+                                </div>
 
                             @else
                                 <span class="text-zinc-400 text-xs">—</span>
