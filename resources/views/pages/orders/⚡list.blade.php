@@ -148,7 +148,7 @@ new class extends Component
 
                 // Update pre-commande to commande
                 $commande->update([
-                   'etat' => 'commande'
+                    'etat' => 'commande'
                 ]);
 
                 $this->dispatch('facture-created', facture: $facture);
@@ -464,6 +464,9 @@ new class extends Component
                 <flux:table.column sortable :sorted="$sortBy === 'status'" :direction="$sortDirection" wire:click="sort('status')">
                     Statut
                 </flux:table.column>
+                <flux:table.column class="hidden md:table-cell">
+                    Action
+                </flux:table.column>
                 <flux:table.column sortable :sorted="$sortBy === 'created_at'" :direction="$sortDirection" wire:click="sort('created_at')" class="hidden sm:table-cell">
                     Date
                 </flux:table.column>
@@ -500,44 +503,47 @@ new class extends Component
                             {{ number_format($commande->montant_total, 2, ',', ' ') }} €
                         </flux:table.cell>
 
-                        <!-- Statut -->
+                        {{-- Cellule Statut : badges uniquement --}}
                         <flux:table.cell>
-                            <div class="flex flex-col gap-2">
-                                @php $nextStatus = $this->getNextStatus($commande->status); @endphp
+                            <div class="flex flex-wrap gap-2">
+                                <flux:badge size="sm" :color="$commande->status->color()">
+                                    {{ $commande->status->label() }}
+                                </flux:badge>
 
-                                @if($nextStatus && !isset($updatingStatus[$commande->id]))
-                                    <button
-                                        wire:click="updateStatus({{ $commande->id }}, {{ $nextStatus->value }})"
-                                        class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-colors bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400"
-                                    >
-                                        <flux:icon name="arrow-path" class="size-3" />
-                                        Passer à {{ $nextStatus->label() }}
-                                    </button>
-                                @endif
-
-                                <div class="flex flex-wrap gap-2">
-                                    <flux:badge size="sm" :color="$commande->status->color()">
-                                        {{ $commande->status->label() }}
+                                @if ($commande->etat)
+                                    <flux:badge size="sm" :color="$commande->etat->color()">
+                                        {{ $commande->etat->label() }}
                                     </flux:badge>
-
-                                    {{-- Etat via enum --}}
-                                    @if ($commande->etat)
-                                        <flux:badge size="sm" :color="$commande->etat->color()">
-                                            {{ $commande->etat->label() }}
-                                        </flux:badge>
-                                    @endif
-                                </div>
-
-                                @if(isset($updatingStatus[$commande->id]))
-                                    <div class="flex items-center gap-1 text-xs text-zinc-400">
-                                        <svg class="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                                        </svg>
-                                        Mise à jour...
-                                    </div>
                                 @endif
                             </div>
+                        </flux:table.cell>
+
+                        {{-- Cellule Action : bouton de transition de statut --}}
+                        <flux:table.cell class="hidden md:table-cell">
+                            @php $nextStatus = $this->getNextStatus($commande->status); @endphp
+
+                            @if(isset($updatingStatus[$commande->id]))
+                                <flux:button variant="ghost" size="sm" disabled>
+                                    <svg class="animate-spin h-3 w-3 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                                    </svg>
+                                    Mise à jour...
+                                </flux:button>
+
+                            @elseif($nextStatus)
+                                <flux:button
+                                    variant="filled"
+                                    size="sm"
+                                    icon="arrow-path"
+                                    wire:click="updateStatus({{ $commande->id }}, {{ $nextStatus->value }})"
+                                >
+                                    {{ $nextStatus->label() }}
+                                </flux:button>
+
+                            @else
+                                <span class="text-zinc-400 text-xs">—</span>
+                            @endif
                         </flux:table.cell>
 
                         <flux:table.cell class="hidden sm:table-cell text-zinc-400 text-sm whitespace-nowrap">
@@ -574,7 +580,7 @@ new class extends Component
 
                 @empty
                     <flux:table.row>
-                        <flux:table.cell colspan="7">
+                        <flux:table.cell colspan="8">
                             <div class="flex flex-col items-center justify-center py-12 text-center">
                                 <flux:icon name="shopping-cart" class="text-zinc-400 mb-3" style="width: 40px; height: 40px;" />
                                 <p class="text-zinc-400 font-medium text-sm">
