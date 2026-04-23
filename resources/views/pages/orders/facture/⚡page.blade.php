@@ -261,11 +261,3 @@ new class extends Component
     </flux:card>
 
 </div>
-
-<style>
-    @media print {
-        body > *:not(#facture-print) { display: none !important; }
-        #facture-print { box-shadow: none !important; border: none !important; }
-        nav, header, footer, [wire\:click], flux-button { display: none !important; }
-    }
-</style>
