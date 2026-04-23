@@ -11,6 +11,7 @@ use App\Enums\CommandeStatus;
 use App\Enums\CommandeEtat;
 use Flux\Flux;
 use Illuminate\Support\Facades\DB;
+use App\Models\DetailFacture;
 
 new class extends Component
 {
@@ -128,6 +129,9 @@ new class extends Component
             if ($newStatus === CommandeStatus::Facturee) {
                 $commande->date_facturation = now();
 
+                // Charger les détails de la commande
+                $commande->load('detailsCommande');
+
                 $factureNumber = $this->generateFactureNumber();
 
                 $facture = Facture::create([
@@ -144,9 +148,26 @@ new class extends Component
                     'state'          => 1,
                 ]);
 
-                $commande->update([
-                    'etat' => 'commande'
-                ]);
+                // Créer les détails de facture à partir des détails de commande
+                foreach ($commande->detailsCommande as $detail) {
+                    $montantHT       = $detail->quantite * $detail->prix_unitaire;
+                    $montantRemise   = $montantHT * (($detail->remise ?? 0) / 100);
+                    $montantFinalHT  = $montantHT - $montantRemise;
+                    $montantFinalNet = $montantFinalHT * (1 + (($detail->tax ?? 0) / 100));
+
+                    DetailFacture::create([
+                        'facture_id'          => $facture->id,
+                        'detail_commande_id'  => $detail->id,
+                        'quantite_commande'   => $detail->quantite,
+                        'montant_HT'          => $montantHT,
+                        'montant_remise'      => $montantRemise,
+                        'montant_final_ht'    => $montantFinalHT,
+                        'montant_final_net'   => $montantFinalNet,
+                        'state'               => 1,
+                    ]);
+                }
+
+                $commande->update(['etat' => 'commande']);
 
                 $this->dispatch('facture-created', facture: $facture);
 
