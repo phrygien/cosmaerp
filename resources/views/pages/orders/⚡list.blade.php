@@ -105,8 +105,9 @@ new class extends Component
             $newStatus = CommandeStatus::from($newStatusValue);
 
             $validTransitions = [
-                CommandeStatus::Cree->value     => [CommandeStatus::Facturee, CommandeStatus::Annulee],
-                CommandeStatus::Facturee->value  => [CommandeStatus::Cloturee, CommandeStatus::Annulee],
+                CommandeStatus::Cree->value      => [CommandeStatus::Facturee, CommandeStatus::Annulee],
+                CommandeStatus::Facturee->value  => [CommandeStatus::Recue,    CommandeStatus::Annulee],
+                CommandeStatus::Recue->value     => [CommandeStatus::Cloturee, CommandeStatus::Annulee],
                 CommandeStatus::Cloturee->value  => [],
                 CommandeStatus::Annulee->value   => [],
             ];
@@ -124,10 +125,7 @@ new class extends Component
 
             $commande->status = $newStatus;
 
-            if ($newStatus === CommandeStatus::Cloturee) {
-                $commande->date_cloture = now();
-
-            } elseif ($newStatus === CommandeStatus::Facturee) {
+            if ($newStatus === CommandeStatus::Facturee) {
                 $commande->date_facturation = now();
 
                 $factureNumber = $this->generateFactureNumber();
@@ -157,6 +155,25 @@ new class extends Component
                     text: "La facture N°{$factureNumber} a été générée automatiquement",
                     variant: 'success'
                 );
+
+            } elseif ($newStatus === CommandeStatus::Recue) {
+                $commande->date_reception = now();
+
+                // Mettre à jour la date de réception sur la facture associée
+                $facture = Facture::where('commande_id', $commande->id)->first();
+                if ($facture) {
+                    $facture->date_reception = now();
+                    $facture->save();
+                }
+
+                Flux::toast(
+                    heading: 'Commande reçue',
+                    text: "La commande \"{$commande->libelle}\" a été marquée comme reçue",
+                    variant: 'success'
+                );
+
+            } elseif ($newStatus === CommandeStatus::Cloturee) {
+                $commande->date_cloture = now();
 
             } elseif ($newStatus === CommandeStatus::Annulee) {
                 $commande->date_annulation = now();
@@ -206,10 +223,10 @@ new class extends Component
     {
         $commande = Commande::findOrFail($id);
 
-        if ($commande->status !== CommandeStatus::Facturee) {
+        if ($commande->status !== CommandeStatus::Recue) {
             Flux::toast(
                 heading: 'Action impossible',
-                text: 'Seules les commandes facturées peuvent être clôturées',
+                text: 'Seules les commandes reçues peuvent être clôturées',
                 variant: 'warning'
             );
             return;
@@ -307,6 +324,7 @@ new class extends Component
             'total'     => (clone $base)->count(),
             'crees'     => (clone $base)->where('status', CommandeStatus::Cree->value)->count(),
             'facturees' => (clone $base)->where('status', CommandeStatus::Facturee->value)->count(),
+            'recues'    => (clone $base)->where('status', CommandeStatus::Recue->value)->count(),
             'montant'   => (clone $base)->sum('montant_total'),
         ];
     }
@@ -356,7 +374,7 @@ new class extends Component
     </div>
 
     <!-- Stat Cards -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6">
         <flux:card class="p-5">
             <p class="text-sm text-zinc-500">Total Commandes</p>
             <p class="text-3xl font-bold mt-1">{{ $this->stats['total'] }}</p>
@@ -367,7 +385,11 @@ new class extends Component
         </flux:card>
         <flux:card class="p-5">
             <p class="text-sm text-zinc-500">{{ CommandeStatus::Facturee->label() }}</p>
-            <p class="text-3xl font-bold mt-1 text-green-500">{{ $this->stats['facturees'] }}</p>
+            <p class="text-3xl font-bold mt-1 text-amber-500">{{ $this->stats['facturees'] }}</p>
+        </flux:card>
+        <flux:card class="p-5">
+            <p class="text-sm text-zinc-500">{{ CommandeStatus::Recue->label() }}</p>
+            <p class="text-3xl font-bold mt-1 text-green-500">{{ $this->stats['recues'] }}</p>
         </flux:card>
         <flux:card class="p-5">
             <p class="text-sm text-zinc-500">Montant total</p>
@@ -547,15 +569,27 @@ new class extends Component
                                     {{ CommandeStatus::Facturee->label() }}
                                 </flux:button>
 
-                                {{-- Facturée → toggle pour clôturer --}}
+                                {{-- Facturée → bouton "Marquer comme reçue" (amber) --}}
                             @elseif($commande->status === CommandeStatus::Facturee)
+                                <flux:button
+                                    variant="primary"
+                                    color="amber"
+                                    size="sm"
+                                    icon="inbox-arrow-down"
+                                    wire:click="updateStatus({{ $commande->id }}, {{ CommandeStatus::Recue->value }})"
+                                >
+                                    {{ CommandeStatus::Recue->label() }}
+                                </flux:button>
+
+                                {{-- Reçue → toggle pour clôturer --}}
+                            @elseif($commande->status === CommandeStatus::Recue)
                                 <div class="flex items-center gap-2">
                                     <button
                                         wire:click="toggleCloture({{ $commande->id }})"
                                         type="button"
                                         role="switch"
                                         aria-checked="false"
-                                        class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-zinc-300 transition-colors hover:bg-zinc-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:bg-zinc-600 dark:hover:bg-zinc-500"
+                                        class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-zinc-300 transition-colors hover:bg-zinc-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:bg-zinc-600 dark:hover:bg-zinc-500"
                                     >
                                         <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform translate-x-1"></span>
                                         <span class="sr-only">Clôturer la commande</span>
@@ -565,7 +599,7 @@ new class extends Component
 
                                 {{-- Clôturée → badge final --}}
                             @elseif($commande->status === CommandeStatus::Cloturee)
-                                <flux:badge size="sm" color="green" class="gap-1">
+                                <flux:badge size="sm" color="purple" class="gap-1">
                                     <flux:icon name="check-circle" class="size-3" />
                                     Clôturée
                                 </flux:badge>

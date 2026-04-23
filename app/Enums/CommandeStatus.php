@@ -9,6 +9,8 @@ enum CommandeStatus: int
     case Facturee = 2;
     case Cloturee = 3;
 
+    case Recue = 4;
+
     public function label(): string
     {
         return match($this) {
@@ -16,6 +18,7 @@ enum CommandeStatus: int
             self::Cree     => 'Créée',
             self::Facturee => 'Facturée',
             self::Cloturee => 'Clôturée',
+            self::Recue     => 'Recue',
         };
     }
 
@@ -25,7 +28,8 @@ enum CommandeStatus: int
             self::Annulee  => 'red',
             self::Cree     => 'blue',
             self::Facturee => 'amber',
-            self::Cloturee => 'green',
+            self::Cloturee => 'purple',
+            self::Recue     => 'green',
         };
     }
 }
