@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Table(name: 'facture')]
 #[Fillable(['fournisseur_id', 'type', 'libelle', 'numero', 'date_commande', 'montant', 'date_reception', 'commande_id', 'remise', 'tax', 'state'])]
