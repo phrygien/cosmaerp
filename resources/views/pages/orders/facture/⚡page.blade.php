@@ -4,7 +4,6 @@ use Livewire\Component;
 use Livewire\Attributes\Computed;
 use App\Models\Commande;
 use App\Models\Facture;
-use App\Enums\CommandeStatus;
 
 new class extends Component
 {
@@ -21,7 +20,6 @@ new class extends Component
         return Commande::with([
             'fournisseur',
             'magasinLivraison',
-            'detailsCommande.product',
         ])->findOrFail($this->commande_id);
     }
 
@@ -61,7 +59,7 @@ new class extends Component
         {{-- En-tête facture --}}
         <div class="flex flex-col sm:flex-row sm:justify-between gap-6 mb-8">
 
-            {{-- Infos fournisseur --}}
+            {{-- Infos fournisseur (via commande, car Facture::forfaisseur a une typo et fournisseur_id peut être null) --}}
             <div>
                 <p class="text-xs font-semibold uppercase text-zinc-400 mb-2">Fournisseur</p>
                 <p class="font-bold text-lg text-zinc-800 dark:text-zinc-100">
@@ -86,13 +84,22 @@ new class extends Component
                         <span class="text-zinc-500">N° Facture :</span>
                         <span class="font-semibold">{{ $this->facture->numero }}</span>
                     </div>
+                    {{-- Facture a date_commande, pas Commande::created_at --}}
                     <div class="flex sm:justify-end gap-2">
                         <span class="text-zinc-500">Date commande :</span>
-                        <span>{{ $this->commande->created_at->translatedFormat('d F Y') }}</span>
+                        <span>
+                            {{ $this->facture->date_commande
+                                ? \Carbon\Carbon::parse($this->facture->date_commande)->translatedFormat('d F Y')
+                                : ($this->commande->created_at?->translatedFormat('d F Y') ?? '—') }}
+                        </span>
                     </div>
                     <div class="flex sm:justify-end gap-2">
-                        <span class="text-zinc-500">Date facturation :</span>
-                        <span>{{ optional($this->commande->date_facturation)->translatedFormat('d F Y') ?? '—' }}</span>
+                        <span class="text-zinc-500">Date de réception :</span>
+                        <span>
+                            {{ $this->facture->date_reception
+                                ? \Carbon\Carbon::parse($this->facture->date_reception)->translatedFormat('d F Y')
+                                : '—' }}
+                        </span>
                     </div>
                     @if($this->commande->magasinLivraison)
                         <div class="flex sm:justify-end gap-2">
@@ -118,7 +125,7 @@ new class extends Component
                 <tr class="border-b border-zinc-200 dark:border-zinc-700">
                     <th class="text-left py-3 px-2 font-semibold text-zinc-600 dark:text-zinc-300">Produit</th>
                     <th class="text-right py-3 px-2 font-semibold text-zinc-600 dark:text-zinc-300">Qté</th>
-                    <th class="text-right py-3 px-2 font-semibold text-zinc-600 dark:text-zinc-300">Prix unitaire</th>
+                    <th class="text-right py-3 px-2 font-semibold text-zinc-600 dark:text-zinc-300">PU HT</th>
                     <th class="text-right py-3 px-2 font-semibold text-zinc-600 dark:text-zinc-300">Montant HT</th>
                     <th class="text-right py-3 px-2 font-semibold text-zinc-600 dark:text-zinc-300">Remise</th>
                     <th class="text-right py-3 px-2 font-semibold text-zinc-600 dark:text-zinc-300">HT net</th>
@@ -127,32 +134,38 @@ new class extends Component
                 </thead>
                 <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
                 @foreach ($this->facture->detailsFacture as $ligne)
+                    @php
+                        {{-- PU HT depuis DetailCommande si disponible, sinon calcul depuis DetailFacture --}}
+                        $detailCommande = $ligne->detailCommande;
+                        $puHT = $detailCommande?->pu_achat_HT
+                            ?? ($ligne->quantite_commande > 0 ? $ligne->montant_HT / $ligne->quantite_commande : 0);
+                    @endphp
                     <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
                         <td class="py-3 px-2">
                             <p class="font-medium text-zinc-800 dark:text-zinc-100">
-                                {{ $ligne->detailCommande?->product?->name ?? '—' }}
+                                {{ $detailCommande?->product?->designation ?? '—' }}
                             </p>
-                            @if($ligne->detailCommande?->product?->reference)
-                                <p class="text-xs text-zinc-400">Réf. {{ $ligne->detailCommande->product->reference }}</p>
+                            @if($detailCommande?->product?->reference)
+                                <p class="text-xs text-zinc-400">Réf. {{ $detailCommande->product->reference }}</p>
                             @endif
                         </td>
                         <td class="py-3 px-2 text-right text-zinc-700 dark:text-zinc-300">
                             {{ $ligne->quantite_commande }}
                         </td>
                         <td class="py-3 px-2 text-right text-zinc-700 dark:text-zinc-300">
-                            @php
-                                $pu = $ligne->quantite_commande > 0
-                                    ? $ligne->montant_HT / $ligne->quantite_commande
-                                    : 0;
-                            @endphp
-                            {{ number_format($pu, 2, ',', ' ') }} €
+                            {{ number_format($puHT, 2, ',', ' ') }} €
                         </td>
                         <td class="py-3 px-2 text-right text-zinc-700 dark:text-zinc-300">
                             {{ number_format($ligne->montant_HT, 2, ',', ' ') }} €
                         </td>
                         <td class="py-3 px-2 text-right">
                             @if($ligne->montant_remise > 0)
-                                <span class="text-red-500">- {{ number_format($ligne->montant_remise, 2, ',', ' ') }} €</span>
+                                <span class="text-red-500">
+                                    - {{ number_format($ligne->montant_remise, 2, ',', ' ') }} €
+                                    @if($detailCommande?->taux_remise)
+                                        <span class="text-xs text-zinc-400">({{ $detailCommande->taux_remise }}%)</span>
+                                    @endif
+                                </span>
                             @else
                                 <span class="text-zinc-400">—</span>
                             @endif
@@ -199,10 +212,15 @@ new class extends Component
                 </div>
 
                 @if($this->facture->tax > 0)
+                    @php
+                        $totalHtNet = $this->facture->detailsFacture->sum('montant_final_ht');
+                        $totalTtc   = $this->facture->detailsFacture->sum('montant_final_net');
+                        $montantTva = $totalTtc - $totalHtNet;
+                    @endphp
                     <div class="flex justify-between">
                         <span class="text-zinc-500">TVA ({{ $this->facture->tax }}%)</span>
                         <span class="font-medium">
-                            {{ number_format($this->facture->detailsFacture->sum('montant_final_net') - $this->facture->detailsFacture->sum('montant_final_ht'), 2, ',', ' ') }} €
+                            {{ number_format($montantTva, 2, ',', ' ') }} €
                         </span>
                     </div>
                 @endif
@@ -211,12 +229,18 @@ new class extends Component
 
                 <div class="flex justify-between text-base font-bold text-zinc-800 dark:text-zinc-100 pt-1">
                     <span>Total TTC</span>
-                    <span>{{ number_format($this->facture->detailsFacture->sum('montant_final_net'), 2, ',', ' ') }} €</span>
+                    {{-- Utilise montant de Facture comme source de vérité, avec fallback sur la somme des lignes --}}
+                    <span>
+                        {{ number_format(
+                            $this->facture->montant ?? $this->facture->detailsFacture->sum('montant_final_net'),
+                            2, ',', ' '
+                        ) }} €
+                    </span>
                 </div>
             </div>
         </div>
 
-        {{-- Notes / dates clés --}}
+        {{-- Dates clés depuis Commande --}}
         @if($this->commande->date_cloture || $this->commande->date_reception)
             <flux:separator class="my-6" />
             <div class="flex flex-wrap gap-6 text-sm text-zinc-500">
@@ -239,7 +263,6 @@ new class extends Component
 
 </div>
 
-{{-- Style impression --}}
 <style>
     @media print {
         body > *:not(#facture-print) { display: none !important; }
