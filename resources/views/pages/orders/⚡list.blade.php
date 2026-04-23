@@ -101,7 +101,7 @@ new class extends Component
         try {
             DB::beginTransaction();
 
-            $commande  = Commande::with(['fournisseur'])->findOrFail($id);
+            $commande  = Commande::with(['fournisseur', 'detailsCommande'])->findOrFail($id);
             $oldStatus = $commande->status;
             $newStatus = CommandeStatus::from($newStatusValue);
 
@@ -131,36 +131,47 @@ new class extends Component
 
                 $factureNumber = $this->generateFactureNumber();
 
+                // Calcul du montant total réel à partir des détails
+                $montantTotal = $commande->detailsCommande->sum(function ($detail) {
+                    $montantHT      = $detail->quantite * $detail->pu_achat_HT;
+                    $montantRemise  = $montantHT * (($detail->taux_remise ?? 0) / 100);
+                    $montantFinalHT = $montantHT - $montantRemise;
+                    return $montantFinalHT * (1 + (($detail->tax ?? 0) / 100));
+                });
+
                 $facture = Facture::create([
                     'fournisseur_id' => $commande->fournisseur_id,
                     'type'           => 'achat',
                     'libelle'        => 'Facture ' . $commande->libelle,
                     'numero'         => $factureNumber,
                     'date_commande'  => $commande->created_at,
-                    'montant'        => $commande->montant_total,
+                    'montant'        => $montantTotal,
                     'date_reception' => null,
                     'commande_id'    => $commande->id,
-                    'remise'         => $commande->remise ?? 0,
-                    'tax'            => $commande->tax ?? 0,
+                    'remise'         => $commande->remise_facture ?? 0,  // ✅ champ correct sur Commande
+                    'tax'            => 0,
                     'state'          => 1,
                 ]);
 
-                // Créer les détails de facture à partir des détails de commande
                 foreach ($commande->detailsCommande as $detail) {
-                    $montantHT       = $detail->quantite * $detail->prix_unitaire;
-                    $montantRemise   = $montantHT * (($detail->remise ?? 0) / 100);
+                    // ✅ Champs corrects : pu_achat_HT, taux_remise, tax
+                    $montantHT       = $detail->quantite * $detail->pu_achat_HT;
+                    $tauxRemise      = $detail->taux_remise ?? 0;
+                    $tauxTax         = $detail->tax ?? 0;
+
+                    $montantRemise   = $montantHT * ($tauxRemise / 100);
                     $montantFinalHT  = $montantHT - $montantRemise;
-                    $montantFinalNet = $montantFinalHT * (1 + (($detail->tax ?? 0) / 100));
+                    $montantFinalNet = $montantFinalHT * (1 + ($tauxTax / 100));
 
                     DetailFacture::create([
-                        'facture_id'          => $facture->id,
-                        'detail_commande_id'  => $detail->id,
-                        'quantite_commande'   => $detail->quantite,
-                        'montant_HT'          => $montantHT,
-                        'montant_remise'      => $montantRemise,
-                        'montant_final_ht'    => $montantFinalHT,
-                        'montant_final_net'   => $montantFinalNet,
-                        'state'               => 1,
+                        'facture_id'         => $facture->id,
+                        'detail_commande_id' => $detail->id,
+                        'quantite_commande'  => $detail->quantite,
+                        'montant_HT'         => round($montantHT, 2),
+                        'montant_remise'     => round($montantRemise, 2),
+                        'montant_final_ht'   => round($montantFinalHT, 2),
+                        'montant_final_net'  => round($montantFinalNet, 2),
+                        'state'              => 1,
                     ]);
                 }
 
@@ -178,7 +189,6 @@ new class extends Component
             } elseif ($newStatus === CommandeStatus::Recue) {
                 $commande->date_reception = now();
 
-                // Mettre à jour la date de réception sur la facture associée
                 $facture = Facture::where('commande_id', $commande->id)->first();
                 if ($facture) {
                     $facture->date_reception = now();
