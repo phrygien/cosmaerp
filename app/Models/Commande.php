@@ -20,6 +20,10 @@ class Commande extends Model
         return [
             'status' => CommandeStatus::class,
             'etat' => CommandeEtat::class,
+            'date_facturation' => 'datetime',
+            'date_cloture'     => 'datetime',
+            'date_annulation'  => 'datetime',
+            'date_reception'   => 'datetime',
         ];
     }
 

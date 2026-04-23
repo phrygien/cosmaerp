@@ -92,7 +92,7 @@ new class extends Component
                     </div>
                     <div class="flex sm:justify-end gap-2">
                         <span class="text-zinc-500">Date facturation :</span>
-                        <span>{{ $this->commande->date_facturation?->translatedFormat('d F Y') ?? '—' }}</span>
+                        <span>{{ optional($this->commande->date_facturation)->translatedFormat('d F Y') ?? '—' }}</span>
                     </div>
                     @if($this->commande->magasinLivraison)
                         <div class="flex sm:justify-end gap-2">
