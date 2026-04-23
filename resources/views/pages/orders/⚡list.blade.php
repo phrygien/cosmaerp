@@ -106,9 +106,9 @@ new class extends Component
 
             $validTransitions = [
                 CommandeStatus::Cree->value      => [CommandeStatus::Facturee, CommandeStatus::Annulee],
-                CommandeStatus::Facturee->value  => [CommandeStatus::Recue,    CommandeStatus::Annulee],
-                CommandeStatus::Recue->value     => [CommandeStatus::Cloturee, CommandeStatus::Annulee],
-                CommandeStatus::Cloturee->value  => [],
+                CommandeStatus::Facturee->value  => [CommandeStatus::Cloturee, CommandeStatus::Annulee],
+                CommandeStatus::Cloturee->value  => [CommandeStatus::Recue],
+                CommandeStatus::Recue->value     => [],
                 CommandeStatus::Annulee->value   => [],
             ];
 
@@ -156,6 +156,9 @@ new class extends Component
                     variant: 'success'
                 );
 
+            } elseif ($newStatus === CommandeStatus::Cloturee) {
+                $commande->date_cloture = now();
+
             } elseif ($newStatus === CommandeStatus::Recue) {
                 $commande->date_reception = now();
 
@@ -171,9 +174,6 @@ new class extends Component
                     text: "La commande \"{$commande->libelle}\" a été marquée comme reçue",
                     variant: 'success'
                 );
-
-            } elseif ($newStatus === CommandeStatus::Cloturee) {
-                $commande->date_cloture = now();
 
             } elseif ($newStatus === CommandeStatus::Annulee) {
                 $commande->date_annulation = now();
@@ -223,10 +223,10 @@ new class extends Component
     {
         $commande = Commande::findOrFail($id);
 
-        if ($commande->status !== CommandeStatus::Recue) {
+        if ($commande->status !== CommandeStatus::Facturee) {
             Flux::toast(
                 heading: 'Action impossible',
-                text: 'Seules les commandes reçues peuvent être clôturées',
+                text: 'Seules les commandes facturées peuvent être clôturées',
                 variant: 'warning'
             );
             return;
@@ -324,7 +324,7 @@ new class extends Component
             'total'     => (clone $base)->count(),
             'crees'     => (clone $base)->where('status', CommandeStatus::Cree->value)->count(),
             'facturees' => (clone $base)->where('status', CommandeStatus::Facturee->value)->count(),
-            'recues'    => (clone $base)->where('status', CommandeStatus::Recue->value)->count(),
+            'cloturees' => (clone $base)->where('status', CommandeStatus::Cloturee->value)->count(),
             'montant'   => (clone $base)->sum('montant_total'),
         ];
     }
@@ -388,8 +388,8 @@ new class extends Component
             <p class="text-3xl font-bold mt-1 text-amber-500">{{ $this->stats['facturees'] }}</p>
         </flux:card>
         <flux:card class="p-5">
-            <p class="text-sm text-zinc-500">{{ CommandeStatus::Recue->label() }}</p>
-            <p class="text-3xl font-bold mt-1 text-green-500">{{ $this->stats['recues'] }}</p>
+            <p class="text-sm text-zinc-500">{{ CommandeStatus::Cloturee->label() }}</p>
+            <p class="text-3xl font-bold mt-1 text-purple-500">{{ $this->stats['cloturees'] }}</p>
         </flux:card>
         <flux:card class="p-5">
             <p class="text-sm text-zinc-500">Montant total</p>
@@ -569,20 +569,8 @@ new class extends Component
                                     {{ CommandeStatus::Facturee->label() }}
                                 </flux:button>
 
-                                {{-- Facturée → bouton "Marquer comme reçue" (amber) --}}
+                                {{-- Facturée → toggle pour clôturer --}}
                             @elseif($commande->status === CommandeStatus::Facturee)
-                                <flux:button
-                                    variant="primary"
-                                    color="amber"
-                                    size="sm"
-                                    icon="inbox-arrow-down"
-                                    wire:click="updateStatus({{ $commande->id }}, {{ CommandeStatus::Recue->value }})"
-                                >
-                                    {{ CommandeStatus::Recue->label() }}
-                                </flux:button>
-
-                                {{-- Reçue → toggle pour clôturer --}}
-                            @elseif($commande->status === CommandeStatus::Recue)
                                 <div class="flex items-center gap-2">
                                     <button
                                         wire:click="toggleCloture({{ $commande->id }})"
@@ -597,11 +585,23 @@ new class extends Component
                                     <span class="text-xs text-zinc-500 dark:text-zinc-400">Clôturer</span>
                                 </div>
 
-                                {{-- Clôturée → badge final --}}
+                                {{-- Clôturée → bouton "Marquer comme reçue" (green) --}}
                             @elseif($commande->status === CommandeStatus::Cloturee)
-                                <flux:badge size="sm" color="purple" class="gap-1">
+                                <flux:button
+                                    variant="primary"
+                                    color="green"
+                                    size="sm"
+                                    icon="inbox-arrow-down"
+                                    wire:click="updateStatus({{ $commande->id }}, {{ CommandeStatus::Recue->value }})"
+                                >
+                                    {{ CommandeStatus::Recue->label() }}
+                                </flux:button>
+
+                                {{-- Reçue → badge final --}}
+                            @elseif($commande->status === CommandeStatus::Recue)
+                                <flux:badge size="sm" color="green" class="gap-1">
                                     <flux:icon name="check-circle" class="size-3" />
-                                    Clôturée
+                                    {{ CommandeStatus::Recue->label() }}
                                 </flux:badge>
 
                                 {{-- Annulée ou autre → rien --}}
