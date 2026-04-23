@@ -11,6 +11,7 @@ use App\Enums\CommandeStatus;
 use App\Enums\CommandeEtat;
 use Flux\Flux;
 use Illuminate\Support\Facades\DB;
+use App\Models\DetailFacture;
 
 new class extends Component
 {
