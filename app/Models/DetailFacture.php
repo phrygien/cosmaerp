@@ -13,11 +13,11 @@ class DetailFacture extends Model
 {
     public function facture (): BelongsTo
     {
-        return $this->belongsTo(Facture::class, 'facture_id', 'id');
+        return $this->belongsTo(Facture::class, 'facture_id');
     }
 
     public function detailCommande (): BelongsTo
     {
-        return $this->belongsTo(DetailCommande::class, 'detail_commande_id', 'id');
+        return $this->belongsTo(DetailCommande::class, 'detail_commande_id');
     }
 }
