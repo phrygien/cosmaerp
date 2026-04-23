@@ -21,7 +21,7 @@ new class extends Component
         return Commande::with([
             'fournisseur',
             'magasinLivraison',
-            'detailsCommande.produit',
+            'detailsCommande.product',
         ])->findOrFail($this->commande_id);
     }
 
@@ -29,7 +29,7 @@ new class extends Component
     public function facture()
     {
         return Facture::with([
-            'detailsFacture.detailCommande.produit',
+            'detailsFacture.detailCommande.product',
         ])
             ->where('commande_id', $this->commande_id)
             ->where('state', 1)
@@ -130,10 +130,10 @@ new class extends Component
                     <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
                         <td class="py-3 px-2">
                             <p class="font-medium text-zinc-800 dark:text-zinc-100">
-                                {{ $ligne->detailCommande?->produit?->name ?? '—' }}
+                                {{ $ligne->detailCommande?->product?->name ?? '—' }}
                             </p>
-                            @if($ligne->detailCommande?->produit?->reference)
-                                <p class="text-xs text-zinc-400">Réf. {{ $ligne->detailCommande->produit->reference }}</p>
+                            @if($ligne->detailCommande?->product?->reference)
+                                <p class="text-xs text-zinc-400">Réf. {{ $ligne->detailCommande->product->reference }}</p>
                             @endif
                         </td>
                         <td class="py-3 px-2 text-right text-zinc-700 dark:text-zinc-300">
