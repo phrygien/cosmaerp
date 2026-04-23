@@ -624,7 +624,7 @@ new class extends Component
                                     </flux:menu.item>
 
                                     @if(in_array($commande->status, [CommandeStatus::Facturee, CommandeStatus::Cloturee, CommandeStatus::Recue]))
-                                        <flux:menu.item icon="receipt-percent" href="{{ route('facture', $commande->id) }}" wire:navigate>
+                                        <flux:menu.item icon="receipt-percent" href="{{ route('orders.facture', $commande->id) }}" wire:navigate>
                                             Voir la facture
                                         </flux:menu.item>
                                     @endif
