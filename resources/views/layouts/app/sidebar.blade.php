@@ -39,7 +39,7 @@
         </flux:sidebar.item>
 
         <flux:sidebar.group expandable expanded icon="shopping-cart" heading="Précommande" class="grid">
-            <flux:sidebar.item href="{{ route('orders.list') }}" wire:navigate>{{ __('Commandes') }}</flux:sidebar.item>
+            <flux:sidebar.item href="{{ route('orders.list') }}" wire:navigate>{{ __('Liste') }}</flux:sidebar.item>
             <flux:sidebar.item href="{{ route('orders.create') }}" wire:navigate>{{ __('Nouvelle') }}</flux:sidebar.item>
         </flux:sidebar.group>
 
