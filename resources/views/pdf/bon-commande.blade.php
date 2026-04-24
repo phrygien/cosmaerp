@@ -14,7 +14,7 @@
 
         body {
             font-family: 'Josefin Sans', sans-serif;
-            font-size: 10px;
+            font-size: 12px;
             color: #111;
             background: #fff;
             padding: 18px 22px;
@@ -30,15 +30,15 @@
         .address-box {
             border: 1px solid #999;
             padding: 7px 9px;
-            font-size: 9.5px;
+            font-size: 11px;
             line-height: 1.8;
             vertical-align: top;
         }
         .box-label {
-            font-size: 7.5px;
+            font-size: 9px;
             font-weight: 700;
             color: #fff;
-            background: #222;
+            background: #C44545;
             display: inline-block;
             padding: 1px 6px;
             letter-spacing: 0.12em;
@@ -49,13 +49,13 @@
             border: 1px solid #999;
             border-top: none;
             padding: 7px 9px;
-            font-size: 9.5px;
+            font-size: 11px;
             line-height: 1.8;
         }
 
         /* ── Notre N° client ── */
         .notre-num {
-            font-size: 9.5px;
+            font-size: 11px;
             margin: 6px 0 4px 0;
             letter-spacing: 0.04em;
         }
@@ -64,19 +64,20 @@
         .titre-wrap { text-align: center; margin: 6px 0 8px 0; }
         .titre-inner {
             display: inline-block;
-            border: 2px solid #111;
+            border: 2px solid #C44545;
             padding: 6px 70px;
         }
         .titre-inner h1 {
-            font-size: 16px;
+            font-size: 20px;
             font-weight: 700;
             letter-spacing: 0.18em;
             text-transform: uppercase;
+            color: #C44545;
         }
 
         /* ── Représentant ── */
         .rep-section {
-            font-size: 9.5px;
+            font-size: 11px;
             margin-bottom: 9px;
             line-height: 2;
             letter-spacing: 0.03em;
@@ -87,7 +88,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 9px;
-            font-size: 9.5px;
+            font-size: 11px;
         }
         .corps-table td { vertical-align: top; padding: 0 4px; }
         .corps-table td:first-child  { width: 38%; padding-left: 0; }
@@ -107,7 +108,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 8px;
-            font-size: 8.5px;
+            font-size: 10px;
         }
         .lignes-table th {
             background: #111;
@@ -115,7 +116,7 @@
             border: 1px solid #111;
             padding: 5px 4px;
             text-align: center;
-            font-size: 8px;
+            font-size: 9.5px;
             font-weight: 700;
             letter-spacing: 0.1em;
             text-transform: uppercase;
@@ -137,7 +138,7 @@
             width: 55%;
             margin-left: auto;
             border-collapse: collapse;
-            font-size: 9px;
+            font-size: 11px;
         }
         .totaux-table td { padding: 4px 7px; border: 1px solid #bbb; }
         .t-label    {
@@ -146,10 +147,10 @@
             width: 62%;
             letter-spacing: 0.04em;
             text-transform: uppercase;
-            font-size: 8px;
+            font-size: 9.5px;
         }
         .t-currency { text-align: center; color: #666; width: 9%; border-left: none; font-weight: 600; }
-        .t-value    { text-align: right; font-weight: 700; width: 29%; border-left: none; font-size: 9.5px; }
+        .t-value    { text-align: right; font-weight: 700; width: 29%; border-left: none; font-size: 11px; }
 
         strong { font-weight: 700; }
     </style>
