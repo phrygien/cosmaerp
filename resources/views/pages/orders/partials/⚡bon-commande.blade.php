@@ -29,9 +29,8 @@ new class extends Component
     public function load(int $id): void
     {
         $this->commandeId = $id;
-        $this->emailSent = false;
-
-        $this->commande = $this->loadCommande($id);
+        $this->emailSent  = false;
+        $this->commande   = $this->loadCommande($id);
 
         $this->bonCommande = BonCommande::with([
             'magasinFacturation',
@@ -45,8 +44,7 @@ new class extends Component
     {
         $commande    = $this->loadCommande($this->commandeId);
         $bonCommande = $this->bonCommande;
-
-        $email = $commande->fournisseur?->email;
+        $email       = $commande->fournisseur?->email;
 
         if (!$email) {
             Flux::toast('Aucune adresse email trouvée pour ce fournisseur.', variant: 'danger');
@@ -69,220 +67,269 @@ new class extends Component
 <div>
     <flux:modal name="bon-commande" class="w-full max-w-6xl">
         @if ($commande)
-            <div class="space-y-6">
 
-                {{-- En-tête --}}
-                <div class="flex items-center justify-between border-b pb-5 pr-14">
-                    <div class="flex items-center gap-4">
+            @php
+                $statusColor = match($commande->status) {
+                    -1 => 'red', 1 => 'blue', 2 => 'yellow', 3 => 'green', default => 'zinc',
+                };
+                $statusLabel = match($commande->status) {
+                    -1 => 'Annulée', 1 => 'Créée', 2 => 'Facturée', 3 => 'Clôturée', default => '—',
+                };
+                $totalBrut = $commande->details->sum(fn($d) => $d->pu_achat_HT  * $d->quantite);
+                $totalNet  = $commande->details->sum(fn($d) => $d->pu_achat_net * $d->quantite);
+                $remisePct = $totalBrut > 0 ? round((1 - $totalNet / $totalBrut) * 100, 2) : 0;
+            @endphp
+
+            <div class="space-y-0">
+
+                {{-- ─── EN-TÊTE ─── --}}
+                <div class="flex items-start justify-between pb-5 pr-14 border-b border-zinc-200 dark:border-zinc-700">
+                    <div class="flex items-center gap-3">
+                        {{-- Icône document --}}
+                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
+                            <flux:icon.document-text class="w-5 h-5 text-zinc-500" />
+                        </div>
                         <div>
-                            <flux:heading size="xl">Détails de la commande</flux:heading>
-                            <flux:text class="mt-1 text-rose-500">
-                                {{ $commande->libelle ?? 'Commande sans libellé' }}
+                            <div class="flex items-center gap-2">
+                                <flux:heading size="lg" class="leading-tight">
+                                    {{ $commande->libelle ?? 'Commande sans libellé' }}
+                                </flux:heading>
+                                <flux:badge :color="$statusColor" size="sm">{{ $statusLabel }}</flux:badge>
+                            </div>
+                            <flux:text class="text-xs text-zinc-400 mt-0.5">
+                                @if($bonCommande?->date_commande)
+                                    Commande du {{ \Carbon\Carbon::parse($bonCommande->date_commande)->translatedFormat('d F Y') }}
+                                    @endif
+                                    @if($bonCommande?->numero_compte)
+                                        &bull; N° {{ $bonCommande->numero_compte }}
+                                @endif
                             </flux:text>
                         </div>
-
-                        @php
-                            $statusColor = match($commande->status) {
-                                -1 => 'red',
-                                1  => 'blue',
-                                2  => 'yellow',
-                                3  => 'green',
-                                default => 'zinc',
-                            };
-                            $statusLabel = match($commande->status) {
-                                -1 => 'Annulée',
-                                1  => 'Créée',
-                                2  => 'Facturée',
-                                3  => 'Clôturée',
-                                default => '—',
-                            };
-                        @endphp
-                        <flux:badge :color="$statusColor" size="lg">{{ $statusLabel }}</flux:badge>
                     </div>
 
-                    {{-- Actions dans l'en-tête --}}
-                    <div class="flex items-center gap-3">
-                        <!-- Bouton PDF avec SVG -->
+                    {{-- Actions --}}
+                    <div class="flex items-center gap-2">
                         <a href="{{ route('bon-commande.pdf', $commandeId) }}" target="_blank">
-                            <flux:button variant="filled" size="sm" class="flex items-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" aria-label="PDF" role="img" viewBox="0 0 512 512" class="w-5 h-5" fill="#000000">
-                                    <rect width="512" height="512" rx="15%" fill="#c80a0a"></rect>
-                                    <path fill="#ffffff" d="M413 302c-9-10-29-15-56-15-16 0-33 2-53 5a252 252 0 0 1-52-69c10-30 17-59 17-81 0-17-6-44-30-44-7 0-13 4-17 10-10 18-6 58 13 100a898 898 0 0 1-50 117c-53 22-88 46-91 65-2 9 4 24 25 24 31 0 65-45 91-91a626 626 0 0 1 92-24c38 33 71 38 87 38 32 0 35-23 24-35zM227 111c8-12 26-8 26 16 0 16-5 42-15 72-18-42-18-75-11-88zM100 391c3-16 33-38 80-57-26 44-52 72-68 72-10 0-13-9-12-15zm197-98a574 574 0 0 0-83 22 453 453 0 0 0 36-84 327 327 0 0 0 47 62zm13 4c32-5 59-4 71-2 29 6 19 41-13 33-23-5-42-18-58-31z"></path>
-                                </svg>
-                                Télécharger le bon de commande
+                            <flux:button size="sm" variant="ghost" icon="arrow-down-tray">
+                                PDF
                             </flux:button>
                         </a>
 
-                        <!-- Bouton Email -->
                         <flux:button
                             wire:click="sendEmail"
                             wire:loading.attr="disabled"
                             wire:target="sendEmail"
                             :icon="$emailSent ? 'check-circle' : 'paper-airplane'"
-                            variant="outline"
                             size="sm"
+                            variant="outline"
                             :disabled="$emailSent || !$commande->fournisseur?->email"
                         >
-                            <span wire:loading.remove wire:target="sendEmail">
-                                {{ $emailSent ? 'Envoyé' : 'Envoyer par email' }}
-                            </span>
-                            <span wire:loading wire:target="sendEmail">Envoi en cours...</span>
+                        <span wire:loading.remove wire:target="sendEmail">
+                            {{ $emailSent ? 'Envoyé' : 'Envoyer' }}
+                        </span>
+                            <span wire:loading wire:target="sendEmail">Envoi…</span>
                         </flux:button>
                     </div>
                 </div>
 
-                {{-- Infos bon de commande --}}
-                @if ($bonCommande)
-                    <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 text-sm">
-                        <div>
-                            <p class="text-zinc-500 text-xs mb-0.5">Code fournisseur</p>
-                            <p class="font-medium">{{ $bonCommande->code_fournisseur ?? '—' }}</p>
-                        </div>
-                        <div>
-                            <p class="text-zinc-500 text-xs mb-0.5">N° compte</p>
-                            <p class="font-medium">{{ $bonCommande->numero_compte ?? '—' }}</p>
-                        </div>
-                        <div>
-                            <p class="text-zinc-500 text-xs mb-0.5">Date commande</p>
-                            <p class="font-medium">
-                                {{ $bonCommande->date_commande ? \Carbon\Carbon::parse($bonCommande->date_commande)->translatedFormat('d F Y') : '—' }}
-                            </p>
-                        </div>
-                        <div>
-                            <p class="text-zinc-500 text-xs mb-0.5">Livraison prévue</p>
-                            <p class="font-medium">
-                                {{ $bonCommande->date_livraison_prevue ? \Carbon\Carbon::parse($bonCommande->date_livraison_prevue)->translatedFormat('d F Y') : '—' }}
-                            </p>
-                        </div>
-                        <div>
-                            <p class="text-zinc-500 text-xs mb-0.5">Magasin facturation</p>
-                            <p class="font-medium">{{ $bonCommande->magasinFacturation?->name ?? '—' }}</p>
-                        </div>
-                        <div>
-                            <p class="text-zinc-500 text-xs mb-0.5">Magasin livraison</p>
-                            <p class="font-medium">{{ $bonCommande->magasinLivraison?->name ?? '—' }}</p>
-                        </div>
-                    </div>
-                @else
-                    <flux:callout icon="information-circle" color="blue">
-                        <flux:callout.heading>Aucun bon de commande</flux:callout.heading>
-                        <flux:callout.text>Aucun bon de commande n'a encore été généré pour cette commande.</flux:callout.text>
-                    </flux:callout>
-                @endif
+                {{-- ─── BLOC FOURNISSEUR + MAGASINS ─── --}}
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-px bg-zinc-200 dark:bg-zinc-700 border-b border-zinc-200 dark:border-zinc-700">
 
-                {{-- Fournisseur / Magasin --}}
-                <div class="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                        <p class="text-zinc-500 text-xs mb-0.5">Fournisseur</p>
-                        <p class="font-medium">{{ $commande->fournisseur?->name ?? '—' }}</p>
+                    {{-- Fournisseur --}}
+                    <div class="bg-white dark:bg-zinc-900 p-4">
+                        <p class="text-[11px] font-semibold uppercase tracking-widest text-zinc-400 mb-2">Fournisseur</p>
+                        <p class="font-semibold text-sm text-zinc-800 dark:text-zinc-100">
+                            {{ $commande->fournisseur?->name ?? '—' }}
+                        </p>
+                        @if($commande->fournisseur?->email)
+                            <p class="text-xs text-zinc-500 mt-0.5 flex items-center gap-1">
+                                <flux:icon.envelope class="w-3 h-3" />
+                                {{ $commande->fournisseur->email }}
+                            </p>
+                        @endif
+                        @if($bonCommande?->code_fournisseur)
+                            <p class="text-xs text-zinc-400 mt-1">Code : {{ $bonCommande->code_fournisseur }}</p>
+                        @endif
                     </div>
-                    <div>
-                        <p class="text-zinc-500 text-xs mb-0.5">Magasin livraison</p>
-                        <p class="font-medium">{{ $commande->magasinLivraison?->name ?? '—' }}</p>
+
+                    {{-- Magasin facturation --}}
+                    <div class="bg-white dark:bg-zinc-900 p-4">
+                        <p class="text-[11px] font-semibold uppercase tracking-widest text-zinc-400 mb-2">Facturation</p>
+                        <p class="font-semibold text-sm text-zinc-800 dark:text-zinc-100">
+                            {{ $bonCommande?->magasinFacturation?->name ?? '—' }}
+                        </p>
+                        @if($bonCommande?->numero_compte)
+                            <p class="text-xs text-zinc-400 mt-0.5">N° compte : {{ $bonCommande->numero_compte }}</p>
+                        @endif
+                    </div>
+
+                    {{-- Magasin livraison --}}
+                    <div class="bg-white dark:bg-zinc-900 p-4">
+                        <p class="text-[11px] font-semibold uppercase tracking-widest text-zinc-400 mb-2">Livraison</p>
+                        <p class="font-semibold text-sm text-zinc-800 dark:text-zinc-100">
+                            {{ $bonCommande?->magasinLivraison?->name ?? $commande->magasinLivraison?->name ?? '—' }}
+                        </p>
+                        @if($bonCommande?->date_livraison_prevue)
+                            <p class="text-xs text-zinc-500 mt-0.5 flex items-center gap-1">
+                                <flux:icon.calendar class="w-3 h-3" />
+                                Prévue le {{ \Carbon\Carbon::parse($bonCommande->date_livraison_prevue)->translatedFormat('d F Y') }}
+                            </p>
+                        @endif
                     </div>
                 </div>
 
-                <flux:separator />
+                {{-- ─── ALERTE SI PAS DE BON DE COMMANDE ─── --}}
+                @unless($bonCommande)
+                    <div class="px-4 pt-4">
+                        <flux:callout icon="information-circle" color="blue">
+                            <flux:callout.heading>Aucun bon de commande généré</flux:callout.heading>
+                            <flux:callout.text>Aucun bon de commande n'a encore été associé à cette commande.</flux:callout.text>
+                        </flux:callout>
+                    </div>
+                @endunless
 
-                {{-- Lignes de détail --}}
-                <div>
-                    <flux:heading size="sm" class="mb-3">Lignes de commande</flux:heading>
+                {{-- ─── LIGNES DE COMMANDE ─── --}}
+                <div class="p-4 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <flux:heading size="sm">Lignes de commande</flux:heading>
+                        <span class="text-xs text-zinc-400">
+                        {{ $commande->details->count() }} produit(s) &bull;
+                        {{ $commande->details->sum('quantite') }} unité(s)
+                    </span>
+                    </div>
 
-                    <div class="overflow-x-auto">
-                        <flux:table variant="bordered">
-                            <flux:table.columns>
-                                <flux:table.column>EAN</flux:table.column>
-                                <flux:table.column>Produit</flux:table.column>
-                                <flux:table.column>Qté</flux:table.column>
-                                <flux:table.column>PU HT</flux:table.column>
-                                <flux:table.column>Remise</flux:table.column>
-                                <flux:table.column>PU net</flux:table.column>
-                                <flux:table.column>Total HT</flux:table.column>
-                                <flux:table.column class="hidden md:table-cell">Destinations</flux:table.column>
-                            </flux:table.columns>
+                    <div class="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-700">
+                        <table class="w-full text-sm">
+                            <thead>
+                            <tr class="bg-zinc-50 dark:bg-zinc-800/60 border-b border-zinc-200 dark:border-zinc-700">
+                                <th class="text-left px-3 py-2.5 text-xs font-semibold text-zinc-500 uppercase tracking-wider">EAN</th>
+                                <th class="text-left px-3 py-2.5 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Produit</th>
+                                <th class="text-center px-3 py-2.5 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Qté</th>
+                                <th class="text-right px-3 py-2.5 text-xs font-semibold text-zinc-500 uppercase tracking-wider">PU brut HT</th>
+                                <th class="text-center px-3 py-2.5 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Remise</th>
+                                <th class="text-right px-3 py-2.5 text-xs font-semibold text-zinc-500 uppercase tracking-wider">PU net HT</th>
+                                <th class="text-right px-3 py-2.5 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Total HT</th>
+                                <th class="text-left px-3 py-2.5 text-xs font-semibold text-zinc-500 uppercase tracking-wider hidden md:table-cell">Destinations</th>
+                            </tr>
+                            </thead>
+                            <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
+                            @forelse ($commande->details as $detail)
+                                <tr class="hover:bg-zinc-50/60 dark:hover:bg-zinc-800/40 transition-colors">
 
-                            <flux:table.rows>
-                                @forelse ($commande->details as $detail)
-                                    <flux:table.row :key="$detail->id">
-
-                                        <flux:table.cell class="hidden lg:table-cell text-center">
-                                            @if($detail->product?->EAN)
-                                                <div class="flex flex-col items-center gap-1">
-                                                    <div class="barcode-wrapper" style="line-height:0">
-                                                        {!! DNS1D::getBarcodeSVG(
-                                                            $detail->product?->EAN,
-                                                            strlen($detail->product?->EAN) === 8 ? 'EAN8' : 'EAN13',
-                                                            1.3,
-                                                            40,
-                                                            'auto',
-                                                            false
-                                                        ) !!}
-                                                    </div>
-                                                    <span class="text-[10px] text-zinc-400 font-mono tracking-widest select-all">
-                                                        {{ $detail->product?->EAN }}
-                                                    </span>
-                                                </div>
-                                            @else
-                                                <span class="text-xs text-zinc-300 dark:text-zinc-600">—</span>
-                                            @endif
-                                        </flux:table.cell>
-
-
-                                        <flux:table.cell class="font-medium text-sm">{{ $detail->product?->designation ?? '—' }}</flux:table.cell>
-                                        <flux:table.cell class="text-sm">{{ $detail->quantite }}</flux:table.cell>
-                                        <flux:table.cell class="text-sm whitespace-nowrap">{{ number_format($detail->pu_achat_HT, 2, ',', ' ') }} €</flux:table.cell>
-                                        <flux:table.cell class="text-sm">{{ $detail->taux_remise ? $detail->taux_remise . ' %' : '—' }}</flux:table.cell>
-                                        <flux:table.cell class="text-sm whitespace-nowrap">{{ number_format($detail->pu_achat_net, 2, ',', ' ') }} €</flux:table.cell>
-                                        <flux:table.cell class="text-sm font-medium whitespace-nowrap">{{ number_format($detail->pu_achat_net * $detail->quantite, 2, ',', ' ') }} €</flux:table.cell>
-                                        <flux:table.cell class="hidden md:table-cell">
-                                            <div class="flex flex-wrap gap-1">
-                                                @foreach ($detail->destinations as $dest)
-                                                    <flux:badge size="sm" color="zinc">
-                                                        {{ $dest->magasin?->name ?? '—' }} ({{ $dest->quantite }})
-                                                    </flux:badge>
-                                                @endforeach
+                                    {{-- EAN + code-barres --}}
+                                    <td class="px-3 py-2.5 hidden lg:table-cell">
+                                        @if($detail->product?->EAN)
+                                            <div class="flex flex-col items-start gap-0.5">
+                                                {!! DNS1D::getBarcodeSVG(
+                                                    $detail->product->EAN,
+                                                    strlen($detail->product->EAN) === 8 ? 'EAN8' : 'EAN13',
+                                                    1.2, 35, 'auto', false
+                                                ) !!}
+                                                <span class="text-[9px] text-zinc-400 font-mono tracking-widest">
+                                                    {{ $detail->product->EAN }}
+                                                </span>
                                             </div>
-                                        </flux:table.cell>
-                                    </flux:table.row>
-                                @empty
-                                    <flux:table.row>
-                                        <flux:table.cell colspan="8">
-                                            <p class="text-center text-zinc-400 text-sm py-4">Aucune ligne de commande</p>
-                                        </flux:table.cell>
-                                    </flux:table.row>
-                                @endforelse
-                            </flux:table.rows>
-                        </flux:table>
+                                        @else
+                                            <span class="text-zinc-300 dark:text-zinc-600">—</span>
+                                        @endif
+                                    </td>
+
+                                    {{-- Désignation --}}
+                                    <td class="px-3 py-2.5 font-medium text-zinc-800 dark:text-zinc-100 max-w-[200px]">
+                                        <span class="line-clamp-2 leading-snug">
+                                            {{ $detail->product?->designation ?? '—' }}
+                                        </span>
+                                    </td>
+
+                                    {{-- Qté --}}
+                                    <td class="px-3 py-2.5 text-center">
+                                        <span class="inline-flex items-center justify-center w-8 h-6 rounded bg-zinc-100 dark:bg-zinc-800 text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                                            {{ $detail->quantite }}
+                                        </span>
+                                    </td>
+
+                                    {{-- PU brut HT --}}
+                                    <td class="px-3 py-2.5 text-right text-zinc-600 dark:text-zinc-400 tabular-nums whitespace-nowrap">
+                                        {{ number_format($detail->pu_achat_HT, 2, ',', ' ') }} €
+                                    </td>
+
+                                    {{-- Remise --}}
+                                    <td class="px-3 py-2.5 text-center">
+                                        @if($detail->taux_remise)
+                                            <flux:badge color="yellow" size="sm">{{ $detail->taux_remise }} %</flux:badge>
+                                        @else
+                                            <span class="text-zinc-300 dark:text-zinc-600">—</span>
+                                        @endif
+                                    </td>
+
+                                    {{-- PU net HT --}}
+                                    <td class="px-3 py-2.5 text-right tabular-nums whitespace-nowrap text-zinc-700 dark:text-zinc-300">
+                                        {{ number_format($detail->pu_achat_net, 2, ',', ' ') }} €
+                                    </td>
+
+                                    {{-- Total HT --}}
+                                    <td class="px-3 py-2.5 text-right font-semibold tabular-nums whitespace-nowrap text-zinc-900 dark:text-zinc-100">
+                                        {{ number_format($detail->pu_achat_net * $detail->quantite, 2, ',', ' ') }} €
+                                    </td>
+
+                                    {{-- Destinations --}}
+                                    <td class="px-3 py-2.5 hidden md:table-cell">
+                                        <div class="flex flex-wrap gap-1">
+                                            @foreach ($detail->destinations as $dest)
+                                                <flux:badge size="sm" color="zinc">
+                                                    {{ $dest->magasin?->name ?? '—' }} ({{ $dest->quantite }})
+                                                </flux:badge>
+                                            @endforeach
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="8" class="px-3 py-10 text-center text-zinc-400 text-sm">
+                                        <flux:icon.inbox class="w-8 h-8 mx-auto mb-2 text-zinc-300" />
+                                        Aucune ligne de commande
+                                    </td>
+                                </tr>
+                            @endforelse
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
-                {{-- Récapitulatif des totaux --}}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="space-y-2">
-                        <flux:heading size="sm">Informations supplémentaires</flux:heading>
-                        <div class="text-sm space-y-1">
-                            <p><span class="text-zinc-500">Nombre de produits :</span> {{ $commande->details->count() }}</p>
-                            <p><span class="text-zinc-500">Quantité totale :</span> {{ $commande->details->sum('quantite') }}</p>
-                            @if($commande->remise_facture > 0)
-                                <p><span class="text-zinc-500">Remise facture :</span> {{ $commande->remise_facture }}%</p>
-                            @endif
-                        </div>
-                    </div>
+                {{-- ─── TOTAUX ─── --}}
+                <div class="px-4 pb-4 flex justify-end">
+                    <div class="w-full max-w-xs space-y-1.5">
 
-                    <div class="flex justify-end">
-                        <div class="text-right space-y-1">
-                            <p class="text-sm text-zinc-500">Montant total</p>
-                            <p class="text-2xl font-bold">
-                                {{ number_format($commande->montant_total, 2, ',', ' ') }} €
-                            </p>
-                            @if ($bonCommande?->montant_commande_net)
-                                <p class="text-sm text-zinc-500">
-                                    Net :
-                                    <span class="font-medium text-zinc-700 dark:text-zinc-200">
-                                        {{ number_format($bonCommande->montant_commande_net, 2, ',', ' ') }} €
-                                    </span>
-                                </p>
-                            @endif
+                        <div class="flex items-center justify-between text-sm text-zinc-500">
+                            <span>Montant brut HT</span>
+                            <span class="tabular-nums font-medium text-zinc-700 dark:text-zinc-300">
+                            {{ number_format($totalBrut, 2, ',', ' ') }} €
+                        </span>
+                        </div>
+
+                        @if($remisePct > 0)
+                            <div class="flex items-center justify-between text-sm text-zinc-500">
+                                <span>Remise ({{ $remisePct }} %)</span>
+                                <span class="tabular-nums font-medium text-red-500">
+                            − {{ number_format($totalBrut - $totalNet, 2, ',', ' ') }} €
+                        </span>
+                            </div>
+                        @endif
+
+                        @if($commande->remise_facture > 0)
+                            <div class="flex items-center justify-between text-sm text-zinc-500">
+                                <span>Remise facture ({{ $commande->remise_facture }} %)</span>
+                                <span class="tabular-nums font-medium text-red-500">—</span>
+                            </div>
+                        @endif
+
+                        <div class="border-t border-zinc-200 dark:border-zinc-700 pt-2 mt-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-semibold text-zinc-700 dark:text-zinc-200">Total net HT</span>
+                                <span class="text-xl font-bold tabular-nums text-zinc-900 dark:text-zinc-50">
+                                {{ number_format($bonCommande?->montant_commande_net ?? $commande->montant_total, 2, ',', ' ') }} €
+                            </span>
+                            </div>
                         </div>
                     </div>
                 </div>
