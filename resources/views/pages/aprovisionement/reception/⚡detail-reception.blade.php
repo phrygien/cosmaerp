@@ -105,7 +105,7 @@ new class extends Component
                                                 {{ $detail->product?->designation ?? '—' }}
                                             </p>
                                             <p class="text-xs text-zinc-400 mt-0.5">
-                                                PU net : {{ number_format($detail->pu_achat_net, 2) }} €
+                                                PU net : {{ app(\App\Services\CurrencyService::class)->format($detail->pu_achat_net) }}
                                                 @if ($detail->taux_remise > 0)
                                                     · <span class="text-green-500">-{{ $detail->taux_remise }}%</span>
                                                 @endif
@@ -212,7 +212,7 @@ new class extends Component
                                     @endif
                                 </td>
                                 <td class="py-3 px-3 text-right hidden md:table-cell">
-                                    {{ $bon->montant_commande_net ? number_format($bon->montant_commande_net, 2) . ' €' : '—' }}
+                                    {{ app(\App\Services\CurrencyService::class)->format($bon->montant_commande_net) }}
                                 </td>
                                 <td></td>
                             </tr>
