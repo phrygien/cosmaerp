@@ -325,9 +325,8 @@ new class extends Component
                                 <flux:button
                                     href="{{ route('reception_commande.pdf', $bon->id) }}"
                                     target="_blank"
-                                    variant="ghost"
+                                    variant="filled"
                                     size="sm"
-                                    icon="document-arrow-down"
                                     title="{{ __('Télécharger PDF') }}"
                                 />
 
