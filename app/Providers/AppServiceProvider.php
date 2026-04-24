@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\CurrencyService;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -15,15 +16,17 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(CurrencyService::class, fn () => new CurrencyService('EUR'));
     }
 
     /**
      * Bootstrap any application services.
      */
-    public function boot(): void
+    public function boot(CurrencyService $currency): void
     {
         $this->configureDefaults();
+
+        $this->currency = $currency;
     }
 
     /**
