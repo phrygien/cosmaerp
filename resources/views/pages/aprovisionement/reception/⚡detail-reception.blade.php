@@ -2,6 +2,7 @@
 
 use Livewire\Component;
 use App\Models\BonCommande;
+use App\Services\CurrencyService;
 use Livewire\Attributes\On;
 
 new class extends Component
@@ -58,7 +59,7 @@ new class extends Component
                         @endif
                         @if ($bon->montant_commande_net)
                             <flux:badge color="blue" size="sm">
-                                {{ number_format($bon->montant_commande_net, 2) }} €
+                                {{ app(CurrencyService::class)->format($bon->montant_commande_net) }}
                             </flux:badge>
                         @endif
                     </div>
@@ -105,7 +106,7 @@ new class extends Component
                                                 {{ $detail->product?->designation ?? '—' }}
                                             </p>
                                             <p class="text-xs text-zinc-400 mt-0.5">
-                                                PU net : {{ app(\App\Services\CurrencyService::class)->format($detail->pu_achat_net) }}
+                                                PU net : {{ app(CurrencyService::class)->format($detail->pu_achat_net) }}
                                                 @if ($detail->taux_remise > 0)
                                                     · <span class="text-green-500">-{{ $detail->taux_remise }}%</span>
                                                 @endif
@@ -128,7 +129,7 @@ new class extends Component
                                     @endif
                                 </td>
                                 <td class="py-3 px-3 text-right hidden md:table-cell font-medium text-zinc-700 dark:text-zinc-200">
-                                    {{ number_format($detail->pu_achat_net * $detail->quantite, 2) }} €
+                                    {{ app(CurrencyService::class)->format($detail->pu_achat_net * $detail->quantite) }}
                                 </td>
                                 <td class="py-3 px-3 text-center">
                                     <flux:badge size="sm" :color="$synthese['color']" inset="top bottom">
@@ -212,7 +213,7 @@ new class extends Component
                                     @endif
                                 </td>
                                 <td class="py-3 px-3 text-right hidden md:table-cell">
-                                    {{ app(\App\Services\CurrencyService::class)->format($bon->montant_commande_net) }}
+                                    {{ app(CurrencyService::class)->format($bon->montant_commande_net) }}
                                 </td>
                                 <td></td>
                             </tr>
