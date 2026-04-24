@@ -145,12 +145,6 @@ new class extends Component
 
         try {
             DB::transaction(function () use ($details) {
-                // Marquer la commande comme réceptionnée
-                Commande::find($this->commande_id)?->update([
-                    'status'       => CommandeStatus::Cloturee,
-                    'date_cloture' => now(),
-                ]);
-
                 // Mise à jour du stock magasin via les destinations
                 $details->load('destinations');
 
@@ -173,6 +167,13 @@ new class extends Component
                         );
                     }
                 }
+
+                // Marquer la commande comme réceptionnée
+                Commande::find($this->commande_id)?->update([
+                    'status'       => CommandeStatus::Recue,
+                    'date_reception' => now(),
+                ]);
+
             });
 
             Flux::toast(
