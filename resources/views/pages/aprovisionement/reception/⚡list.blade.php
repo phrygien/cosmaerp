@@ -326,7 +326,6 @@ new class extends Component
                                     href="{{ route('reception_commande.pdf', $bon->id) }}"
                                     target="_blank"
                                     variant="filled"
-                                    size="sm"
                                     title="{{ __('Télécharger PDF') }}"
                                 >
                                     PDF
