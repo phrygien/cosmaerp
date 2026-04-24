@@ -278,7 +278,7 @@ new class extends Component
                         </flux:table.cell>
 
                         <flux:table.cell class="hidden md:table-cell" variant="strong">
-                            {{ $bon->montant_commande_net ? number_format($bon->montant_commande_net, 2) . ' €' : '—' }}
+                            {{ $bon->montant_commande_net ? number_format($bon->montant_commande_net, 2) . ' EUR' : '—' }}
                         </flux:table.cell>
 
                         <flux:table.cell class="text-center">
