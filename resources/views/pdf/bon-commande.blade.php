@@ -25,21 +25,21 @@
             border: 1px solid #888;
             padding: 5px 7px;
             font-size: 8.5px;
-            line-height: 1.55;
+            line-height: 1.6;
             vertical-align: top;
         }
         .box-label {
             font-size: 7px;
             color: #555;
             display: block;
-            margin-bottom: 2px;
+            margin-bottom: 3px;
         }
         .destinataire-box {
             border: 1px solid #888;
             border-top: none;
             padding: 5px 7px;
             font-size: 8.5px;
-            line-height: 1.55;
+            line-height: 1.6;
         }
 
         /* ── Notre N° client ── */
@@ -76,11 +76,12 @@
             font-size: 7.5px;
         }
         .lignes-table th {
-            background: #e8e8e8;
-            border: 1px solid #aaa;
-            padding: 3px 2px;
+            background: #000;
+            color: #fff;
+            border: 1px solid #000;
+            padding: 4px 3px;
             text-align: center;
-            font-size: 7px;
+            font-size: 7.5px;
             font-weight: bold;
         }
         .lignes-table td {
@@ -112,44 +113,37 @@
     $montantRemise = $totalBrut - $totalNet;
     $remisePct     = $totalBrut > 0 ? round((1 - $totalNet / $totalBrut) * 100, 2) : 0;
     $nbArticles    = $commande->details->count();
-    $magFact       = $bonCommande?->magasinFacturation;
     $magLiv        = $bonCommande?->magasinLivraison ?? $commande->magasinLivraison;
 @endphp
 
 {{-- ══ ADRESSES ══ --}}
 <table class="top-table" cellspacing="0" cellpadding="0">
     <tr>
-        {{-- Facturation --}}
+        {{-- Adresse de facturation (statique) --}}
         <td style="width:48%; vertical-align:top;">
             <div class="address-box">
                 <span class="box-label">Adresse de facturation</span>
-                <strong>{{ $magFact?->name ?? $commande->magasinLivraison?->name ?? '—' }}</strong><br>
-                @if($magFact?->adresse)  {{ $magFact->adresse }}<br>  @endif
-                @if($magFact?->adresse1) {{ $magFact->adresse1 }}<br> @endif
-                @php $cpF = $magFact?->code_postal ?? $magFact?->cp ?? null; @endphp
-                @if($cpF || $magFact?->ville) {{ $cpF }} {{ $magFact?->ville }}<br> @endif
-                @if($magFact?->telephone ?? $magFact?->tel ?? null)
-                    &#9742;&nbsp;{{ $magFact->telephone ?? $magFact->tel }}<br>
-                @endif
-                @if($magFact?->fax) Fax {{ $magFact->fax }} @endif
+                <strong>COSMAPARFUMERIES</strong><br>
+                Zone Industrielle<br>
+                17 Route des Boulangers<br>
+                78530 &nbsp; Buc<br>
+                &#9742; &nbsp;06 40 18 31 12<br>
+                Fax
             </div>
         </td>
 
         <td style="width:4%;"></td>
 
-        {{-- Livraison + Destinataire --}}
+        {{-- Adresse de livraison (statique) + Destinataire (dynamique) --}}
         <td style="width:48%; vertical-align:top;">
             <div class="address-box">
                 <span class="box-label">Adresse de livraison</span>
-                <strong>{{ $magLiv?->name ?? '—' }}</strong><br>
-                @if($magLiv?->adresse)  {{ $magLiv->adresse }}<br>  @endif
-                @if($magLiv?->adresse1) {{ $magLiv->adresse1 }}<br> @endif
-                @php $cpL = $magLiv?->code_postal ?? $magLiv?->cp ?? null; @endphp
-                @if($cpL || $magLiv?->ville) {{ $cpL }} {{ $magLiv?->ville }}<br> @endif
-                @if($magLiv?->telephone ?? $magLiv?->tel ?? null)
-                    &#9742;&nbsp;{{ $magLiv->telephone ?? $magLiv->tel }}<br>
-                @endif
-                @if($magLiv?->fax) Fax {{ $magLiv->fax }} @endif
+                <strong>COSMAPARFUMERIES</strong><br>
+                Zone Industrielle<br>
+                17 Route des Boulangers<br>
+                78530 &nbsp; Buc<br>
+                &#9742; &nbsp;06 16 23 02 12<br>
+                Fax 0238603031
             </div>
             <div class="destinataire-box">
                 <span class="box-label">Destinataire</span>
@@ -158,7 +152,7 @@
                 @if($commande->fournisseur?->adresse1) {{ $commande->fournisseur->adresse1 }}<br> @endif
                 @php $cpFo = $commande->fournisseur?->code_postal ?? $commande->fournisseur?->cp ?? null; @endphp
                 @if($cpFo || $commande->fournisseur?->ville)
-                    {{ $cpFo }} {{ $commande->fournisseur?->ville }}<br>
+                    {{ $cpFo }} &nbsp; {{ $commande->fournisseur?->ville }}<br>
                 @endif
                 @if($commande->fournisseur?->telephone ?? $commande->fournisseur?->tel ?? null)
                     &#9742;&nbsp;{{ $commande->fournisseur->telephone ?? $commande->fournisseur->tel }}<br>
