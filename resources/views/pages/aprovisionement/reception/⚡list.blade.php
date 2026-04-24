@@ -322,6 +322,15 @@ new class extends Component
                                     />
                                 @endif
 
+                                <flux:button
+                                    href="{{ route('reception_commande.pdf', $bon->id) }}"
+                                    target="_blank"
+                                    variant="ghost"
+                                    size="sm"
+                                    icon="document-arrow-down"
+                                    title="{{ __('Télécharger PDF') }}"
+                                />
+
                                 {{-- Bouton Supprimer --}}
                                 <flux:button
                                     wire:click.stop="confirmDelete({{ $bon->id }})"

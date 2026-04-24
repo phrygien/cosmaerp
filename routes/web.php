@@ -50,6 +50,9 @@ Route::middleware(["auth", "verified"])->group(function () {
     // PDF Bon de commande
     Route::get("/commandes/{id}/bon-commande/pdf", [BonCommandePdfController::class, "download"])
         ->name("bon-commande.pdf");
+
+    Route::get('/reception/pdf/{bon}', \App\Http\Controllers\ReceptionController::class)
+        ->name('reception_commande.pdf');
 });
 
 require __DIR__ . "/settings.php";
