@@ -134,7 +134,7 @@ new class extends Component
                 ]);
 
                 // Réinitialisation du stock lié à cette commande
-                StockMagasin::where('detail_commande_id', function ($query) {
+                StockMagasin::whereIn('detail_commande_id', function ($query) {
                     $query->select('id')
                         ->from('detail_commande')
                         ->where('commande_id', $this->commande_id);
@@ -179,7 +179,6 @@ new class extends Component
             $this->redirect(route('reception_commande.list'), navigate: true);
 
         } catch (\Throwable $e) {
-            DB::rollBack();
             Flux::toast(
                 heading: 'Erreur',
                 text: 'Une erreur est survenue lors de la modification : ' . $e->getMessage(),
@@ -187,6 +186,7 @@ new class extends Component
             );
         }
     }
+
 };
 ?>
 
