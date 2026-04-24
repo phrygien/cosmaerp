@@ -328,7 +328,7 @@ new class extends Component
                                     variant="filled"
                                     title="{{ __('Télécharger PDF') }}"
                                 >
-                                    PDF
+                                    Contrôle de réception
                                 </flux:button>
 
                                 {{-- Bouton Supprimer --}}
