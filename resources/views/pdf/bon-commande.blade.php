@@ -127,7 +127,7 @@
                 Zone Industrielle<br>
                 17 Route des Boulangers<br>
                 78530 &nbsp; Buc<br>
-                &#9742; &nbsp;06 40 18 31 12<br>
+                Tel: 06 40 18 31 12<br>
                 Fax
             </div>
         </td>
@@ -142,7 +142,7 @@
                 Zone Industrielle<br>
                 17 Route des Boulangers<br>
                 78530 &nbsp; Buc<br>
-                &#9742; &nbsp;06 16 23 02 12<br>
+                Tel: 06 16 23 02 12<br>
                 Fax 0238603031
             </div>
             <div class="destinataire-box">
@@ -159,7 +159,7 @@
                         {{ $commande->fournisseur->code_postal }} &nbsp; {{ $commande->fournisseur->ville }}<br>
                     @endif
                     @if($commande->fournisseur->telephone)
-                        &#9742;&nbsp;{{ $commande->fournisseur->telephone }}<br>
+                       Tel: {{ $commande->fournisseur->telephone }}<br>
                     @endif
                     @if($commande->fournisseur->fax)
                         Fax {{ $commande->fournisseur->fax }}<br>
