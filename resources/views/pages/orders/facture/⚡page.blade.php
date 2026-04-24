@@ -354,15 +354,15 @@ new class extends Component
 
                             <td class="text-right text-zinc-600">{{ $ligne->quantite_commande }}</td>
 
-                            <td class="text-right text-zinc-600">{{ number_format($puHT, 2, ',', ' ') }} €</td>
+                            <td class="text-right text-zinc-600">{{ number_format($puHT, 2, ',', ' ') }} EUR</td>
 
-                            <td class="text-right text-zinc-600">{{ number_format($ligne->montant_HT, 2, ',', ' ') }} €</td>
+                            <td class="text-right text-zinc-600">{{ number_format($ligne->montant_HT, 2, ',', ' ') }} EUR</td>
 
                             <td class="text-right">
                                 @if($hasRemise)
                                     <div class="flex flex-col items-end gap-1">
                                         <span class="font-semibold" style="color:#811844;">
-                                            - {{ number_format($ligne->montant_remise, 2, ',', ' ') }} €
+                                            - {{ number_format($ligne->montant_remise, 2, ',', ' ') }} EUR
                                         </span>
                                         @if($tauxRemise)
                                             <span class="remise-badge">{{ $tauxRemise }}%</span>
@@ -373,10 +373,10 @@ new class extends Component
                                 @endif
                             </td>
 
-                            <td class="text-right text-zinc-600">{{ number_format($ligne->montant_final_ht, 2, ',', ' ') }} €</td>
+                            <td class="text-right text-zinc-600">{{ number_format($ligne->montant_final_ht, 2, ',', ' ') }} EUR</td>
 
                             <td class="text-right font-semibold" style="color:#811844;">
-                                {{ number_format($ligne->montant_final_net, 2, ',', ' ') }} €
+                                {{ number_format($ligne->montant_final_net, 2, ',', ' ') }} EUR
                             </td>
                         </tr>
                     @endforeach
@@ -399,7 +399,7 @@ new class extends Component
 
                     <div class="fac-totaux-row">
                         <span class="fac-totaux-label">Total HT brut</span>
-                        <span class="fac-totaux-value">{{ number_format($totalHT, 2, ',', ' ') }} €</span>
+                        <span class="fac-totaux-value">{{ number_format($totalHT, 2, ',', ' ') }} EUR</span>
                     </div>
 
                     @if($totalRemise > 0)
@@ -411,34 +411,34 @@ new class extends Component
                                 @endif
                             </span>
                             <span class="font-semibold" style="color:#811844;">
-                                - {{ number_format($totalRemise, 2, ',', ' ') }} €
+                                - {{ number_format($totalRemise, 2, ',', ' ') }} EUR
                             </span>
                         </div>
                     @endif
 
                     <div class="fac-totaux-row">
                         <span class="fac-totaux-label">Total HT net</span>
-                        <span class="fac-totaux-value">{{ number_format($totalHtNet, 2, ',', ' ') }} €</span>
+                        <span class="fac-totaux-value">{{ number_format($totalHtNet, 2, ',', ' ') }} EUR</span>
                     </div>
 
                     @if($this->facture->tax > 0)
                         <div class="fac-totaux-row">
                             <span class="fac-totaux-label">TVA ({{ $this->facture->tax }}%)</span>
-                            <span class="fac-totaux-value">{{ number_format($montantTva, 2, ',', ' ') }} €</span>
+                            <span class="fac-totaux-value">{{ number_format($montantTva, 2, ',', ' ') }} EUR</span>
                         </div>
                     @endif
 
                     <div class="fac-totaux-ttc">
                         <span class="fac-totaux-ttc-label">Total TTC</span>
                         <span class="fac-totaux-ttc-value">
-                            {{ number_format($this->facture->montant ?? $totalTtc, 2, ',', ' ') }} €
+                            {{ number_format($this->facture->montant ?? $totalTtc, 2, ',', ' ') }} EUR
                         </span>
                     </div>
 
                     @if($totalRemise > 0)
                         <div class="fac-economie">
                             <span class="fac-economie-label">💰 Économie réalisée</span>
-                            <span class="fac-economie-value">{{ number_format($totalRemise, 2, ',', ' ') }} €</span>
+                            <span class="fac-economie-value">{{ number_format($totalRemise, 2, ',', ' ') }} EUR</span>
                         </div>
                     @endif
 
