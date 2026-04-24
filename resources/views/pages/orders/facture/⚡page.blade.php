@@ -36,18 +36,174 @@ new class extends Component
 };
 ?>
 
-{{-- Style impression --}}
 <style>
-    .fac-header-bar { background: #831843; padding: 28px 36px 24px; display: flex; justify-content: space-between; align-items: flex-start; }
-    .fac-header-bar h1 { color: #fff; }
-    .remise-badge { display: inline-flex; align-items: center; gap: 4px; background: #fce7f3; color: #9f1239; font-size: 0.7rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+    @import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,100..700;1,100..700&display=swap');
+
+    #facture-print * {
+        font-family: 'Josefin Sans', sans-serif;
+        letter-spacing: 0.02em;
+    }
+
+    /* ── Section label (style "ADRESSE DE LIVRAISON") ── */
+    .fac-section-label {
+        display: inline-block;
+        background: #811844;
+        color: #fff;
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        padding: 2px 10px;
+        margin-bottom: 10px;
+    }
+
+    /* ── Bandeau titre principal ── */
+    .fac-header-bar {
+        background: #811844;
+        padding: 28px 36px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+    .fac-header-bar h1 {
+        color: #fff;
+        font-size: 1.6rem;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+    }
+    .fac-header-sub { color: #f9a8d4; font-size: 0.8rem; margin-top: 4px; }
+    .fac-header-num-label {
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: #f9a8d4;
+        margin-bottom: 4px;
+        text-align: right;
+    }
+    .fac-header-num-value {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #fff;
+        text-align: right;
+    }
+
+    /* ── Blocs info encadrés ── */
+    .fac-info-box {
+        border: 1px solid #d1d5db;
+        padding: 14px 16px;
+    }
+
+    /* ── Table lignes ── */
+    .fac-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .fac-table thead tr {
+        border-bottom: 2px solid #811844;
+    }
+    .fac-table thead th {
+        padding: 10px 10px;
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #811844;
+        background: #fff5f7;
+    }
+    .fac-table tbody tr { border-bottom: 1px solid #f3f4f6; }
+    .fac-table tbody tr:hover { background: #fff5f7; }
+    .fac-table td { padding: 10px 10px; vertical-align: middle; }
+
+    /* ── Remise badge ── */
+    .remise-badge {
+        display: inline-flex;
+        align-items: center;
+        background: #fce7f3;
+        color: #9f1239;
+        font-size: 0.65rem;
+        font-weight: 700;
+        padding: 2px 8px;
+        letter-spacing: 0.06em;
+    }
+
+    /* ── Totaux ── */
+    .fac-totaux { width: 100%; max-width: 340px; margin-left: auto; font-size: 0.82rem; }
+    .fac-totaux-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 7px 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+    .fac-totaux-label { color: #6b7280; }
+    .fac-totaux-value { font-weight: 600; color: #111; }
+    .fac-totaux-ttc {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        background: #811844;
+        padding: 12px 16px;
+        margin-top: 10px;
+    }
+    .fac-totaux-ttc-label { color: #f9a8d4; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; }
+    .fac-totaux-ttc-value { color: #fff; font-size: 1.2rem; font-weight: 700; }
+    .fac-economie {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #fce7f3;
+        padding: 8px 16px;
+        margin-top: 6px;
+    }
+    .fac-economie-label { font-size: 0.72rem; font-weight: 700; color: #9f1239; }
+    .fac-economie-value { font-size: 0.85rem; font-weight: 700; color: #9f1239; }
+
+    /* ── Séparateur ── */
+    .fac-divider { border: none; border-top: 1.5px solid #fce7f3; margin: 24px 0; }
+
+    /* ── Pied de page ── */
+    .fac-footer {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 32px;
+        padding: 20px 36px;
+        border-top: 1px solid #f3f4f6;
+        background: #fafafa;
+    }
+    .fac-footer-label {
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #811844;
+        margin-bottom: 4px;
+    }
+    .fac-footer-value { font-size: 0.82rem; font-weight: 600; color: #374151; }
+
+    /* ── Statut badge ── */
+    .fac-status {
+        display: inline-block;
+        background: #fce7f3;
+        color: #9f1239;
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 3px 10px;
+    }
+
     @media print {
         body > *:not(#facture-print) { display: none !important; }
         #facture-print { box-shadow: none !important; border: none !important; }
         nav, header, footer, [wire\:click], flux-button { display: none !important; }
-        .fac-header-bar { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .remise-badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .remise-globale-row { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .fac-header-bar,
+        .fac-totaux-ttc,
+        .fac-economie,
+        .fac-section-label,
+        .remise-badge,
+        .fac-status,
+        .fac-table thead th {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
     }
 </style>
 
@@ -66,49 +222,50 @@ new class extends Component
         <flux:button variant="primary" icon="printer" onclick="window.print()">Imprimer</flux:button>
     </div>
 
-    <div class="rounded-xl border border-zinc-200 dark:border-zinc-700 overflow-hidden" id="facture-print">
+    <div class="border border-zinc-200 overflow-hidden" id="facture-print">
 
-        {{-- Bandeau en-tête --}}
-        <div class="fac-header-bar flex flex-col sm:flex-row sm:justify-between gap-4"
-             style="background:#831843; padding: 28px 36px 24px;">
+        {{-- ══ BANDEAU TITRE ══ --}}
+        <div class="fac-header-bar">
             <div>
-                <h1 class="text-2xl font-medium text-white tracking-wide mb-1">Facture</h1>
-                <p class="text-sm" style="color:#fecdd3;">Commande : {{ $this->commande->libelle }}</p>
+                <h1>Facture</h1>
+                <p class="fac-header-sub">Commande : {{ $this->commande->libelle }}</p>
             </div>
-            <div class="sm:text-right">
-                <p class="text-xs uppercase tracking-widest mb-1" style="color:#fecdd3;">N° Facture</p>
-                <p class="text-xl font-medium text-white">{{ $this->facture->numero }}</p>
+            <div>
+                <p class="fac-header-num-label">N° Facture</p>
+                <p class="fac-header-num-value">{{ $this->facture->numero }}</p>
             </div>
         </div>
 
-        <div class="bg-white dark:bg-zinc-900 p-8 sm:p-9">
+        <div class="bg-white p-8">
 
-            {{-- Meta : Fournisseur + Détails --}}
+            {{-- ══ META : FOURNISSEUR + DÉTAILS ══ --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-8">
 
                 {{-- Fournisseur --}}
                 <div>
-                    <p class="text-xs font-medium uppercase tracking-widest text-zinc-400 mb-3">Fournisseur</p>
-                    <p class="text-base font-medium" style="color:#be185d;">
-                        {{ $this->commande->fournisseur?->name ?? '—' }}
-                    </p>
-                    <div class="mt-2 space-y-0.5 text-sm text-zinc-500">
-                        @if($this->commande->fournisseur?->email)
-                            <p>{{ $this->commande->fournisseur->email }}</p>
-                        @endif
-                        @if($this->commande->fournisseur?->telephone)
-                            <p>{{ $this->commande->fournisseur->telephone }}</p>
-                        @endif
-                        @if($this->commande->fournisseur?->adresse)
-                            <p>{{ $this->commande->fournisseur->adresse }}</p>
-                        @endif
+                    <span class="fac-section-label">Fournisseur</span>
+                    <div class="fac-info-box">
+                        <p class="font-bold text-base" style="color:#811844;">
+                            {{ $this->commande->fournisseur?->name ?? '—' }}
+                        </p>
+                        <div class="mt-2 space-y-1 text-sm text-zinc-500" style="line-height:1.8;">
+                            @if($this->commande->fournisseur?->email)
+                                <p>{{ $this->commande->fournisseur->email }}</p>
+                            @endif
+                            @if($this->commande->fournisseur?->telephone)
+                                <p>Tél : {{ $this->commande->fournisseur->telephone }}</p>
+                            @endif
+                            @if($this->commande->fournisseur?->adresse)
+                                <p>{{ $this->commande->fournisseur->adresse }}</p>
+                            @endif
+                        </div>
                     </div>
                 </div>
 
                 {{-- Détails facture --}}
                 <div>
-                    <p class="text-xs font-medium uppercase tracking-widest text-zinc-400 mb-3">Détails</p>
-                    <div class="space-y-1.5">
+                    <span class="fac-section-label">Détails</span>
+                    <div class="fac-info-box" style="line-height:2;">
                         @foreach([
                             ['Date commande', $this->facture->date_commande
                                 ? \Carbon\Carbon::parse($this->facture->date_commande)->translatedFormat('d F Y')
@@ -119,111 +276,92 @@ new class extends Component
                         ] as [$label, $value])
                             <div class="flex justify-between text-sm">
                                 <span class="text-zinc-500">{{ $label }}</span>
-                                <span class="font-medium text-zinc-800 dark:text-zinc-200">{{ $value }}</span>
+                                <span class="font-semibold text-zinc-800">{{ $value }}</span>
                             </div>
                         @endforeach
+
                         @if($this->commande->magasinLivraison)
                             <div class="flex justify-between text-sm">
                                 <span class="text-zinc-500">Livraison</span>
-                                <span class="font-medium text-zinc-800 dark:text-zinc-200">
-                                    {{ $this->commande->magasinLivraison->name }}
-                                </span>
+                                <span class="font-semibold text-zinc-800">{{ $this->commande->magasinLivraison->name }}</span>
                             </div>
                         @endif
 
-                        {{-- Remise globale commande --}}
                         @if($this->commande->remise_facture > 0)
-                            <div class="flex justify-between text-sm">
+                            <div class="flex justify-between text-sm items-center">
                                 <span class="text-zinc-500">Remise commande</span>
                                 <span class="remise-badge">{{ $this->commande->remise_facture }}%</span>
                             </div>
                         @endif
 
-                        <div class="flex justify-end pt-1">
-                            <span class="inline-block text-xs px-3 py-1 rounded-full font-medium"
-                                  style="background:#fce7f3; color:#9f1239;">
-                                {{ $this->commande->status->label() }}
-                            </span>
+                        <div class="flex justify-between text-sm items-center pt-1">
+                            <span class="text-zinc-500">Statut</span>
+                            <span class="fac-status">{{ $this->commande->status->label() }}</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {{-- Séparateur accent --}}
-            <div style="border-top: 1.5px solid #fce7f3;" class="mb-6"></div>
+            <hr class="fac-divider">
 
-            {{-- Tableau lignes --}}
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm">
+            {{-- ══ TABLEAU LIGNES ══ --}}
+            <div>
+                <span class="fac-section-label">Lignes de facturation</span>
+            </div>
+            <div class="overflow-x-auto mt-3">
+                <table class="fac-table">
                     <thead>
-                    <tr style="border-bottom: 1.5px solid #fce7f3;">
-                        <th class="text-left py-3 px-2.5 font-medium text-xs uppercase tracking-wider" style="color:#9f1239;">Produit</th>
-                        <th class="text-right py-3 px-2.5 font-medium text-xs uppercase tracking-wider" style="color:#9f1239;">Qté</th>
-                        <th class="text-right py-3 px-2.5 font-medium text-xs uppercase tracking-wider" style="color:#9f1239;">PU HT</th>
-                        <th class="text-right py-3 px-2.5 font-medium text-xs uppercase tracking-wider" style="color:#9f1239;">Montant HT</th>
-                        <th class="text-right py-3 px-2.5 font-medium text-xs uppercase tracking-wider" style="color:#9f1239;">Remise</th>
-                        <th class="text-right py-3 px-2.5 font-medium text-xs uppercase tracking-wider" style="color:#9f1239;">HT net</th>
-                        <th class="text-right py-3 px-2.5 font-medium text-xs uppercase tracking-wider" style="color:#9f1239;">Net TTC</th>
+                    <tr>
+                        <th class="text-left">Produit</th>
+                        <th class="text-right">Qté</th>
+                        <th class="text-right">PU HT</th>
+                        <th class="text-right">Montant HT</th>
+                        <th class="text-right">Remise</th>
+                        <th class="text-right">HT net</th>
+                        <th class="text-right">Net TTC</th>
                     </tr>
                     </thead>
-                    <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
+                    <tbody>
                     @foreach ($this->facture->detailsFacture as $ligne)
                         @php
                             $detailCommande = $ligne->detailCommande;
-                            $product = $detailCommande?->product;
-                            $puHT = $detailCommande?->pu_achat_HT
+                            $product        = $detailCommande?->product;
+                            $puHT           = $detailCommande?->pu_achat_HT
                                 ?? ($ligne->quantite_commande > 0 ? $ligne->montant_HT / $ligne->quantite_commande : 0);
-                            $tauxRemise = $detailCommande?->taux_remise ?? 0;
-                            $hasRemise  = $ligne->montant_remise > 0;
+                            $tauxRemise     = $detailCommande?->taux_remise ?? 0;
+                            $hasRemise      = $ligne->montant_remise > 0;
                         @endphp
-                        <tr class="hover:bg-rose-50/40 dark:hover:bg-zinc-800/40 transition-colors">
-
-                            {{-- Colonne produit enrichie --}}
-                            <td class="py-3 px-2.5">
-                                <p class="font-medium text-zinc-800 dark:text-zinc-100">
-                                    {{ $product?->designation ?? '—' }}
-                                </p>
+                        <tr>
+                            {{-- Produit --}}
+                            <td>
+                                <p class="font-semibold text-zinc-800">{{ $product?->designation ?? '—' }}</p>
                                 @if($product?->reference)
                                     <p class="text-xs text-zinc-400 mt-0.5">Réf. {{ $product->reference }}</p>
                                 @endif
                                 @if($product?->code_barre ?? $product?->barcode ?? null)
-                                    <p class="text-xs text-zinc-400">
-                                        CB : {{ $product->code_barre ?? $product->barcode }}
-                                    </p>
+                                    <p class="text-xs text-zinc-400">CB : {{ $product->code_barre ?? $product->barcode }}</p>
                                 @endif
                                 @if($product?->famille?->name ?? $product?->category?->name ?? null)
-                                    <p class="text-xs text-zinc-400">
-                                        {{ $product->famille?->name ?? $product->category?->name }}
-                                    </p>
+                                    <p class="text-xs text-zinc-400">{{ $product->famille?->name ?? $product->category?->name }}</p>
                                 @endif
                                 @if($product?->unite ?? $product?->conditionnement ?? null)
-                                    <p class="text-xs text-zinc-400">
-                                        Unité : {{ $product->unite ?? $product->conditionnement }}
-                                    </p>
+                                    <p class="text-xs text-zinc-400">Unité : {{ $product->unite ?? $product->conditionnement }}</p>
                                 @endif
-                                {{-- Taux TVA du détail commande --}}
                                 @if($detailCommande?->tax)
                                     <p class="text-xs text-zinc-400">TVA : {{ $detailCommande->tax }}%</p>
                                 @endif
                             </td>
 
-                            <td class="py-3 px-2.5 text-right text-zinc-600 dark:text-zinc-400">
-                                {{ $ligne->quantite_commande }}
-                            </td>
+                            <td class="text-right text-zinc-600">{{ $ligne->quantite_commande }}</td>
 
-                            <td class="py-3 px-2.5 text-right text-zinc-600 dark:text-zinc-400">
-                                {{ number_format($puHT, 2, ',', ' ') }} €
-                            </td>
+                            <td class="text-right text-zinc-600">{{ number_format($puHT, 2, ',', ' ') }} €</td>
 
-                            <td class="py-3 px-2.5 text-right text-zinc-600 dark:text-zinc-400">
-                                {{ number_format($ligne->montant_HT, 2, ',', ' ') }} €
-                            </td>
+                            <td class="text-right text-zinc-600">{{ number_format($ligne->montant_HT, 2, ',', ' ') }} €</td>
 
-                            {{-- Remise ligne : montant + taux bien visibles --}}
-                            <td class="py-3 px-2.5 text-right">
+                            <td class="text-right">
                                 @if($hasRemise)
-                                    <div class="flex flex-col items-end gap-0.5">
-                                        <span class="font-medium" style="color:#be185d;">
+                                    <div class="flex flex-col items-end gap-1">
+                                        <span class="font-semibold" style="color:#811844;">
                                             - {{ number_format($ligne->montant_remise, 2, ',', ' ') }} €
                                         </span>
                                         @if($tauxRemise)
@@ -235,11 +373,9 @@ new class extends Component
                                 @endif
                             </td>
 
-                            <td class="py-3 px-2.5 text-right text-zinc-600 dark:text-zinc-400">
-                                {{ number_format($ligne->montant_final_ht, 2, ',', ' ') }} €
-                            </td>
+                            <td class="text-right text-zinc-600">{{ number_format($ligne->montant_final_ht, 2, ',', ' ') }} €</td>
 
-                            <td class="py-3 px-2.5 text-right font-medium" style="color:#9f1239;">
+                            <td class="text-right font-semibold" style="color:#811844;">
                                 {{ number_format($ligne->montant_final_net, 2, ',', ' ') }} €
                             </td>
                         </tr>
@@ -248,74 +384,61 @@ new class extends Component
                 </table>
             </div>
 
-            {{-- Totaux --}}
+            {{-- ══ TOTAUX ══ --}}
             @php
-                $totalHT      = $this->facture->detailsFacture->sum('montant_HT');
-                $totalRemise  = $this->facture->detailsFacture->sum('montant_remise');
-                $totalHtNet   = $this->facture->detailsFacture->sum('montant_final_ht');
-                $totalTtc     = $this->facture->detailsFacture->sum('montant_final_net');
-                $montantTva   = $totalTtc - $totalHtNet;
+                $totalHT          = $this->facture->detailsFacture->sum('montant_HT');
+                $totalRemise      = $this->facture->detailsFacture->sum('montant_remise');
+                $totalHtNet       = $this->facture->detailsFacture->sum('montant_final_ht');
+                $totalTtc         = $this->facture->detailsFacture->sum('montant_final_net');
+                $montantTva       = $totalTtc - $totalHtNet;
                 $tauxRemiseGlobal = $this->facture->remise ?? 0;
             @endphp
-            <div class="flex justify-end mt-8">
-                <div class="w-full sm:w-80 text-sm">
+            <div class="mt-10">
+                <span class="fac-section-label">Récapitulatif</span>
+                <div class="fac-totaux mt-3">
 
-                    {{-- Sous-total HT brut --}}
-                    <div class="flex justify-between py-1.5 border-b border-zinc-100 dark:border-zinc-800">
-                        <span class="text-zinc-500">Total HT brut</span>
-                        <span class="font-medium">{{ number_format($totalHT, 2, ',', ' ') }} €</span>
+                    <div class="fac-totaux-row">
+                        <span class="fac-totaux-label">Total HT brut</span>
+                        <span class="fac-totaux-value">{{ number_format($totalHT, 2, ',', ' ') }} €</span>
                     </div>
 
-                    {{-- Remise(s) lignes --}}
                     @if($totalRemise > 0)
-                        <div class="flex justify-between py-1.5 border-b border-zinc-100 dark:border-zinc-800">
-                            <span class="text-zinc-500">
+                        <div class="fac-totaux-row">
+                            <span class="fac-totaux-label">
                                 Remises lignes
                                 @if($tauxRemiseGlobal > 0)
-                                    <span class="text-xs ml-1 text-zinc-400">(dont {{ $tauxRemiseGlobal }}% global)</span>
+                                    <span class="text-xs text-zinc-400 ml-1">(dont {{ $tauxRemiseGlobal }}% global)</span>
                                 @endif
                             </span>
-                            <span class="font-medium" style="color:#be185d;">
+                            <span class="font-semibold" style="color:#811844;">
                                 - {{ number_format($totalRemise, 2, ',', ' ') }} €
                             </span>
                         </div>
                     @endif
 
-                    {{-- Total HT net (après remises) --}}
-                    <div class="flex justify-between py-1.5 border-b border-zinc-100 dark:border-zinc-800">
-                        <span class="text-zinc-500">Total HT net</span>
-                        <span class="font-medium">{{ number_format($totalHtNet, 2, ',', ' ') }} €</span>
+                    <div class="fac-totaux-row">
+                        <span class="fac-totaux-label">Total HT net</span>
+                        <span class="fac-totaux-value">{{ number_format($totalHtNet, 2, ',', ' ') }} €</span>
                     </div>
 
-                    {{-- TVA --}}
                     @if($this->facture->tax > 0)
-                        <div class="flex justify-between py-1.5 border-b border-zinc-100 dark:border-zinc-800">
-                            <span class="text-zinc-500">TVA ({{ $this->facture->tax }}%)</span>
-                            <span class="font-medium">{{ number_format($montantTva, 2, ',', ' ') }} €</span>
+                        <div class="fac-totaux-row">
+                            <span class="fac-totaux-label">TVA ({{ $this->facture->tax }}%)</span>
+                            <span class="fac-totaux-value">{{ number_format($montantTva, 2, ',', ' ') }} €</span>
                         </div>
                     @endif
 
-                    {{-- Total TTC --}}
-                    <div class="flex justify-between items-baseline px-4 py-3 rounded-lg mt-3" style="background:#831843;">
-                        <span class="text-sm" style="color:#fecdd3;">Total TTC</span>
-                        <span class="text-lg font-medium text-white">
-                            {{ number_format(
-                                $this->facture->montant ?? $totalTtc,
-                                2, ',', ' '
-                            ) }} €
+                    <div class="fac-totaux-ttc">
+                        <span class="fac-totaux-ttc-label">Total TTC</span>
+                        <span class="fac-totaux-ttc-value">
+                            {{ number_format($this->facture->montant ?? $totalTtc, 2, ',', ' ') }} €
                         </span>
                     </div>
 
-                    {{-- Récap économies si remise --}}
                     @if($totalRemise > 0)
-                        <div class="mt-3 px-4 py-2.5 rounded-lg flex justify-between items-center"
-                             style="background:#fce7f3;">
-                            <span class="text-xs font-medium" style="color:#9f1239;">
-                                💰 Économie réalisée
-                            </span>
-                            <span class="text-sm font-semibold" style="color:#9f1239;">
-                                {{ number_format($totalRemise, 2, ',', ' ') }} €
-                            </span>
+                        <div class="fac-economie">
+                            <span class="fac-economie-label">💰 Économie réalisée</span>
+                            <span class="fac-economie-value">{{ number_format($totalRemise, 2, ',', ' ') }} €</span>
                         </div>
                     @endif
 
@@ -323,23 +446,19 @@ new class extends Component
             </div>
         </div>
 
-        {{-- Pied de page dates clés --}}
+        {{-- ══ PIED DE PAGE ══ --}}
         @if($this->commande->date_cloture || $this->commande->date_reception)
-            <div class="flex flex-wrap gap-8 px-9 py-5 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50">
+            <div class="fac-footer">
                 @if($this->commande->date_cloture)
                     <div>
-                        <p class="text-xs uppercase tracking-widest text-zinc-400 mb-1">Date de clôture</p>
-                        <p class="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                            {{ $this->commande->date_cloture->translatedFormat('d F Y') }}
-                        </p>
+                        <p class="fac-footer-label">Date de clôture</p>
+                        <p class="fac-footer-value">{{ $this->commande->date_cloture->translatedFormat('d F Y') }}</p>
                     </div>
                 @endif
                 @if($this->commande->date_reception)
                     <div>
-                        <p class="text-xs uppercase tracking-widest text-zinc-400 mb-1">Date de réception</p>
-                        <p class="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                            {{ $this->commande->date_reception->translatedFormat('d F Y') }}
-                        </p>
+                        <p class="fac-footer-label">Date de réception</p>
+                        <p class="fac-footer-value">{{ $this->commande->date_reception->translatedFormat('d F Y') }}</p>
                     </div>
                 @endif
             </div>
