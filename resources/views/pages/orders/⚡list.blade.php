@@ -124,6 +124,7 @@ new class extends Component
                 return;
             }
 
+            // On assigne le nouveau statut une seule fois
             $commande->status = $newStatus;
 
             if ($newStatus === CommandeStatus::Facturee) {
@@ -131,7 +132,6 @@ new class extends Component
 
                 $factureNumber = $this->generateFactureNumber();
 
-                // Calcul du montant total réel à partir des détails
                 $montantTotal = $commande->detailsCommande->sum(function ($detail) {
                     $montantHT      = $detail->quantite * $detail->pu_achat_HT;
                     $montantRemise  = $montantHT * (($detail->taux_remise ?? 0) / 100);
@@ -148,7 +148,7 @@ new class extends Component
                     'montant'        => $montantTotal,
                     'date_reception' => null,
                     'commande_id'    => $commande->id,
-                    'remise'         => $commande->remise_facture ?? 0,  // ✅ champ correct sur Commande
+                    'remise'         => $commande->remise_facture ?? 0,
                     'tax'            => 0,
                     'state'          => 1,
                 ]);
@@ -174,11 +174,6 @@ new class extends Component
                     ]);
                 }
 
-                // Update Commande status to factured
-                $commande->update([
-                    'status' => CommandeStatus::Facturee
-                ]);
-
                 $this->dispatch('facture-created', facture: $facture);
 
                 Flux::toast(
@@ -195,8 +190,7 @@ new class extends Component
 
                 $facture = Facture::where('commande_id', $commande->id)->first();
                 if ($facture) {
-                    $facture->date_reception = now();
-                    $facture->save();
+                    $facture->update(['date_reception' => now()]);
                 }
 
                 Flux::toast(
@@ -210,8 +204,7 @@ new class extends Component
 
                 $facture = Facture::where('commande_id', $commande->id)->first();
                 if ($facture && $facture->state == 1) {
-                    $facture->state = 0;
-                    $facture->save();
+                    $facture->update(['state' => 0]);
 
                     Flux::toast(
                         heading: 'Facture annulée',
@@ -221,6 +214,7 @@ new class extends Component
                 }
             }
 
+            // ✅ Un seul save() pour tout
             $commande->save();
 
             DB::commit();
