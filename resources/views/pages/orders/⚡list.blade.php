@@ -534,7 +534,7 @@ new class extends Component
 
                         <flux:table.cell class="hidden sm:table-cell">
                             @if ($commande->fournisseur)
-                                <flux:badge size="sm" color="zinc" inset="top bottom">{{ $commande->fournisseur->name }}</flux:badge>
+                                <span class="text-sm font-medium uppercase">{{ $commande->fournisseur->name }}</span>
                             @else
                                 <span class="text-zinc-400 text-sm">—</span>
                             @endif
@@ -542,7 +542,7 @@ new class extends Component
 
                         <flux:table.cell class="hidden md:table-cell">
                             @if ($commande->magasinLivraison)
-                                <flux:badge size="sm" color="blue" inset="top bottom">{{ $commande->magasinLivraison->name }}</flux:badge>
+                                <span class="text-sm font-medium uppercase">{{ $commande->magasinLivraison->name }}</span>
                             @else
                                 <span class="text-zinc-400 text-sm">—</span>
                             @endif
