@@ -61,7 +61,7 @@ new class extends Component
                 <div>
                     <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Montant total</p>
                     <p class="text-sm font-semibold text-indigo-600 dark:text-indigo-400 tabular-nums">
-                        {{ number_format($selectedCommande->montant_total, 2) }} EUR
+                        {{ app(\App\Services\CurrencyService::class)->format($selectedCommande->montant_total) }}
                     </p>
                 </div>
 
