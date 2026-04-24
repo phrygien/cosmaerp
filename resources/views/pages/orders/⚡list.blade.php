@@ -124,7 +124,6 @@ new class extends Component
                 return;
             }
 
-            // On assigne le nouveau statut une seule fois
             $commande->status = $newStatus;
 
             if ($newStatus === CommandeStatus::Facturee) {
@@ -184,6 +183,7 @@ new class extends Component
 
             } elseif ($newStatus === CommandeStatus::Cloturee) {
                 $commande->date_cloture = now();
+                $commande->etat         = CommandeEtat::Commande;
 
             } elseif ($newStatus === CommandeStatus::Recue) {
                 $commande->date_reception = now();
@@ -214,7 +214,6 @@ new class extends Component
                 }
             }
 
-            // ✅ Un seul save() pour tout
             $commande->save();
 
             DB::commit();
