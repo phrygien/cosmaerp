@@ -145,7 +145,6 @@ new class extends Component
             href="{{ route('reception_commande.create') }}"
             wire:navigate
             variant="primary"
-            icon="plus"
         >
             {{ __('Nouvelle réception') }}
         </flux:button>
@@ -298,22 +297,21 @@ new class extends Component
                                 {{-- Bouton Détails --}}
                                 <flux:button
                                     wire:click.stop="openDetail({{ $bon->id }})"
-                                    variant="ghost"
-                                    size="sm"
-                                    icon="eye"
                                     title="{{ __('Détails') }}"
-                                />
+                                >
+                                    Details
+                                </flux:button>
 
                                 {{-- Bouton Modifier --}}
                                 @if($commande)
                                     <flux:button
                                         href="{{ route('reception_commande.edit', ['reception' => $bon->receptions->first()?->id]) }}"
                                         wire:navigate
-                                        variant="ghost"
-                                        size="sm"
-                                        icon="pencil-square"
+                                        variant="primary"
                                         title="{{ __('Modifier') }}"
-                                    />
+                                    >
+                                        Modifier
+                                    </flux:button>
                                 @else
                                     <flux:button
                                         variant="ghost"
@@ -327,10 +325,8 @@ new class extends Component
                                 {{-- Bouton Supprimer --}}
                                 <flux:button
                                     wire:click.stop="confirmDelete({{ $bon->id }})"
-                                    variant="ghost"
-                                    size="sm"
+                                    variant="danger"
                                     icon="trash"
-                                    class="text-red-500 hover:text-red-600"
                                     title="{{ __('Supprimer') }}"
                                 />
                             </div>

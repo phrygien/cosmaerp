@@ -115,7 +115,7 @@ new class extends Component
 
     public function annuler(): void
     {
-        $this->redirect(route('receptions.list'), navigate: true);
+        $this->redirect(route('reception_commande.list'), navigate: true);
     }
 
     public function confirmer(): void
