@@ -38,7 +38,7 @@
             font-size: 9px;
             font-weight: 700;
             color: #fff;
-            background: #C44545;
+            background: #811844;
             display: inline-block;
             padding: 1px 6px;
             letter-spacing: 0.12em;
@@ -64,7 +64,7 @@
         .titre-wrap { text-align: center; margin: 6px 0 8px 0; }
         .titre-inner {
             display: inline-block;
-            border: 2px solid #C44545;
+            border: 2px solid #811844;
             padding: 6px 70px;
         }
         .titre-inner h1 {
@@ -72,7 +72,7 @@
             font-weight: 700;
             letter-spacing: 0.18em;
             text-transform: uppercase;
-            color: #C44545;
+            color: #811844;
         }
 
         /* ── Représentant ── */
