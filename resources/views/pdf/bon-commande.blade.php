@@ -4,90 +4,130 @@
     <meta charset="UTF-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Bon de commande</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
+
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 9px;
-            color: #000;
+            font-family: 'Josefin Sans', sans-serif;
+            font-size: 10px;
+            color: #111;
             background: #fff;
-            padding: 14px 18px;
+            padding: 18px 22px;
+            letter-spacing: 0.02em;
         }
 
         /* ── Adresses ── */
         .top-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
         }
         .address-box {
-            border: 1px solid #888;
-            padding: 5px 7px;
-            font-size: 8.5px;
-            line-height: 1.6;
+            border: 1px solid #999;
+            padding: 7px 9px;
+            font-size: 9.5px;
+            line-height: 1.8;
             vertical-align: top;
         }
         .box-label {
-            font-size: 7px;
-            color: #555;
-            display: block;
-            margin-bottom: 3px;
+            font-size: 7.5px;
+            font-weight: 700;
+            color: #fff;
+            background: #222;
+            display: inline-block;
+            padding: 1px 6px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin-bottom: 5px;
         }
         .destinataire-box {
-            border: 1px solid #888;
+            border: 1px solid #999;
             border-top: none;
-            padding: 5px 7px;
-            font-size: 8.5px;
-            line-height: 1.6;
+            padding: 7px 9px;
+            font-size: 9.5px;
+            line-height: 1.8;
         }
 
         /* ── Notre N° client ── */
-        .notre-num { font-size: 8.5px; margin: 5px 0 3px 0; }
+        .notre-num {
+            font-size: 9.5px;
+            margin: 6px 0 4px 0;
+            letter-spacing: 0.04em;
+        }
 
         /* ── Titre ── */
-        .titre-wrap { text-align: center; margin: 4px 0 5px 0; }
+        .titre-wrap { text-align: center; margin: 6px 0 8px 0; }
         .titre-inner {
             display: inline-block;
-            border: 1px solid #bbb;
-            background: #f7f7f7;
-            padding: 5px 60px;
+            border: 2px solid #111;
+            padding: 6px 70px;
         }
-        .titre-inner h1 { font-size: 13px; font-weight: bold; letter-spacing: 0.5px; }
+        .titre-inner h1 {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+        }
 
         /* ── Représentant ── */
-        .rep-section { font-size: 8.5px; margin-bottom: 7px; line-height: 1.7; }
+        .rep-section {
+            font-size: 9.5px;
+            margin-bottom: 9px;
+            line-height: 2;
+            letter-spacing: 0.03em;
+        }
 
         /* ── Corps ── */
-        .corps-table { width: 100%; border-collapse: collapse; margin-bottom: 7px; font-size: 8.5px; }
-        .corps-table td { vertical-align: top; padding: 0 3px; }
+        .corps-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 9px;
+            font-size: 9.5px;
+        }
+        .corps-table td { vertical-align: top; padding: 0 4px; }
         .corps-table td:first-child  { width: 38%; padding-left: 0; }
         .corps-table td:nth-child(2) { width: 27%; text-align: center; }
         .corps-table td:last-child   { width: 35%; padding-right: 0; text-align: right; }
-        .corps-line { margin-bottom: 2px; }
-        .fournisseur-name { font-size: 12px; font-weight: bold; }
-        .page-info { line-height: 1.8; }
+        .corps-line { margin-bottom: 3px; line-height: 1.7; }
+        .fournisseur-name {
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .page-info { line-height: 2; }
 
         /* ── Table lignes ── */
         .lignes-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 6px;
-            font-size: 7.5px;
+            margin-bottom: 8px;
+            font-size: 8.5px;
         }
         .lignes-table th {
-            background: #000;
+            background: #111;
             color: #fff;
-            border: 1px solid #000;
-            padding: 4px 3px;
+            border: 1px solid #111;
+            padding: 5px 4px;
             text-align: center;
-            font-size: 7.5px;
-            font-weight: bold;
+            font-size: 8px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
         }
         .lignes-table td {
-            border: 1px solid #aaa;
-            padding: 3px 2px;
+            border: 1px solid #bbb;
+            padding: 4px 3px;
             vertical-align: middle;
+            line-height: 1.5;
+        }
+        .lignes-table tbody tr:nth-child(even) td {
+            background: #f9f9f9;
         }
         .tc { text-align: center; }
         .tr { text-align: right; }
@@ -97,12 +137,21 @@
             width: 55%;
             margin-left: auto;
             border-collapse: collapse;
+            font-size: 9px;
+        }
+        .totaux-table td { padding: 4px 7px; border: 1px solid #bbb; }
+        .t-label    {
+            font-weight: 700;
+            background: #f2f2f2;
+            width: 62%;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
             font-size: 8px;
         }
-        .totaux-table td { padding: 2.5px 5px; border: 1px solid #aaa; }
-        .t-label    { font-weight: bold; background: #f4f4f4; width: 62%; }
-        .t-currency { text-align: center; color: #555; width: 9%;  border-left: none; }
-        .t-value    { text-align: right;  font-weight: bold; width: 29%; border-left: none; }
+        .t-currency { text-align: center; color: #666; width: 9%; border-left: none; font-weight: 600; }
+        .t-value    { text-align: right; font-weight: 700; width: 29%; border-left: none; font-size: 9.5px; }
+
+        strong { font-weight: 700; }
     </style>
 </head>
 <body>
@@ -122,12 +171,12 @@
         {{-- Adresse de facturation (statique) --}}
         <td style="width:48%; vertical-align:top;">
             <div class="address-box">
-                <span class="box-label">Adresse de facturation</span>
+                <span class="box-label">Adresse de facturation</span><br>
                 <strong>COSMAPARFUMERIES</strong><br>
                 Zone Industrielle<br>
                 17 Route des Boulangers<br>
                 78530 &nbsp; Buc<br>
-                Tel: 06 40 18 31 12<br>
+                Tel : 06 40 18 31 12<br>
                 Fax
             </div>
         </td>
@@ -137,16 +186,16 @@
         {{-- Adresse de livraison (statique) + Destinataire (dynamique) --}}
         <td style="width:48%; vertical-align:top;">
             <div class="address-box">
-                <span class="box-label">Adresse de livraison</span>
+                <span class="box-label">Adresse de livraison</span><br>
                 <strong>COSMAPARFUMERIES</strong><br>
                 Zone Industrielle<br>
                 17 Route des Boulangers<br>
                 78530 &nbsp; Buc<br>
-                Tel: 06 16 23 02 12<br>
+                Tel : 06 16 23 02 12<br>
                 Fax 0238603031
             </div>
             <div class="destinataire-box">
-                <span class="box-label">Destinataire</span>
+                <span class="box-label">Destinataire</span><br>
                 @if($commande->fournisseur)
                     <strong>{{ $commande->fournisseur->name }}</strong><br>
                     @if($commande->fournisseur->raison_social)
@@ -159,10 +208,10 @@
                         {{ $commande->fournisseur->code_postal }} &nbsp; {{ $commande->fournisseur->ville }}<br>
                     @endif
                     @if($commande->fournisseur->telephone)
-                       Tel: {{ $commande->fournisseur->telephone }}<br>
+                        Tel : {{ $commande->fournisseur->telephone }}<br>
                     @endif
                     @if($commande->fournisseur->fax)
-                        Fax {{ $commande->fournisseur->fax }}<br>
+                        Fax : {{ $commande->fournisseur->fax }}<br>
                     @endif
                     @if($commande->fournisseur->mail)
                         {{ $commande->fournisseur->mail }}
@@ -187,7 +236,7 @@
 
 {{-- Représentant --}}
 <div class="rep-section">
-    Représentant :<br>&nbsp;<br>Fax
+    Représentant :<br>&nbsp;<br>Fax :
 </div>
 
 {{-- ══ CORPS ══ --}}
@@ -217,12 +266,12 @@
             <div class="page-info">
                 <div>Page : 1</div>
                 <div>Magasin de livraison N°&nbsp;{{ str_pad($magLiv?->id ?? '', 4, '0', STR_PAD_LEFT) }} {{ $magLiv?->name ?? '' }}</div>
-                <div style="margin-top:4px;">
-                    Date de livraison&nbsp;&nbsp;{{ $bonCommande?->date_livraison_prevue
+                <div style="margin-top:5px;">
+                    Date de livraison &nbsp; {{ $bonCommande?->date_livraison_prevue
                         ? \Carbon\Carbon::parse($bonCommande->date_livraison_prevue)->format('d/m/Y')
-                        : '___ /___ /______' }}
+                        : '___ / ___ / ______' }}
                 </div>
-                <div>Date de règlement&nbsp;&nbsp;___ /___</div>
+                <div>Date de règlement &nbsp; ___ / ___</div>
             </div>
         </td>
     </tr>
@@ -247,7 +296,7 @@
     <tbody>
     @forelse ($commande->details as $detail)
         <tr>
-            <td class="tc" style="font-family:monospace; font-size:7px;">{{ $detail->product?->EAN ?? '—' }}</td>
+            <td class="tc" style="font-family:monospace; font-size:7.5px;">{{ $detail->product?->EAN ?? '—' }}</td>
             <td>{{ $detail->product?->designation ?? '—' }}</td>
             <td class="tc">{{ $detail->product?->reference ?? '' }}</td>
             <td class="tc">{{ $detail->product?->ref_fournisseur ?? '' }}</td>
@@ -255,7 +304,7 @@
             <td class="tr">{{ number_format($detail->pu_achat_HT, 2, ',', ' ') }}</td>
             <td class="tc">{{ $detail->taux_remise ?? '—' }}</td>
             <td class="tr">{{ number_format($detail->pu_achat_net, 2, ',', ' ') }}</td>
-            <td class="tc" style="font-family:monospace; font-size:7px;">{{ $detail->product?->EAN ?? '' }}</td>
+            <td class="tc" style="font-family:monospace; font-size:7.5px;">{{ $detail->product?->EAN ?? '' }}</td>
             <td class="tc">
                 @if($detail->product?->EAN)
                     {!! DNS1D::getBarcodeSVG(
