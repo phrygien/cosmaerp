@@ -147,17 +147,29 @@
             </div>
             <div class="destinataire-box">
                 <span class="box-label">Destinataire</span>
-                <strong>{{ $commande->fournisseur?->name ?? '—' }}</strong><br>
-                @if($commande->fournisseur?->adresse)  {{ $commande->fournisseur->adresse }}<br>  @endif
-                @if($commande->fournisseur?->adresse1) {{ $commande->fournisseur->adresse1 }}<br> @endif
-                @php $cpFo = $commande->fournisseur?->code_postal ?? $commande->fournisseur?->cp ?? null; @endphp
-                @if($cpFo || $commande->fournisseur?->ville)
-                    {{ $cpFo }} &nbsp; {{ $commande->fournisseur?->ville }}<br>
+                @if($commande->fournisseur)
+                    <strong>{{ $commande->fournisseur->name }}</strong><br>
+                    @if($commande->fournisseur->raison_social)
+                        {{ $commande->fournisseur->raison_social }}<br>
+                    @endif
+                    @if($commande->fournisseur->adresse_siege)
+                        {{ $commande->fournisseur->adresse_siege }}<br>
+                    @endif
+                    @if($commande->fournisseur->code_postal || $commande->fournisseur->ville)
+                        {{ $commande->fournisseur->code_postal }} &nbsp; {{ $commande->fournisseur->ville }}<br>
+                    @endif
+                    @if($commande->fournisseur->telephone)
+                        &#9742;&nbsp;{{ $commande->fournisseur->telephone }}<br>
+                    @endif
+                    @if($commande->fournisseur->fax)
+                        Fax {{ $commande->fournisseur->fax }}<br>
+                    @endif
+                    @if($commande->fournisseur->mail)
+                        {{ $commande->fournisseur->mail }}
+                    @endif
+                @else
+                    <span style="color:#aaa;">—</span>
                 @endif
-                @if($commande->fournisseur?->telephone ?? $commande->fournisseur?->tel ?? null)
-                    &#9742;&nbsp;{{ $commande->fournisseur->telephone ?? $commande->fournisseur->tel }}<br>
-                @endif
-                @if($commande->fournisseur?->fax) Fax {{ $commande->fournisseur->fax }} @endif
             </div>
         </td>
     </tr>
