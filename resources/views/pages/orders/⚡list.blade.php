@@ -154,7 +154,6 @@ new class extends Component
                 ]);
 
                 foreach ($commande->detailsCommande as $detail) {
-                    // ✅ Champs corrects : pu_achat_HT, taux_remise, tax
                     $montantHT       = $detail->quantite * $detail->pu_achat_HT;
                     $tauxRemise      = $detail->taux_remise ?? 0;
                     $tauxTax         = $detail->tax ?? 0;
@@ -174,6 +173,11 @@ new class extends Component
                         'state'              => 1,
                     ]);
                 }
+
+                // Update Commande status to factured
+                $commande->update([
+                    'status' => CommandeStatus::Facturee
+                ]);
 
                 $this->dispatch('facture-created', facture: $facture);
 
