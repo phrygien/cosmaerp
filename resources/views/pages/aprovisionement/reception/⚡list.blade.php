@@ -328,7 +328,9 @@ new class extends Component
                                     variant="filled"
                                     size="sm"
                                     title="{{ __('Télécharger PDF') }}"
-                                />
+                                >
+                                    PDF
+                                </flux:button>
 
                                 {{-- Bouton Supprimer --}}
                                 <flux:button
