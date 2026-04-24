@@ -103,6 +103,11 @@ new class extends Component
             ->paginate($this->perPage);
     }
 
+    public function formatCurrency(?float $amount): string
+    {
+        return app(\App\Services\CurrencyService::class)->format($amount);
+    }
+
     #[Computed]
     public function activeFiltersCount(): int
     {
@@ -278,7 +283,7 @@ new class extends Component
                         </flux:table.cell>
 
                         <flux:table.cell class="hidden md:table-cell" variant="strong">
-                            {{ $this->currency->format($bon->montant_commande_net) }}
+                            {{ $this->formatCurrency($bon->montant_commande_net) }}
                         </flux:table.cell>
 
                         <flux:table.cell class="text-center">
