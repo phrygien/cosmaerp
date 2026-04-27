@@ -55,6 +55,11 @@ new class extends Component
     {
         return $this->details->sum('quantite');
     }
+
+    public function formatCurrency(?float $amount): string
+    {
+        return app(\App\Services\CurrencyService::class)->format($amount);
+    }
 };
 ?>
 
@@ -167,7 +172,7 @@ new class extends Component
 
                             {{-- PU HT --}}
                             <flux:table.cell variant="strong">
-                                {{ number_format($detail->pu_achat_HT, 4) }}
+                                {{ $this->formatCurrency($detail->pu_achat_HT) }}
                             </flux:table.cell>
 
                             {{-- Remise --}}
@@ -183,7 +188,7 @@ new class extends Component
 
                             {{-- PU Net --}}
                             <flux:table.cell variant="strong">
-                                {{ number_format($detail->pu_achat_net, 4) }}
+                                {{ $this->formatCurrency($detail->pu_achat_net) }}
                             </flux:table.cell>
 
                             {{-- TVA --}}
@@ -199,7 +204,7 @@ new class extends Component
                             {{-- Total Net HT --}}
                             <flux:table.cell variant="strong">
                                 <span class="tabular-nums text-indigo-600 dark:text-indigo-400">
-                                    {{ number_format($detail->pu_achat_net * $detail->quantite, 2) }}
+                                    {{ $this->formatCurrency($detail->pu_achat_net * $detail->quantite) }}
                                 </span>
                             </flux:table.cell>
 
@@ -241,14 +246,14 @@ new class extends Component
                 <div class="flex justify-between text-sm text-gray-600 dark:text-gray-400">
                     <span>Total HT brut</span>
                     <span class="font-semibold tabular-nums text-gray-900 dark:text-white">
-                        {{ number_format($this->totalHT, 2) }}
+                        {{ $this->formatCurrency($this->totalHT) }}
                     </span>
                 </div>
 
                 <div class="flex justify-between text-sm text-gray-600 dark:text-gray-400">
                     <span>Total HT net (après remises)</span>
                     <span class="font-semibold tabular-nums text-gray-900 dark:text-white">
-                        {{ number_format($this->totalNet, 2) }}
+                        {{ $this->formatCurrency($this->totalNet) }}
                     </span>
                 </div>
 
@@ -271,7 +276,7 @@ new class extends Component
                 <div class="border-t border-gray-200 dark:border-gray-700 pt-3 flex justify-between">
                     <span class="font-semibold text-gray-900 dark:text-white">Total TTC</span>
                     <span class="text-lg font-bold tabular-nums text-indigo-600 dark:text-indigo-400">
-                        {{ number_format($this->totalTTC, 2) }}
+                        {{ $this->formatCurrency($this->totalTTC) }}
                     </span>
                 </div>
             </div>

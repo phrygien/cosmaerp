@@ -178,6 +178,11 @@ new class extends Component
             }
         }
     }
+
+    public function formatCurrency(?float $amount): string
+    {
+        return app(\App\Services\CurrencyService::class)->format($amount);
+    }
 };
 ?>
 
@@ -251,7 +256,7 @@ new class extends Component
         @if($pu_achat_ht > 0)
             <div class="mt-3 rounded-md bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-4 py-2 flex items-center justify-between text-sm">
                 <span class="text-gray-500">PU Achat Net calculé</span>
-                <span class="font-semibold text-gray-900 dark:text-white">{{ number_format($pu_achat_net, 4) }}</span>
+                <span class="font-semibold text-gray-900 dark:text-white">{{ $this->formatCurrency($pu_achat_net) }}</span>
             </div>
         @endif
     </div>
@@ -259,7 +264,7 @@ new class extends Component
     {{-- Répartition par magasin --}}
     <div>
         <div class="flex items-center justify-between mb-3">
-            <flux:heading size="sm">Répartition par magasin</flux:heading>
+            <flux:heading size="sm">Répartition de stock par magasin</flux:heading>
             <span class="text-sm font-semibold {{ $this->totalQuantite > 0 ? 'text-indigo-600' : 'text-gray-400' }}">
                 Total : {{ $this->totalQuantite }} unité(s)
             </span>
