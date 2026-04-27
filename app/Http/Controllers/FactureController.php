@@ -9,7 +9,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class FactureController extends Controller
 {
     /**
-     * Génère le PDF de facture.
+     * Génère le PDF de facture calqué sur la vue Livewire existante.
      *
      * Route :
      *   Route::get('/facture/pdf/{facture}', FactureController::class)
@@ -19,35 +19,35 @@ class FactureController extends Controller
     {
         $facture->load([
             'forfaisseur',
+            'commande.fournisseur',
             'commande.magasinLivraison',
             'detailsFacture.detailCommande.product',
         ]);
 
-        $fournisseur = $facture->forfaisseur;
         $commande    = $facture->commande;
+        $fournisseur = $commande?->fournisseur ?? $facture->forfaisseur;
         $magasin     = $commande?->magasinLivraison;
 
-        // ── Lignes du tableau ──────────────────────────────────────────────
+        // ── Lignes ────────────────────────────────────────────────────────
         $lignes = collect();
 
-        foreach ($facture->detailsFacture as $detailFacture) {
-            $dc      = $detailFacture->detailCommande;
+        foreach ($facture->detailsFacture as $df) {
+            $dc      = $df->detailCommande;
             $product = $dc?->product;
 
+            $puHT = $dc?->pu_achat_HT
+                ?? ($df->quantite_commande > 0 ? $df->montant_HT / $df->quantite_commande : 0);
+
             $lignes->push([
-                'ref_interne'     => $product?->product_code ?? '—',
-                'designation'     => $product?->designation  ?? '—',
-                'article'         => $product?->article      ?? '—',
-                'ref_fournisseur' => $dc?->ref_fournisseur   ?? '—',
-                'ean'             => $product?->EAN           ?? '—',
-                'qte_commandee'   => $detailFacture->quantite_commande ?? 0,
-                'pu_ht'           => $dc?->pu_achat_HT        ?? 0,
-                'taux_remise'     => $dc?->taux_remise         ?? 0,
-                'montant_ht'      => $detailFacture->montant_HT        ?? 0,
-                'montant_remise'  => $detailFacture->montant_remise    ?? 0,
-                'montant_net_ht'  => $detailFacture->montant_final_ht  ?? 0,
-                'tva'             => $dc?->tax                 ?? 0,
-                'montant_ttc'     => $detailFacture->montant_final_net ?? 0,
+                'designation'    => $product?->designation ?? '—',
+                'tva'            => $dc?->tax ?? 0,
+                'qte'            => $df->quantite_commande ?? 0,
+                'pu_ht'          => $puHT,
+                'montant_ht'     => $df->montant_HT ?? 0,
+                'montant_remise' => $df->montant_remise ?? 0,
+                'taux_remise'    => $dc?->taux_remise ?? 0,
+                'montant_net_ht' => $df->montant_final_ht ?? 0,
+                'montant_ttc'    => $df->montant_final_net ?? 0,
             ]);
         }
 
@@ -55,13 +55,13 @@ class FactureController extends Controller
         $totalHT     = $lignes->sum('montant_ht');
         $totalRemise = $lignes->sum('montant_remise');
         $totalNetHT  = $lignes->sum('montant_net_ht');
-        $totalTTC    = $lignes->sum('montant_ttc');
+        $totalTTC    = $facture->montant ?? $lignes->sum('montant_ttc');
         $totalTVA    = $totalTTC - $totalNetHT;
 
         $data = [
             'facture'          => $facture,
-            'fournisseur'      => $fournisseur,
             'commande'         => $commande,
+            'fournisseur'      => $fournisseur,
             'magasin'          => $magasin,
             'lignes'           => $lignes,
             'total_ht'         => $totalHT,
@@ -69,13 +69,12 @@ class FactureController extends Controller
             'total_net_ht'     => $totalNetHT,
             'total_tva'        => $totalTVA,
             'total_ttc'        => $totalTTC,
-            'total_articles'   => $lignes->count(),
             'date_impression'  => now()->format('d/m/Y'),
             'heure_impression' => now()->format('H:i'),
         ];
 
         $pdf = Pdf::loadView('pdf.facture', $data)
-            ->setPaper('a4', 'landscape')
+            ->setPaper('a4', 'portrait')
             ->setOptions([
                 'defaultFont'          => 'DejaVu Sans',
                 'isRemoteEnabled'      => false,
