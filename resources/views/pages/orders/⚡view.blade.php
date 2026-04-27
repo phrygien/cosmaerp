@@ -54,9 +54,19 @@ new class extends Component
     <div class="flex items-center justify-between mb-6">
         <flux:heading size="xl" level="1">{{ __('Précommande') }}</flux:heading>
 
-        <flux:button variant="primary" class="w-full sm:w-auto" href="{{ route('orders.create') }}" wire:navigate>
-            Bon de commande
-        </flux:button>
+        <div class="flex items-center gap-2">
+            <flux:button variant="danger" wire:click="delete" wire:confirm="Êtes-vous sûr de vouloir supprimer cette commande ?">
+                Supprimer
+            </flux:button>
+
+            <flux:button variant="primary" href="{{ route('orders.edit', ['commande_id' => $this->commandeId]) }}" wire:navigate>
+                Modifier
+            </flux:button>
+
+            <flux:button icon="document-text" href="{{ route('orders.create') }}" wire:navigate>
+                Bon de commande
+            </flux:button>
+        </div>
     </div>
 
     {{-- Informations générales de la commande --}}
