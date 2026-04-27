@@ -13,165 +13,189 @@
 
         body {
             font-family: 'DejaVu Sans', Arial, sans-serif;
-            font-size: 9px;
-            color: #111;
-            background: #fff;
-        }
-
-        /* ══════════════════════════════════
-           BANDEAU TITRE (bordeaux)
-           ══════════════════════════════════ */
-        .header-bar {
-            background-color: #811844;
-            padding: 22px 28px 20px;
-            width: 100%;
-        }
-
-        .header-inner {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .header-left {
-            vertical-align: top;
-            width: 55%;
-        }
-
-        .header-right {
-            vertical-align: top;
-            text-align: right;
-            width: 45%;
-        }
-
-        .header-title {
-            font-size: 22px;
-            font-weight: bold;
-            color: #ffffff;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-
-        .header-subtitle {
-            font-size: 8px;
-            color: #f9a8d4;
-            margin-top: 4px;
-        }
-
-        .header-num-label {
-            font-size: 7px;
-            color: #f9a8d4;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 3px;
-        }
-
-        .header-num-value {
-            font-size: 16px;
-            font-weight: bold;
-            color: #ffffff;
-            letter-spacing: 1px;
-        }
-
-        /* ══════════════════════════════════
-           CORPS
-           ══════════════════════════════════ */
-        .body-wrap {
-            padding: 20px 28px;
-        }
-
-        /* ── Labels de section ── */
-        .section-label {
-            display: inline-block;
-            background-color: #811844;
-            color: #ffffff;
-            font-size: 6.5px;
-            font-weight: bold;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            padding: 2px 8px;
-            margin-bottom: 8px;
-        }
-
-        /* ── Blocs info ── */
-        .info-grid {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-
-        .info-col {
-            width: 50%;
-            vertical-align: top;
-            padding-right: 16px;
-        }
-
-        .info-col-right {
-            width: 50%;
-            vertical-align: top;
-            padding-left: 16px;
-        }
-
-        .info-box {
-            border: 1px solid #d1d5db;
-            padding: 10px 12px;
-        }
-
-        .fournisseur-name {
-            font-size: 12px;
-            font-weight: bold;
-            color: #811844;
-        }
-
-        /* Tableau infos détails */
-        .detail-info-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .detail-info-table tr td {
-            padding: 3.5px 0;
             font-size: 8.5px;
-            border: none;
+            color: #222;
+            background: #fff;
+            padding: 28px 32px;
         }
 
-        .detail-info-table tr td.di-label {
-            color: #6b7280;
-            width: 50%;
+        /* ══════════════════════════════════
+           EN-TÊTE : LOGO + ÉMETTEUR
+           ══════════════════════════════════ */
+        .top-header {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 18px;
         }
 
-        .detail-info-table tr td.di-value {
+        .top-logo-cell {
+            width: 38%;
+            vertical-align: top;
+        }
+
+        .logo-box {
+            border: 1px solid #ccc;
+            padding: 10px 14px;
+            display: inline-block;
+            min-width: 120px;
+        }
+
+        .logo-company {
+            font-size: 13px;
+            font-weight: bold;
+            color: #444;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .logo-tagline {
+            font-size: 6.5px;
+            color: #888;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        .top-emetteur-cell {
+            width: 62%;
+            vertical-align: top;
             text-align: right;
-            font-weight: 600;
-            color: #111;
         }
 
-        .badge-remise {
-            display: inline-block;
-            background-color: #fce7f3;
-            color: #9f1239;
-            font-size: 7px;
+        .emetteur-name {
+            font-size: 11px;
             font-weight: bold;
-            padding: 1px 6px;
-        }
-
-        .badge-status {
-            display: inline-block;
-            background-color: #fce7f3;
-            color: #9f1239;
-            font-size: 7px;
-            font-weight: bold;
+            color: #222;
             letter-spacing: 0.5px;
             text-transform: uppercase;
-            padding: 2px 7px;
+        }
+
+        .emetteur-info {
+            font-size: 7.5px;
+            color: #555;
+            line-height: 1.7;
+            margin-top: 3px;
         }
 
         /* ══════════════════════════════════
-           SÉPARATEUR
+           BLOC : DESTINATAIRE + N° FACTURE
            ══════════════════════════════════ */
-        .divider {
-            border: none;
-            border-top: 1.5px solid #fce7f3;
-            margin: 16px 0;
+        .meta-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 16px;
+        }
+
+        .meta-left {
+            width: 55%;
+            vertical-align: top;
+        }
+
+        .meta-right {
+            width: 45%;
+            vertical-align: top;
+            text-align: right;
+        }
+
+        .destinataire-title {
+            font-size: 9px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        .destinataire-row {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .destinataire-row td {
+            font-size: 8px;
+            padding: 1.5px 0;
+            vertical-align: top;
+        }
+
+        .dest-label {
+            font-weight: bold;
+            width: 30%;
+            color: #444;
+        }
+
+        .dest-value {
+            color: #222;
+        }
+
+        /* N° Facture + Date */
+        .fac-num-label {
+            font-size: 8px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #444;
+            margin-bottom: 2px;
+        }
+
+        .fac-num-value {
+            font-size: 22px;
+            font-weight: bold;
+            color: #c0392b;
+            letter-spacing: 1px;
+        }
+
+        .fac-date-row {
+            font-size: 8px;
+            color: #444;
+            margin-top: 6px;
+            line-height: 1.8;
+        }
+
+        .fac-date-label {
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .fac-payable {
+            font-size: 7.5px;
+            color: #888;
+            font-style: italic;
+            margin-top: 6px;
+        }
+
+        /* ══════════════════════════════════
+           TITRE CENTRAL "FACTURE"
+           ══════════════════════════════════ */
+        .doc-title-row {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+
+        .doc-title-center {
+            text-align: center;
+        }
+
+        .doc-title {
+            font-size: 20px;
+            font-weight: bold;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: #222;
+        }
+
+        .doc-page {
+            font-size: 7.5px;
+            color: #888;
+            text-align: right;
+            vertical-align: bottom;
+        }
+
+        /* Barre orange sous le titre */
+        .orange-bar {
+            height: 2.5px;
+            background-color: #e8813a;
+            margin-bottom: 10px;
         }
 
         /* ══════════════════════════════════
@@ -180,441 +204,440 @@
         .lines-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 4px;
+            border: 0.8px solid #ccc;
         }
 
-        .lines-table thead tr {
-            border-bottom: 2px solid #811844;
-        }
-
-        .lines-table thead th {
-            padding: 7px 6px;
-            font-size: 6.5px;
+        .lines-table thead tr th {
+            background-color: #fff;
+            color: #222;
+            font-size: 7.5px;
             font-weight: bold;
-            letter-spacing: 1px;
             text-transform: uppercase;
-            color: #811844;
-            background-color: #fff5f7;
-            text-align: right;
-        }
-
-        .lines-table thead th.th-left {
+            letter-spacing: 0.5px;
+            padding: 7px 8px;
+            border-bottom: 0.8px solid #ccc;
+            border-right: 0.5px solid #ddd;
             text-align: left;
         }
 
-        .lines-table tbody tr {
-            border-bottom: 1px solid #f3f4f6;
+        .lines-table thead tr th.th-right {
+            text-align: right;
         }
 
-        .lines-table tbody td {
-            padding: 8px 6px;
+        .lines-table tbody tr td {
             font-size: 8px;
+            padding: 7px 8px;
             vertical-align: top;
+            border-bottom: 0.5px solid #eee;
+            border-right: 0.5px solid #eee;
+            color: #333;
+        }
+
+        .lines-table tbody tr td.td-right {
             text-align: right;
         }
 
-        .lines-table tbody td.td-left {
-            text-align: left;
+        /* Zone note / description libre */
+        .note-row td {
+            padding: 8px;
+            font-size: 7.5px;
+            color: #666;
+            font-style: italic;
+            border-bottom: 0.5px solid #eee;
         }
 
-        .product-name {
-            font-weight: 600;
-            color: #111;
-            font-size: 8.5px;
-        }
-
-        .product-tva {
-            font-size: 7px;
-            color: #9ca3af;
-            margin-top: 1px;
-        }
-
-        .ttc-value {
-            font-weight: bold;
-            color: #811844;
-        }
-
-        .remise-amount {
-            font-weight: 600;
-            color: #811844;
-        }
-
-        .no-remise {
-            color: #d1d5db;
-        }
-
-        /* ══════════════════════════════════
-           TOTAUX
-           ══════════════════════════════════ */
-        .totaux-wrap {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        .totaux-spacer {
-            width: 50%;
-            vertical-align: top;
-        }
-
-        .totaux-right {
-            width: 50%;
-            vertical-align: top;
-        }
-
-        .totaux-rows {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .totaux-rows tr td {
-            padding: 4px 0;
-            font-size: 8.5px;
-            border-bottom: 1px solid #f3f4f6;
-        }
-
-        .t-label {
-            color: #6b7280;
-            text-align: left;
-        }
-
-        .t-value {
-            text-align: right;
-            font-weight: 600;
-            color: #111;
-        }
-
-        .remise-value {
-            text-align: right;
-            font-weight: 600;
-            color: #811844;
-        }
-
-        /* Ligne TTC */
-        .ttc-row {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 8px;
-            background-color: #811844;
-        }
-
-        .ttc-row td {
-            padding: 10px 14px;
-            color: #ffffff;
-        }
-
-        .ttc-label {
+        /* Ligne sous-total */
+        .subtotal-row td {
+            padding: 6px 8px;
             font-size: 8px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #f9a8d4;
+            border-top: 0.8px solid #ccc;
+            border-bottom: none;
         }
 
-        .ttc-amount {
+        .subtotal-label {
+            color: #444;
+        }
+
+        .subtotal-value {
             text-align: right;
-            font-size: 14px;
-            font-weight: bold;
-            color: #ffffff;
+            font-weight: 600;
         }
 
-        /* Économie */
-        .economie-row {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 5px;
-            background-color: #fce7f3;
-        }
-
-        .economie-row td {
-            padding: 6px 14px;
+        /* Lignes TVA */
+        .tva-row td {
+            padding: 3px 8px;
             font-size: 8px;
-            font-weight: bold;
-            color: #9f1239;
+            color: #555;
+            border-bottom: none;
         }
 
-        .economie-value {
+        .tva-value {
             text-align: right;
         }
 
         /* ══════════════════════════════════
-           PIED DE PAGE
+           BAS DE TABLEAU : TOTAL
            ══════════════════════════════════ */
-        .footer {
-            border-top: 1px solid #f3f4f6;
-            background-color: #fafafa;
-            padding: 14px 28px;
-            margin-top: 20px;
+        .total-footer {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
         }
 
-        .footer-label {
-            font-size: 6.5px;
+        .total-footer-left {
+            width: 60%;
+            vertical-align: top;
+        }
+
+        .total-footer-right {
+            width: 40%;
+            vertical-align: top;
+            text-align: right;
+        }
+
+        .total-label {
+            font-size: 9px;
             font-weight: bold;
-            letter-spacing: 1.5px;
             text-transform: uppercase;
-            color: #811844;
+            letter-spacing: 0.5px;
+            color: #444;
+        }
+
+        .total-amount {
+            font-size: 18px;
+            font-weight: bold;
+            color: #222;
+            letter-spacing: 0.5px;
+        }
+
+        .total-currency {
+            font-size: 13px;
+        }
+
+        /* ══════════════════════════════════
+           COMMENTAIRES + PIED DE PAGE
+           ══════════════════════════════════ */
+        .comments-section {
+            margin-top: 14px;
+            font-size: 7.5px;
+            color: #555;
+        }
+
+        .comments-label {
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 7.5px;
             margin-bottom: 3px;
         }
 
-        .footer-value {
-            font-size: 8.5px;
-            font-weight: 600;
-            color: #374151;
+        .footer-divider {
+            border: none;
+            border-top: 0.8px solid #e8813a;
+            margin: 12px 0 6px;
+        }
+
+        .footer-services {
+            text-align: center;
+            font-size: 7px;
+            color: #e8813a;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .footer-merci {
+            text-align: center;
+            font-size: 9px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #333;
+        }
+
+        .footer-num {
+            font-size: 7px;
+            color: #aaa;
+            margin-top: 4px;
         }
     </style>
 </head>
 <body>
 
 {{-- ══════════════════════════════════════════════════
-     BANDEAU TITRE BORDEAUX
+     EN-TÊTE : MAGASIN ÉMETTEUR (logo/nom) + coordonnées
      ══════════════════════════════════════════════════ --}}
-<div class="header-bar">
-    <table class="header-inner">
-        <tr>
-            <td class="header-left">
-                <div class="header-title">Facture</div>
-                <div class="header-subtitle">
-                    Commande : {{ $commande?->libelle ?? '—' }}
+<table class="top-header">
+    <tr>
+        {{-- Logo / Nom magasin --}}
+        <td class="top-logo-cell">
+            <div class="logo-box">
+                <div class="logo-company">
+                    {{ strtoupper($magasinEmetteur?->name ?? 'COSMA PARFUMERIES') }}
                 </div>
-            </td>
-            <td class="header-right">
-                <div class="header-num-label">N° Facture</div>
-                <div class="header-num-value">{{ $facture->numero ?? 'FAC-'.$facture->id }}</div>
-            </td>
-        </tr>
-    </table>
-</div>
+                <div class="logo-tagline">Approvisionnement</div>
+            </div>
+        </td>
 
-<div class="body-wrap">
-
-    {{-- ══════════════════════════════════════════════════
-         FOURNISSEUR + DÉTAILS
-         ══════════════════════════════════════════════════ --}}
-    <table class="info-grid">
-        <tr>
-            {{-- Fournisseur --}}
-            <td class="info-col">
-                <div class="section-label">Fournisseur</div>
-                <div class="info-box">
-                    <div class="fournisseur-name">
-                        {{ strtoupper($fournisseur?->name ?? '—') }}
-                    </div>
-                    @if($fournisseur?->adresse_siege)
-                        <div style="font-size:7.5px;color:#6b7280;margin-top:4px;">
-                            {{ $fournisseur->adresse_siege }}
-                            @if($fournisseur->code_postal || $fournisseur->ville)
-                                <br>{{ $fournisseur->code_postal }} {{ $fournisseur->ville }}
-                            @endif
-                        </div>
-                    @endif
-                    @if($fournisseur?->telephone)
-                        <div style="font-size:7.5px;color:#6b7280;margin-top:2px;">
-                            Tél : {{ $fournisseur->telephone }}
-                        </div>
-                    @endif
-                    @if($fournisseur?->mail)
-                        <div style="font-size:7.5px;color:#6b7280;margin-top:2px;">
-                            {{ $fournisseur->mail }}
-                        </div>
-                    @endif
-                </div>
-            </td>
-
-            {{-- Détails --}}
-            <td class="info-col-right">
-                <div class="section-label">Détails</div>
-                <div class="info-box">
-                    <table class="detail-info-table">
-                        <tr>
-                            <td class="di-label">Date commande</td>
-                            <td class="di-value">
-                                {{ $facture->date_commande
-                                    ? \Carbon\Carbon::parse($facture->date_commande)->translatedFormat('d F Y')
-                                    : ($commande?->created_at?->translatedFormat('d F Y') ?? '—') }}
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="di-label">Date réception</td>
-                            <td class="di-value">
-                                {{ $facture->date_reception
-                                    ? \Carbon\Carbon::parse($facture->date_reception)->translatedFormat('d F Y')
-                                    : '—' }}
-                            </td>
-                        </tr>
-                        @if($magasin)
-                            <tr>
-                                <td class="di-label">Livraison</td>
-                                <td class="di-value">{{ strtoupper($magasin->name) }}</td>
-                            </tr>
-                        @endif
-                        @if($commande?->remise_facture > 0)
-                            <tr>
-                                <td class="di-label">Remise commande</td>
-                                <td class="di-value">
-                                    <span class="badge-remise">{{ $commande->remise_facture }}%</span>
-                                </td>
-                            </tr>
-                        @endif
-                        <tr>
-                            <td class="di-label">Statut</td>
-                            <td class="di-value">
-                                    <span class="badge-status">
-                                        {{ $commande?->status?->label() ?? '—' }}
-                                    </span>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-            </td>
-        </tr>
-    </table>
-
-    <hr class="divider">
-
-    {{-- ══════════════════════════════════════════════════
-         TABLEAU DES LIGNES
-         ══════════════════════════════════════════════════ --}}
-    <div class="section-label">Lignes de facturation</div>
-
-    <table class="lines-table">
-        <thead>
-        <tr>
-            <th class="th-left" style="width:28%">Produit</th>
-            <th style="width:7%">Qté</th>
-            <th style="width:11%">PU HT</th>
-            <th style="width:12%">Montant HT</th>
-            <th style="width:10%">Remise</th>
-            <th style="width:12%">HT Net</th>
-            <th style="width:12%">Net TTC</th>
-        </tr>
-        </thead>
-        <tbody>
-        @forelse ($lignes as $ligne)
-            <tr>
-                <td class="td-left">
-                    <div class="product-name">{{ $ligne['designation'] }}</div>
-                    @if($ligne['tva'] > 0)
-                        <div class="product-tva">TVA : {{ number_format($ligne['tva'], 2) }}%</div>
-                    @endif
-                </td>
-                <td>{{ $ligne['qte'] }}</td>
-                <td>{{ number_format($ligne['pu_ht'], 2, ',', ' ') }} EUR</td>
-                <td>{{ number_format($ligne['montant_ht'], 2, ',', ' ') }} EUR</td>
-                <td>
-                    @if($ligne['montant_remise'] > 0)
-                        <div class="remise-amount">
-                            - {{ number_format($ligne['montant_remise'], 2, ',', ' ') }} EUR
-                        </div>
-                        @if($ligne['taux_remise'] > 0)
-                            <div><span class="badge-remise">{{ $ligne['taux_remise'] }}%</span></div>
-                        @endif
-                    @else
-                        <span class="no-remise">—</span>
-                    @endif
-                </td>
-                <td>{{ number_format($ligne['montant_net_ht'], 2, ',', ' ') }} EUR</td>
-                <td class="ttc-value">
-                    {{ number_format($ligne['montant_ttc'], 2, ',', ' ') }} EUR
-                </td>
-            </tr>
-        @empty
-            <tr>
-                <td colspan="7" style="text-align:center;padding:14px;color:#9ca3af;font-style:italic;">
-                    Aucune ligne de facturation.
-                </td>
-            </tr>
-        @endforelse
-        </tbody>
-    </table>
-
-    <hr class="divider">
-
-    {{-- ══════════════════════════════════════════════════
-         RÉCAPITULATIF
-         ══════════════════════════════════════════════════ --}}
-    <div class="section-label">Récapitulatif</div>
-
-    <table class="totaux-wrap">
-        <tr>
-            {{-- Espace gauche vide --}}
-            <td class="totaux-spacer"></td>
-
-            {{-- Bloc totaux --}}
-            <td class="totaux-right">
-                <table class="totaux-rows">
-                    <tr>
-                        <td class="t-label">Total HT brut</td>
-                        <td class="t-value">{{ number_format($total_ht, 2, ',', ' ') }} EUR</td>
-                    </tr>
-                    @if($total_remise > 0)
-                        <tr>
-                            <td class="t-label">Remises lignes</td>
-                            <td class="remise-value">- {{ number_format($total_remise, 2, ',', ' ') }} EUR</td>
-                        </tr>
-                    @endif
-                    <tr>
-                        <td class="t-label">Total HT net</td>
-                        <td class="t-value">{{ number_format($total_net_ht, 2, ',', ' ') }} EUR</td>
-                    </tr>
-                    @if($total_tva > 0)
-                        <tr>
-                            <td class="t-label">
-                                TVA{{ $facture->tax ? ' ('.$facture->tax.'%)' : '' }}
-                            </td>
-                            <td class="t-value">{{ number_format($total_tva, 2, ',', ' ') }} EUR</td>
-                        </tr>
-                    @endif
-                </table>
-
-                {{-- Ligne TOTAL TTC --}}
-                <table class="ttc-row">
-                    <tr>
-                        <td class="ttc-label">Total TTC</td>
-                        <td class="ttc-amount">{{ number_format($total_ttc, 2, ',', ' ') }} EUR</td>
-                    </tr>
-                </table>
-
-                {{-- Économie --}}
-                @if($total_remise > 0)
-                    <table class="economie-row">
-                        <tr>
-                            <td>💰 Économie réalisée</td>
-                            <td class="economie-value">{{ number_format($total_remise, 2, ',', ' ') }} EUR</td>
-                        </tr>
-                    </table>
+        {{-- Coordonnées magasin émetteur --}}
+        <td class="top-emetteur-cell">
+            <div class="emetteur-name">
+                {{ strtoupper($magasinEmetteur?->name ?? 'COSMA PARFUMERIES') }}
+            </div>
+            <div class="emetteur-info">
+                @if($magasinEmetteur?->adress)
+                    {{ $magasinEmetteur->adress }}<br>
                 @endif
-            </td>
-        </tr>
-    </table>
-
-</div>
+                @if($magasinEmetteur?->telephone)
+                    Tél. : {{ $magasinEmetteur->telephone }}<br>
+                @endif
+                @if($magasinEmetteur?->email)
+                    Courriel : {{ $magasinEmetteur->email }}
+                @endif
+            </div>
+        </td>
+    </tr>
+</table>
 
 {{-- ══════════════════════════════════════════════════
-     PIED DE PAGE
+     DESTINATAIRE (fournisseur) + N° FACTURE / DATE
      ══════════════════════════════════════════════════ --}}
-@if($commande?->date_cloture || $commande?->date_reception)
-    <div class="footer">
-        <table style="width:100%;border-collapse:collapse;">
-            <tr>
+<table class="meta-table">
+    <tr>
+        {{-- Destinataire --}}
+        <td class="meta-left">
+            <div class="destinataire-title">Facture à l'intention de :</div>
+            <table class="destinataire-row">
+                <tr>
+                    <td class="dest-label">Nom :</td>
+                    <td class="dest-value">{{ $fournisseur?->name ?? '—' }}</td>
+                </tr>
+                @if($fournisseur?->adresse_siege)
+                    <tr>
+                        <td class="dest-label">Adresse :</td>
+                        <td class="dest-value">
+                            {{ $fournisseur->adresse_siege }}<br>
+                            @if($fournisseur->code_postal || $fournisseur->ville)
+                                {{ $fournisseur->code_postal }} {{ $fournisseur->ville }}
+                            @endif
+                        </td>
+                    </tr>
+                @endif
+                @if($fournisseur?->telephone)
+                    <tr>
+                        <td class="dest-label">Téléphone :</td>
+                        <td class="dest-value">{{ $fournisseur->telephone }}</td>
+                    </tr>
+                @endif
+                @if($fournisseur?->mail)
+                    <tr>
+                        <td class="dest-label">Courriel :</td>
+                        <td class="dest-value">{{ $fournisseur->mail }}</td>
+                    </tr>
+                @endif
+            </table>
+        </td>
+
+        {{-- N° Facture + Date --}}
+        <td class="meta-right">
+            <div class="fac-num-label">Facture N° :</div>
+            <div class="fac-num-value">{{ $facture->numero ?? $facture->id }}</div>
+
+            <div class="fac-date-row">
+                <span class="fac-date-label">Date :</span>
+                &nbsp;
+                {{ $facture->date_commande
+                    ? \Carbon\Carbon::parse($facture->date_commande)->translatedFormat('d F Y')
+                    : now()->translatedFormat('d F Y') }}
+            </div>
+
+            @if($magasin)
+                <div class="fac-date-row">
+                    <span class="fac-date-label">Livraison :</span>
+                    &nbsp;{{ $magasin->name }}
+                </div>
+            @endif
+
+            @if($commande?->remise_facture > 0)
+                <div class="fac-date-row">
+                    <span class="fac-date-label">Remise :</span>
+                    &nbsp;{{ $commande->remise_facture }} %
+                </div>
+            @endif
+
+            <div class="fac-payable">Facture payable sur réception. Merci.</div>
+        </td>
+    </tr>
+</table>
+
+{{-- ══════════════════════════════════════════════════
+     TITRE CENTRAL "FACTURE" + BARRE ORANGE
+     ══════════════════════════════════════════════════ --}}
+<table class="doc-title-row">
+    <tr>
+        <td class="doc-title-center">
+            <span class="doc-title">Facture</span>
+        </td>
+        <td class="doc-page">Page N° : &nbsp;1</td>
+    </tr>
+</table>
+
+<div class="orange-bar"></div>
+
+{{-- ══════════════════════════════════════════════════
+     TABLEAU DES LIGNES
+     ══════════════════════════════════════════════════ --}}
+<table class="lines-table">
+    <thead>
+    <tr>
+        <th style="width:40%">Description</th>
+        <th style="width:10%">Unité</th>
+        <th class="th-right" style="width:10%">Quantité</th>
+        <th class="th-right" style="width:13%">Prix</th>
+        <th class="th-right" style="width:14%">Montant</th>
+    </tr>
+    </thead>
+    <tbody>
+
+    {{-- Lignes produits --}}
+    @forelse ($lignes as $ligne)
+        <tr>
+            <td>
+                <div style="font-weight:600;color:#222;">{{ $ligne['designation'] }}</div>
+                @if($ligne['article'])
+                    <div style="font-size:7px;color:#888;margin-top:1px;">{{ $ligne['article'] }}</div>
+                @endif
+                @if($ligne['taux_remise'] > 0)
+                    <div style="font-size:7px;color:#c0392b;margin-top:1px;">
+                        Remise : {{ $ligne['taux_remise'] }}%
+                        (- {{ number_format($ligne['montant_remise'], 2, ',', ' ') }} EUR)
+                    </div>
+                @endif
+            </td>
+            <td style="color:#666;">Unité</td>
+            <td class="td-right">{{ $ligne['qte'] }}</td>
+            <td class="td-right">{{ number_format($ligne['pu_ht'], 2, ',', ' ') }}</td>
+            <td class="td-right" style="font-weight:600;">
+                {{ number_format($ligne['montant_net_ht'], 2, ',', ' ') }}
+            </td>
+        </tr>
+    @empty
+        <tr>
+            <td colspan="5" style="text-align:center;padding:16px;color:#aaa;font-style:italic;">
+                Aucune ligne de facturation.
+            </td>
+        </tr>
+    @endforelse
+
+    {{-- Note / libellé commande --}}
+    @if($commande?->libelle)
+        <tr class="note-row">
+            <td colspan="5">
+                {{ $commande->libelle }}
+            </td>
+        </tr>
+    @endif
+
+    {{-- Ligne vide pour espacement --}}
+    <tr>
+        <td colspan="5" style="padding:18px 8px;border-bottom:0.5px solid #eee;"></td>
+    </tr>
+
+    {{-- Sous-total HT --}}
+    <tr class="subtotal-row">
+        <td colspan="4" class="subtotal-label">Sous-total :</td>
+        <td class="subtotal-value">
+            {{ number_format($total_net_ht, 2, ',', ' ') }}
+        </td>
+    </tr>
+
+    {{-- Lignes TVA par taux --}}
+    @if($tva_groupes->isNotEmpty())
+        <tr class="tva-row">
+            <td colspan="4">
+                TVA
+                @foreach($tva_groupes as $tvaG)
+                    @ {{ number_format($tvaG['taux'], 2) }}%
+                @endforeach
+            </td>
+            <td class="tva-value">
+                @foreach($tva_groupes as $tvaG)
+                    {{ number_format($tvaG['montant'], 2, ',', ' ') }}<br>
+                @endforeach
+            </td>
+        </tr>
+    @elseif($total_tva > 0)
+        <tr class="tva-row">
+            <td colspan="4">
+                TVA{{ $facture->tax ? ' @ '.$facture->tax.'%' : '' }}
+            </td>
+            <td class="tva-value">{{ number_format($total_tva, 2, ',', ' ') }}</td>
+        </tr>
+    @endif
+
+    </tbody>
+</table>
+
+{{-- ══════════════════════════════════════════════════
+     TOTAL DE LA FACTURE
+     ══════════════════════════════════════════════════ --}}
+<table class="total-footer">
+    <tr>
+        <td class="total-footer-left">
+            {{-- Commentaires --}}
+            <div class="comments-section">
+                <div class="comments-label">Commentaires :</div>
+                @if($facture->libelle)
+                    <div style="margin-top:2px;">{{ $facture->libelle }}</div>
+                @endif
                 @if($commande?->date_cloture)
-                    <td style="width:50%;vertical-align:top;">
-                        <div class="footer-label">Date de clôture</div>
-                        <div class="footer-value">
-                            {{ $commande->date_cloture->translatedFormat('d F Y') }}
-                        </div>
-                    </td>
+                    <div style="margin-top:2px;">
+                        Date de clôture : {{ $commande->date_cloture->translatedFormat('d F Y') }}
+                    </div>
                 @endif
                 @if($commande?->date_reception)
-                    <td style="width:50%;vertical-align:top;">
-                        <div class="footer-label">Date de réception</div>
-                        <div class="footer-value">
-                            {{ $commande->date_reception->translatedFormat('d F Y') }}
-                        </div>
-                    </td>
+                    <div style="margin-top:2px;">
+                        Date de réception : {{ $commande->date_reception->translatedFormat('d F Y') }}
+                    </div>
                 @endif
-            </tr>
-        </table>
-    </div>
-@endif
+            </div>
+        </td>
+
+        <td class="total-footer-right">
+            <div class="total-label">Total de la facture :</div>
+            <div class="total-amount">
+                {{ number_format($total_ttc, 2, ',', ' ') }}
+                <span class="total-currency">EUR</span>
+            </div>
+
+            @if($total_remise > 0)
+                <div style="font-size:7.5px;color:#c0392b;margin-top:6px;">
+                    Économie : {{ number_format($total_remise, 2, ',', ' ') }} EUR
+                </div>
+            @endif
+
+            @if($facture->numero)
+                <div class="footer-num" style="margin-top:8px;">
+                    N° Facture : {{ $facture->numero }}
+                </div>
+            @endif
+        </td>
+    </tr>
+</table>
+
+{{-- ══════════════════════════════════════════════════
+     PIED DE PAGE ORANGE
+     ══════════════════════════════════════════════════ --}}
+<hr class="footer-divider">
+
+<div class="footer-services">
+    Approvisionnement
+    &nbsp;•&nbsp; Finance
+    &nbsp;•&nbsp; Gestion des commandes
+    &nbsp;•&nbsp; {{ strtoupper($magasinEmetteur?->name ?? 'Cosma Parfumeries') }}
+</div>
+
+<div class="footer-merci">Merci de votre confiance !</div>
 
 </body>
 </html>

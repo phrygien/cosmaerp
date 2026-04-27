@@ -3,13 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Facture;
+use App\Models\Magasin;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class FactureController extends Controller
 {
     /**
-     * Génère le PDF de facture calqué sur la vue Livewire existante.
+     * Génère le PDF de facture au style "classique professionnel".
      *
      * Route :
      *   Route::get('/facture/pdf/{facture}', FactureController::class)
@@ -28,6 +29,10 @@ class FactureController extends Controller
         $fournisseur = $commande?->fournisseur ?? $facture->forfaisseur;
         $magasin     = $commande?->magasinLivraison;
 
+        // Magasin émetteur (base : premier magasin base_stock, sinon magasin de livraison)
+        $magasinEmetteur = Magasin::where('base_stock', true)->first()
+            ?? $magasin;
+
         // ── Lignes ────────────────────────────────────────────────────────
         $lignes = collect();
 
@@ -40,6 +45,7 @@ class FactureController extends Controller
 
             $lignes->push([
                 'designation'    => $product?->designation ?? '—',
+                'article'        => $product?->article ?? '',
                 'tva'            => $dc?->tax ?? 0,
                 'qte'            => $df->quantite_commande ?? 0,
                 'pu_ht'          => $puHT,
@@ -58,17 +64,30 @@ class FactureController extends Controller
         $totalTTC    = $facture->montant ?? $lignes->sum('montant_ttc');
         $totalTVA    = $totalTTC - $totalNetHT;
 
+        // Grouper les TVA par taux pour le récap
+        $tvaGroupes = $lignes
+            ->where('tva', '>', 0)
+            ->groupBy('tva')
+            ->map(fn($group) => [
+                'taux'   => $group->first()['tva'],
+                'base'   => $group->sum('montant_net_ht'),
+                'montant'=> $group->sum('montant_ttc') - $group->sum('montant_net_ht'),
+            ])
+            ->values();
+
         $data = [
             'facture'          => $facture,
             'commande'         => $commande,
             'fournisseur'      => $fournisseur,
             'magasin'          => $magasin,
+            'magasinEmetteur'  => $magasinEmetteur,
             'lignes'           => $lignes,
             'total_ht'         => $totalHT,
             'total_remise'     => $totalRemise,
             'total_net_ht'     => $totalNetHT,
             'total_tva'        => $totalTVA,
             'total_ttc'        => $totalTTC,
+            'tva_groupes'      => $tvaGroupes,
             'date_impression'  => now()->format('d/m/Y'),
             'heure_impression' => now()->format('H:i'),
         ];
