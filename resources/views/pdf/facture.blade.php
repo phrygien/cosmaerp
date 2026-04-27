@@ -13,18 +13,20 @@
 
         body {
             font-family: 'DejaVu Sans', Arial, sans-serif;
-            font-size: 8.5px;
+            font-size: 11px;
             color: #222;
-            background: #fff;
+            background: #f0f4f8;
         }
 
         /* ══════════════════════════════════
-           PAGE WRAPPER avec bordure
+           PAGE WRAPPER centré avec bordure
            ══════════════════════════════════ */
         .page {
             border: 1px solid #b0c4d8;
-            margin: 20px;
-            padding: 24px 28px 20px;
+            margin: 24px auto;
+            padding: 32px 40px 28px;
+            background: #fff;
+            max-width: 720px;
         }
 
         /* ══════════════════════════════════
@@ -52,13 +54,13 @@
         }
 
         .logo-icon {
-            font-size: 28px;
+            font-size: 36px;
             color: #e8813a;
             line-height: 1;
         }
 
         .logo-name {
-            font-size: 7px;
+            font-size: 9px;
             color: #555;
             margin-top: 4px;
             font-weight: bold;
@@ -73,7 +75,7 @@
         }
 
         .doc-title {
-            font-size: 22px;
+            font-size: 28px;
             font-weight: bold;
             color: #1a3a5c;
             letter-spacing: 3px;
@@ -94,7 +96,7 @@
         .emetteur-left {
             width: 55%;
             vertical-align: top;
-            font-size: 8px;
+            font-size: 10px;
             color: #333;
             line-height: 1.85;
             padding-top: 8px;
@@ -104,7 +106,7 @@
             width: 45%;
             vertical-align: top;
             text-align: right;
-            font-size: 8px;
+            font-size: 10px;
             padding-top: 8px;
         }
 
@@ -114,8 +116,8 @@
         }
 
         .emetteur-right table td {
-            font-size: 8px;
-            padding: 1.5px 0;
+            font-size: 10px;
+            padding: 2px 0;
             color: #333;
         }
 
@@ -159,19 +161,19 @@
         .addr-header {
             background-color: #dce8f4;
             color: #1a3a5c;
-            font-size: 7.5px;
+            font-size: 9.5px;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            padding: 5px 10px;
+            padding: 6px 12px;
             border-bottom: 1px solid #b0c4d8;
         }
 
         .addr-body {
-            padding: 8px 10px;
-            font-size: 8px;
+            padding: 10px 12px;
+            font-size: 10px;
             color: #333;
-            line-height: 1.8;
+            line-height: 1.9;
         }
 
         /* ══════════════════════════════════
@@ -190,11 +192,11 @@
         .lines-table thead tr th {
             background-color: #dce8f4;
             color: #1a3a5c;
-            font-size: 7.5px;
+            font-size: 9.5px;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.4px;
-            padding: 7px 8px;
+            padding: 9px 10px;
             border-bottom: 1px solid #b0c4d8;
             border-right: 1px solid #b0c4d8;
             text-align: left;
@@ -209,8 +211,8 @@
         }
 
         .lines-table tbody tr td {
-            font-size: 8px;
-            padding: 7px 8px;
+            font-size: 10px;
+            padding: 9px 10px;
             vertical-align: top;
             border-bottom: 1px solid #e8eef5;
             border-right: 1px solid #e8eef5;
