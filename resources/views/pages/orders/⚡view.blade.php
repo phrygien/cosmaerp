@@ -52,7 +52,7 @@ new class extends Component
     </flux:breadcrumbs>
 
     <div class="flex items-center justify-between mb-6">
-        <flux:heading size="xl" level="1">{{ __('Précommande') }}</flux:heading>
+        <flux:heading size="xl" level="1">{{ __('Commande') }}</flux:heading>
 
         <div class="flex items-center gap-2">
             <flux:button variant="danger" wire:click="delete" wire:confirm="Êtes-vous sûr de vouloir supprimer cette commande ?">
