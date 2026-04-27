@@ -318,9 +318,12 @@ new class extends Component
                 @forelse ($this->magasins as $magasin)
                     <flux:table.row :key="$magasin->id" wire:key="magasin-{{ $magasin->id }}">
 
-                        <!-- Nom -->
+                        <!-- Nom — cliquable vers la page détail -->
                         <flux:table.cell>
-                            <p class="font-medium text-sm">{{ $magasin->name }}</p>
+                            <a href="{{ route('magasin.view', $magasin->id) }}"
+                               class="font-medium text-sm hover:text-blue-500 hover:underline">
+                                {{ $magasin->name }}
+                            </a>
                             <!-- Type visible en mobile -->
                             @if ($magasin->type)
                                 <p class="mt-0.5 sm:hidden">
@@ -414,6 +417,10 @@ new class extends Component
                             <flux:dropdown>
                                 <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom" />
                                 <flux:menu>
+                                    <flux:menu.item icon="eye" :href="route('magasin.view', $magasin->id)">
+                                        Voir détails
+                                    </flux:menu.item>
+                                    <flux:menu.separator />
                                     <flux:menu.item icon="pencil" wire:click="edit({{ $magasin->id }})">
                                         Modifier
                                     </flux:menu.item>
