@@ -304,14 +304,20 @@ new class extends Component
 
                                 {{-- Bouton Modifier --}}
                                 @if($commande)
-                                    <flux:button
-                                        href="{{ route('reception_commande.edit', ['reception' => $bon->receptions->first()?->id]) }}"
-                                        wire:navigate
-                                        variant="primary"
-                                        title="{{ __('Modifier') }}"
-                                    >
-                                        Modifier
-                                    </flux:button>
+                                    @if($commande->status === \App\Enums\CommandeStatus::Recue)
+                                        <flux:badge color="green" size="sm" inset="top bottom">
+                                            Commande reçue
+                                        </flux:badge>
+                                    @else
+                                        <flux:button
+                                            href="{{ route('reception_commande.edit', ['reception' => $bon->receptions->first()?->id]) }}"
+                                            wire:navigate
+                                            variant="primary"
+                                            title="{{ __('Modifier') }}"
+                                        >
+                                            Modifier
+                                        </flux:button>
+                                    @endif
                                 @else
                                     <flux:button
                                         variant="ghost"
