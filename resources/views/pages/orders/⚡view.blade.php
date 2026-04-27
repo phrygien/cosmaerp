@@ -42,6 +42,16 @@ new class extends Component
             ->when($this->sortBy, fn($query) => $query->orderBy($this->sortBy, $this->sortDirection))
             ->paginate(10);
     }
+
+    #[\Livewire\Attributes\Computed]
+    public function historique()
+    {
+        return \App\Models\HistoriqueQuantiteDetailCommande::query()
+            ->with(['product', 'user'])
+            ->where('commande_id', $this->commandeId)
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+    }
 };
 ?>
 
@@ -232,6 +242,84 @@ new class extends Component
                         </flux:table.cell>
                     </flux:table.row>
                 @endforeach
+            </flux:table.rows>
+        </flux:table>
+    </flux:card>
+
+    {{-- Historique des modifications --}}
+    <flux:card class="mt-5">
+        <flux:heading size="lg" class="mb-4">Historique des modifications</flux:heading>
+
+        <flux:table :paginate="$this->historique">
+            <flux:table.columns>
+                <flux:table.column>Produit</flux:table.column>
+                <flux:table.column>Ancienne qté</flux:table.column>
+                <flux:table.column>Nouvelle qté</flux:table.column>
+                <flux:table.column>Variation</flux:table.column>
+                <flux:table.column>Motif</flux:table.column>
+                <flux:table.column>Modifié par</flux:table.column>
+                <flux:table.column>Date</flux:table.column>
+            </flux:table.columns>
+
+            <flux:table.rows>
+                @forelse ($this->historique as $h)
+                    <flux:table.row :key="$h->id">
+                        {{-- Produit --}}
+                        <flux:table.cell>
+                            <div class="flex flex-col">
+                            <span class="font-medium text-zinc-800 dark:text-zinc-100">
+                                {{ $h->product?->designation ?? '—' }}
+                            </span>
+                                <span class="text-xs text-zinc-500">
+                                {{ $h->product?->product_code ?? '' }}
+                            </span>
+                            </div>
+                        </flux:table.cell>
+
+                        {{-- Ancienne quantité --}}
+                        <flux:table.cell>
+                            {{ $h->ancienne_quantite }}
+                        </flux:table.cell>
+
+                        {{-- Nouvelle quantité --}}
+                        <flux:table.cell variant="strong">
+                            {{ $h->nouvelle_quantite }}
+                        </flux:table.cell>
+
+                        {{-- Variation --}}
+                        <flux:table.cell>
+                            @php $diff = $h->nouvelle_quantite - $h->ancienne_quantite; @endphp
+                            <flux:badge
+                                size="sm"
+                                inset="top bottom"
+                                color="{{ $diff > 0 ? 'green' : ($diff < 0 ? 'red' : 'zinc') }}"
+                            >
+                                {{ $diff > 0 ? '+' : '' }}{{ $diff }}
+                            </flux:badge>
+                        </flux:table.cell>
+
+                        {{-- Motif --}}
+                        <flux:table.cell>
+                            {{ $h->motif ?? '—' }}
+                        </flux:table.cell>
+
+                        {{-- Utilisateur --}}
+                        <flux:table.cell>
+                            {{ $h->user?->name ?? '—' }}
+                        </flux:table.cell>
+
+                        {{-- Date --}}
+                        <flux:table.cell class="whitespace-nowrap text-zinc-500 text-sm">
+                            {{ $h->created_at?->format('d/m/Y H:i') }}
+                        </flux:table.cell>
+                    </flux:table.row>
+                @empty
+                    <flux:table.row>
+                        <flux:table.cell colspan="7" class="text-center text-zinc-400 py-6">
+                            Aucun historique de modification.
+                        </flux:table.cell>
+                    </flux:table.row>
+                @endforelse
             </flux:table.rows>
         </flux:table>
     </flux:card>
