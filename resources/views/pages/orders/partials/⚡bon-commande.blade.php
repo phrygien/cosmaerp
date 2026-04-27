@@ -189,7 +189,7 @@ new class extends Component
             <div id="bon-commande-inner" class="space-y-0 overflow-hidden">
 
                 {{-- ══ EN-TÊTE ══ --}}
-                <div class="px-1 pb-4 pt-1 pr-10 flex items-start justify-between gap-4">
+                <div class="px-1 pb-4 pt-1 flex items-start justify-between gap-4">
                     <div>
                         <flux:heading size="lg">Détails de la commande</flux:heading>
                         <flux:text class="mt-1 text-zinc-500">
@@ -201,19 +201,12 @@ new class extends Component
                             </flux:text>
                         @endif
                     </div>
-                    <div class="flex items-start gap-3">
-                        <div class="flex gap-2">
-                            <a href="{{ route('bon-commande.pdf', $commandeId) }}" target="_blank">
-                                <flux:button variant="primary">Bon de commande</flux:button>
-                            </a>
+                    @if($bonCommande?->numero_compte)
+                        <div class="text-right">
+                            <p class="text-xs text-zinc-400 uppercase tracking-widest mb-0.5">N° Compte</p>
+                            <p class="font-bold text-zinc-800 dark:text-zinc-100 text-sm">{{ $bonCommande->numero_compte }}</p>
                         </div>
-                        @if($bonCommande?->numero_compte)
-                            <div class="text-right">
-                                <p class="text-xs text-zinc-400 uppercase tracking-widest mb-0.5">N° Compte</p>
-                                <p class="font-bold text-zinc-800 dark:text-zinc-100 text-sm">{{ $bonCommande->numero_compte }}</p>
-                            </div>
-                        @endif
-                    </div>
+                    @endif
                 </div>
 
                 <flux:separator />
@@ -404,6 +397,15 @@ new class extends Component
                         </div>
 
                     </div>
+                </div>
+
+                {{-- ══ ACTIONS ══ --}}
+                <div class="px-5 py-4 border-t border-zinc-200 flex items-center justify-end gap-3">
+                    <a href="{{ route('bon-commande.pdf', $commandeId) }}" target="_blank">
+                        <flux:button variant="primary" icon="document-arrow-down">
+                            Bon de commande
+                        </flux:button>
+                    </a>
                 </div>
 
             </div>
