@@ -189,7 +189,7 @@ new class extends Component
             <div id="bon-commande-inner" class="space-y-0 overflow-hidden">
 
                 {{-- ══ EN-TÊTE ══ --}}
-                <div class="px-1 pb-4 pt-1 flex items-start justify-between gap-4">
+                <div class="px-1 pb-4 pt-1 pr-10 flex items-start justify-between gap-4">
                     <div>
                         <flux:heading size="lg">Détails de la commande</flux:heading>
                         <flux:text class="mt-1 text-zinc-500">
