@@ -260,7 +260,13 @@ new class extends Component
 
     public function canEdit(CommandeStatus $status): bool
     {
-        return $status === CommandeStatus::Cree;
+        //return $status === CommandeStatus::Cree;
+
+        return !in_array($status, [
+            CommandeStatus::Cloturee,
+            CommandeStatus::Recue,
+            CommandeStatus::Annulee
+        ]);
     }
 
     #[On('commande-created')]
