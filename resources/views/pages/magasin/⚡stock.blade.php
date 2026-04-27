@@ -83,7 +83,7 @@ new class extends Component
 
     {{-- Breadcrumbs --}}
     <flux:breadcrumbs class="mb-5">
-        <flux:breadcrumbs.item :href="route('magasin.index')">Dépôt</flux:breadcrumbs.item>
+        <flux:breadcrumbs.item :href="route('magasin')">Dépôt</flux:breadcrumbs.item>
         <flux:breadcrumbs.item>{{ $this->magasin->name }}</flux:breadcrumbs.item>
     </flux:breadcrumbs>
 
@@ -91,7 +91,7 @@ new class extends Component
     <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between mb-6">
         <div class="flex items-start gap-3">
             <flux:button
-                :href="route('magasin.index')"
+                :href="route('magasin')"
                 variant="ghost"
                 icon="arrow-left"
                 size="sm"
