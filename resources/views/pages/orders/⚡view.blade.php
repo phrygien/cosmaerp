@@ -78,7 +78,7 @@ new class extends Component
                 Modifier
             </flux:button>
 
-            <flux:button icon="document-text" href="{{ route('bon-commande.pdf', $commandeId) }}" target="_blank">
+            <flux:button href="{{ route('bon-commande.pdf', $commandeId) }}" target="_blank">
                 Bon de commande
             </flux:button>
 
