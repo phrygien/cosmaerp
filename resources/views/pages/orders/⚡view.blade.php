@@ -86,7 +86,7 @@ new class extends Component
                 <flux:button
                     variant="primary"
                     icon="truck"
-                    href="{{ route('reception_commande.create', ['commande_id' => $this->commandeId, 'step' => 1]) }}"
+                    href="{{ route('reception_commande.create', ['commande' => $this->commandeId]) }}"
                     wire:navigate
                 >
                     Passer à la réception
