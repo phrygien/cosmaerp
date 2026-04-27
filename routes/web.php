@@ -23,7 +23,7 @@ Route::middleware(["auth", "verified"])->group(function () {
 
     // Magasin
     Route::livewire("/magasin", "pages::magasin.page")->name("magasin");
-    Route::livewire("/magasin/{id}", "pages::magasin.view")->name("magasin.view");
+    Route::livewire("/magasin/{id}", "pages::magasin.stock")->name("magasin.view");
 
     // Catalogue
     Route::prefix("catalogue")->name("catalogue.")->group(function () {
