@@ -627,11 +627,11 @@ new class extends Component
                                         Détails de la commande
                                     </flux:menu.item>
 
-                                    @if(in_array($commande->status, [CommandeStatus::Facturee, CommandeStatus::Cloturee, CommandeStatus::Recue]))
-                                        <flux:menu.item icon="receipt-percent" href="{{ route('orders.facture', $commande->id) }}" wire:navigate>
-                                            Voir la facture
-                                        </flux:menu.item>
-                                    @endif
+{{--                                    @if(in_array($commande->status, [CommandeStatus::Facturee, CommandeStatus::Cloturee, CommandeStatus::Recue]))--}}
+{{--                                        <flux:menu.item icon="receipt-percent" href="{{ route('orders.facture', $commande->id) }}" wire:navigate>--}}
+{{--                                            Voir la facture--}}
+{{--                                        </flux:menu.item>--}}
+{{--                                    @endif--}}
 
                                     @if($this->canEdit($commande->status))
                                         <flux:menu.item icon="pencil" href="{{ route('orders.edit', $commande->id) }}" wire:navigate>
