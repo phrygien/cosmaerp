@@ -52,6 +52,11 @@ new class extends Component
             ->orderBy('created_at', 'desc')
             ->paginate(10);
     }
+
+    public function formatCurrency(?float $amount): string
+    {
+        return app(\App\Services\CurrencyService::class)->format($amount);
+    }
 };
 ?>
 
@@ -122,14 +127,14 @@ new class extends Component
                     <div class="flex justify-between items-center">
                         <flux:subheading>Montant minimum</flux:subheading>
                         <span class="font-semibold text-zinc-800 dark:text-zinc-100">
-                        {{ number_format($this->commande->montant_minimum, 2, ',', ' ') }} €
+                        {{ $this->formatCurrency($this->commande->montant_minimum) }}
                     </span>
                     </div>
                     <flux:separator />
                     <div class="flex justify-between items-center">
                         <flux:subheading>Montant total</flux:subheading>
                         <span class="font-bold text-lg text-zinc-900 dark:text-white">
-                        {{ number_format($this->commande->montant_total, 2, ',', ' ') }} €
+                        {{ $this->formaxtCurrency($this->commande->montant_total) }}
                     </span>
                     </div>
                 </div>
@@ -333,7 +338,7 @@ new class extends Component
 
                         {{-- PU Achat HT --}}
                         <flux:table.cell class="whitespace-nowrap">
-                            {{ number_format($detail->pu_achat_HT, 2, ',', ' ') }} €
+                            {{  $this->formatCurrency($detail->pu_achat_HT) }}
                         </flux:table.cell>
 
                         {{-- Remise --}}
@@ -350,12 +355,12 @@ new class extends Component
 
                         {{-- PU Net --}}
                         <flux:table.cell class="whitespace-nowrap" variant="strong">
-                            {{ number_format($detail->pu_achat_net, 2, ',', ' ') }} €
+                            {{ $this->formatCurrency($detail->pu_achat_net) }}
                         </flux:table.cell>
 
                         {{-- Montant ligne = quantite × pu_achat_net --}}
                         <flux:table.cell class="whitespace-nowrap" variant="strong">
-                            {{ number_format($detail->quantite * $detail->pu_achat_net, 2, ',', ' ') }} €
+                            {{  $this->formatCurrency($detail->quantite * $detail->pu_achat_net) }}
                         </flux:table.cell>
                     </flux:table.row>
                 @endforeach
