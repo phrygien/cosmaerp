@@ -626,7 +626,7 @@ new class extends Component
 {{--                                    <flux:menu.item icon="document-text" wire:click="showBonCommande({{ $commande->id }})">--}}
 {{--                                        Détails de la commande--}}
 {{--                                    </flux:menu.item>--}}
-                                    <flux:menu.item icon="pencil" href="{{ route('orders.view', $commande->id) }}" wire:navigate>
+                                    <flux:menu.item href="{{ route('orders.view', $commande->id) }}" wire:navigate>
                                         Details
                                     </flux:menu.item>
 {{--                                    @if(in_array($commande->status, [CommandeStatus::Facturee, CommandeStatus::Cloturee, CommandeStatus::Recue]))--}}
