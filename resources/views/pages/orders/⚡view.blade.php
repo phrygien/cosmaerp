@@ -80,60 +80,177 @@ new class extends Component
     </div>
 
     {{-- Informations générales de la commande --}}
-    <flux:card class="mt-5">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div>
-                <flux:subheading>Référence</flux:subheading>
-                <p class="mt-1 font-semibold text-zinc-800 dark:text-zinc-100">
-                    {{ $this->commande->libelle ?? '—' }}
-                </p>
-            </div>
-            <div>
-                <flux:subheading>Fournisseur</flux:subheading>
-                <p class="mt-1 font-semibold text-zinc-800 dark:text-zinc-100">
-                    {{ $this->commande->fournisseur?->name ?? '—' }}
-                </p>
-            </div>
-            <div>
-                <flux:subheading>Magasin de livraison</flux:subheading>
-                <p class="mt-1 font-semibold text-zinc-800 dark:text-zinc-100">
-                    {{ $this->commande->magasinLivraison?->name ?? '—' }}
-                </p>
-            </div>
-            <div>
-                <flux:subheading>Montant total</flux:subheading>
-                <p class="mt-1 font-semibold text-zinc-800 dark:text-zinc-100">
-                    {{ number_format($this->commande->montant_total, 2, ',', ' ') }} €
-                </p>
-            </div>
-            <div>
-                <flux:subheading>Statut</flux:subheading>
-                <div class="mt-1">
-                    <flux:badge size="sm" color="blue">
-                        {{ $this->commande->status?->label() ?? $this->commande->status }}
-                    </flux:badge>
+    <flux:card class="mt-5 bg-zinc-50 dark:bg-zinc-800/50">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            {{-- Infos commande --}}
+            <div class="space-y-4">
+                <div class="flex items-center gap-2 mb-3">
+                    <flux:icon name="clipboard-document-list" class="text-zinc-400" />
+                    <flux:heading size="sm">Commande</flux:heading>
+                </div>
+
+                <div class="bg-white dark:bg-zinc-900 rounded-lg p-4 space-y-3">
+                    <div class="flex justify-between items-center">
+                        <flux:subheading>Référence</flux:subheading>
+                        <span class="font-semibold text-zinc-800 dark:text-zinc-100">
+                        {{ $this->commande->libelle ?? '—' }}
+                    </span>
+                    </div>
+                    <flux:separator />
+                    <div class="flex justify-between items-center">
+                        <flux:subheading>Statut</flux:subheading>
+                        <flux:badge size="sm" color="blue">
+                            {{ $this->commande->status?->label() ?? $this->commande->status }}
+                        </flux:badge>
+                    </div>
+                    <flux:separator />
+                    <div class="flex justify-between items-center">
+                        <flux:subheading>État</flux:subheading>
+                        <flux:badge size="sm" color="zinc">
+                            {{ $this->commande->etat?->label() ?? $this->commande->etat }}
+                        </flux:badge>
+                    </div>
+                    <flux:separator />
+                    <div class="flex justify-between items-center">
+                        <flux:subheading>Remise facture</flux:subheading>
+                        <span class="font-semibold text-zinc-800 dark:text-zinc-100">
+                        {{ $this->commande->remise_facture ?? '0' }} %
+                    </span>
+                    </div>
+                    <flux:separator />
+                    <div class="flex justify-between items-center">
+                        <flux:subheading>Montant minimum</flux:subheading>
+                        <span class="font-semibold text-zinc-800 dark:text-zinc-100">
+                        {{ number_format($this->commande->montant_minimum, 2, ',', ' ') }} €
+                    </span>
+                    </div>
+                    <flux:separator />
+                    <div class="flex justify-between items-center">
+                        <flux:subheading>Montant total</flux:subheading>
+                        <span class="font-bold text-lg text-zinc-900 dark:text-white">
+                        {{ number_format($this->commande->montant_total, 2, ',', ' ') }} €
+                    </span>
+                    </div>
                 </div>
             </div>
-            <div>
-                <flux:subheading>État</flux:subheading>
-                <div class="mt-1">
-                    <flux:badge size="sm" color="zinc">
-                        {{ $this->commande->etat?->label() ?? $this->commande->etat }}
-                    </flux:badge>
+
+            {{-- Infos fournisseur --}}
+            <div class="space-y-4">
+                <div class="flex items-center gap-2 mb-3">
+                    <flux:icon name="building-office" class="text-zinc-400" />
+                    <flux:heading size="sm">Fournisseur</flux:heading>
+                </div>
+
+                <div class="bg-white dark:bg-zinc-900 rounded-lg p-4 space-y-3">
+                    <div class="flex justify-between items-center">
+                        <flux:subheading>Nom</flux:subheading>
+                        <span class="font-semibold text-zinc-800 dark:text-zinc-100">
+                        {{ $this->commande->fournisseur?->name ?? '—' }}
+                    </span>
+                    </div>
+                    <flux:separator />
+                    <div class="flex justify-between items-center">
+                        <flux:subheading>Code</flux:subheading>
+                        <span class="font-semibold text-zinc-800 dark:text-zinc-100">
+                        {{ $this->commande->fournisseur?->code ?? '—' }}
+                    </span>
+                    </div>
+                    <flux:separator />
+                    <div class="flex justify-between items-center">
+                        <flux:subheading>Raison sociale</flux:subheading>
+                        <span class="font-semibold text-zinc-800 dark:text-zinc-100">
+                        {{ $this->commande->fournisseur?->raison_social ?? '—' }}
+                    </span>
+                    </div>
+                    <flux:separator />
+                    <div class="flex justify-between items-center">
+                        <flux:subheading>Adresse</flux:subheading>
+                        <span class="font-semibold text-zinc-800 dark:text-zinc-100 text-right">
+                        {{ $this->commande->fournisseur?->adresse_siege ?? '—' }}
+                            @if($this->commande->fournisseur?->code_postal || $this->commande->fournisseur?->ville)
+                                <br>
+                                <span class="text-sm text-zinc-500">
+                                {{ $this->commande->fournisseur?->code_postal }} {{ $this->commande->fournisseur?->ville }}
+                            </span>
+                            @endif
+                    </span>
+                    </div>
+                    <flux:separator />
+                    <div class="flex justify-between items-center">
+                        <flux:subheading>Téléphone</flux:subheading>
+                        <span class="font-semibold text-zinc-800 dark:text-zinc-100">
+                        {{ $this->commande->fournisseur?->telephone ?? '—' }}
+                    </span>
+                    </div>
+                    <flux:separator />
+                    <div class="flex justify-between items-center">
+                        <flux:subheading>Email</flux:subheading>
+                        <span class="font-semibold text-zinc-800 dark:text-zinc-100">
+                        {{ $this->commande->fournisseur?->mail ?? '—' }}
+                    </span>
+                    </div>
                 </div>
             </div>
-            <div>
-                <flux:subheading>Remise facture</flux:subheading>
-                <p class="mt-1 font-semibold text-zinc-800 dark:text-zinc-100">
-                    {{ $this->commande->remise_facture ?? '0' }} %
-                </p>
+
+            {{-- Infos magasin --}}
+            <div class="space-y-4">
+                <div class="flex items-center gap-2 mb-3">
+                    <flux:icon name="map-pin" class="text-zinc-400" />
+                    <flux:heading size="sm">Magasin de livraison</flux:heading>
+                </div>
+
+                <div class="bg-white dark:bg-zinc-900 rounded-lg p-4 space-y-3">
+                    <div class="flex justify-between items-center">
+                        <flux:subheading>Nom</flux:subheading>
+                        <span class="font-semibold text-zinc-800 dark:text-zinc-100">
+                        {{ $this->commande->magasinLivraison?->name ?? '—' }}
+                    </span>
+                    </div>
+                    <flux:separator />
+                    <div class="flex justify-between items-center">
+                        <flux:subheading>Type</flux:subheading>
+                        <span class="font-semibold text-zinc-800 dark:text-zinc-100">
+                        {{ $this->commande->magasinLivraison?->type ?? '—' }}
+                    </span>
+                    </div>
+                    <flux:separator />
+                    <div class="flex justify-between items-center">
+                        <flux:subheading>Adresse</flux:subheading>
+                        <span class="font-semibold text-zinc-800 dark:text-zinc-100">
+                        {{ $this->commande->magasinLivraison?->adress ?? '—' }}
+                    </span>
+                    </div>
+                    <flux:separator />
+                    <div class="flex justify-between items-center">
+                        <flux:subheading>Téléphone</flux:subheading>
+                        <span class="font-semibold text-zinc-800 dark:text-zinc-100">
+                        {{ $this->commande->magasinLivraison?->telephone ?? '—' }}
+                    </span>
+                    </div>
+                    <flux:separator />
+                    <div class="flex justify-between items-center">
+                        <flux:subheading>Email</flux:subheading>
+                        <span class="font-semibold text-zinc-800 dark:text-zinc-100">
+                        {{ $this->commande->magasinLivraison?->email ?? '—' }}
+                    </span>
+                    </div>
+                    <flux:separator />
+                    <div class="flex justify-between items-center">
+                        <flux:subheading>URL Store</flux:subheading>
+                        @if($this->commande->magasinLivraison?->store_url)
+                            <a href="{{ $this->commande->magasinLivraison->store_url }}"
+                               target="_blank"
+                               class="text-blue-500 hover:underline text-sm font-medium">
+                                Voir le store
+                            </a>
+                        @else
+                            <span class="text-zinc-400">—</span>
+                        @endif
+                    </div>
+                </div>
             </div>
-            <div>
-                <flux:subheading>Montant minimum</flux:subheading>
-                <p class="mt-1 font-semibold text-zinc-800 dark:text-zinc-100">
-                    {{ number_format($this->commande->montant_minimum, 2, ',', ' ') }} €
-                </p>
-            </div>
+
         </div>
     </flux:card>
 
