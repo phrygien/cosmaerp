@@ -90,13 +90,6 @@ new class extends Component
     {{-- Header --}}
     <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between mb-6">
         <div class="flex items-start gap-3">
-            <flux:button
-                :href="route('magasin')"
-                variant="ghost"
-                icon="arrow-left"
-                size="sm"
-                class="mt-1"
-            />
             <div>
                 <div class="flex items-center gap-2 flex-wrap">
                     <flux:heading size="xl" level="1">{{ $this->magasin->name }}</flux:heading>
