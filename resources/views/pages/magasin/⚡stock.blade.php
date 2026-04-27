@@ -144,14 +144,6 @@ new class extends Component
                 </div>
             </div>
         </div>
-
-        <div class="flex items-center gap-2 shrink-0">
-            <flux:modal.trigger name="edit-magasin-{{ $this->magasin->id }}">
-                <flux:button variant="ghost" icon="pencil" size="sm">
-                    Modifier
-                </flux:button>
-            </flux:modal.trigger>
-        </div>
     </div>
 
     {{-- Stat Cards --}}
