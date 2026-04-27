@@ -8,6 +8,7 @@ use App\Models\BonCommande;
 use App\Models\ReceptionCommande;
 use App\Enums\CommandeStatus;
 use Flux\Flux;
+use Illuminate\Support\Facades\DB;
 
 new class extends Component
 {
@@ -27,6 +28,7 @@ new class extends Component
 
     public ?int $deleteId        = null;
     public bool $showDeleteModal = false;
+    public array $updatingStatus = [];
 
     public function sort(string $column): void
     {
@@ -70,7 +72,7 @@ new class extends Component
         }
 
         try {
-            \Illuminate\Support\Facades\DB::transaction(function () use ($bon) {
+            DB::transaction(function () use ($bon) {
                 $commande = $bon->commande;
 
                 if ($commande) {
@@ -100,6 +102,70 @@ new class extends Component
         $this->showDeleteModal = false;
         $this->deleteId        = null;
         unset($this->bonCommandes);
+    }
+
+    public function toggleStatusRecue(int $commandeId): void
+    {
+        $this->updatingStatus[$commandeId] = true;
+
+        try {
+            DB::beginTransaction();
+
+            $commande = \App\Models\Commande::findOrFail($commandeId);
+
+            if ($commande->status === CommandeStatus::Recue) {
+                // Si déjà reçue, on ne fait rien
+                Flux::toast(
+                    heading: 'Information',
+                    text: 'Cette commande est déjà marquée comme reçue.',
+                    variant: 'info'
+                );
+                return;
+            }
+
+            if ($commande->status !== CommandeStatus::Cloturee) {
+                Flux::toast(
+                    heading: 'Action impossible',
+                    text: 'Seules les commandes clôturées peuvent être marquées comme reçues.',
+                    variant: 'warning'
+                );
+                return;
+            }
+
+            $commande->status = CommandeStatus::Recue;
+            $commande->date_reception = now();
+            $commande->save();
+
+            DB::commit();
+
+            unset($this->bonCommandes);
+
+            Flux::toast(
+                heading: 'Statut mis à jour',
+                text: "La commande a été marquée comme reçue.",
+                variant: 'success'
+            );
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Flux::toast(
+                heading: 'Erreur',
+                text: "Impossible de modifier le statut : " . $e->getMessage(),
+                variant: 'danger'
+            );
+        } finally {
+            unset($this->updatingStatus[$commandeId]);
+        }
+    }
+
+    public function canEdit(?int $status): bool
+    {
+        // On ne peut pas modifier si le statut est "Reçue"
+        if ($status === CommandeStatus::Recue->value) {
+            return false;
+        }
+        return true;
     }
 
     #[Computed]
@@ -217,6 +283,10 @@ new class extends Component
                     {{ __('Invendable') }}
                 </flux:table.column>
 
+                <flux:table.column class="text-center">
+                    {{ __('Statut') }}
+                </flux:table.column>
+
                 <flux:table.column class="text-right">
                     {{ __('Actions') }}
                 </flux:table.column>
@@ -227,6 +297,7 @@ new class extends Component
                     @php
                         $commande = $bon->commande;
                         $magasin  = $commande?->magasinLivraison ?? $bon->magasinLivraison;
+                        $isRecue = $commande && $commande->status === CommandeStatus::Recue;
                     @endphp
 
                     <flux:table.row :key="$bon->id" wire:key="bon-{{ $bon->id }}">
@@ -290,6 +361,46 @@ new class extends Component
                             @endif
                         </flux:table.cell>
 
+                        {{-- Statut avec Toggle --}}
+                        <flux:table.cell class="text-center">
+                            <div class="flex items-center justify-center">
+                                @if($commande && $commande->status === CommandeStatus::Cloturee && !$isRecue)
+                                    @if(isset($updatingStatus[$commande->id]))
+                                        <div class="flex items-center justify-center">
+                                            <svg class="animate-spin h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                                            </svg>
+                                        </div>
+                                    @else
+                                        <button
+                                            wire:click="toggleStatusRecue({{ $commande->id }})"
+                                            type="button"
+                                            role="switch"
+                                            aria-checked="false"
+                                            class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 hover:opacity-80"
+                                            style="background-color: #d1d5db"
+                                        >
+                                            <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-1" />
+                                            <span class="sr-only">Marquer comme reçue</span>
+                                        </button>
+                                        <span class="text-xs text-zinc-400 ml-2">Reçue</span>
+                                    @endif
+                                @elseif($commande && $isRecue)
+                                    <flux:badge size="sm" color="green" class="gap-1">
+                                        <flux:icon name="check-circle" class="size-3" />
+                                        Reçue
+                                    </flux:badge>
+                                @elseif($commande)
+                                    <flux:badge size="sm" :color="$commande->status->color()">
+                                        {{ $commande->status->label() }}
+                                    </flux:badge>
+                                @else
+                                    <span class="text-zinc-400 text-xs">—</span>
+                                @endif
+                            </div>
+                        </flux:table.cell>
+
                         {{-- Actions --}}
                         <flux:table.cell class="text-right">
                             <div class="flex items-center justify-end gap-1">
@@ -297,47 +408,55 @@ new class extends Component
                                 {{-- Bouton Détails --}}
                                 <flux:button
                                     wire:click.stop="openDetail({{ $bon->id }})"
+                                    variant="ghost"
+                                    icon="document-text"
                                     title="{{ __('Détails') }}"
-                                >
-                                    Details
-                                </flux:button>
+                                />
 
-                                {{-- Bouton Modifier --}}
-                                @if($commande)
+                                {{-- Bouton Modifier - caché si la commande est reçue --}}
+                                @if($commande && !$isRecue && $this->canEdit($commande->status?->value))
                                     <flux:button
-                                        href="{{ $commande->status === \App\Enums\CommandeStatus::Recue ? '#' : route('reception_commande.edit', ['reception' => $bon->receptions->first()?->id]) }}"
+                                        href="{{ route('reception_commande.edit', ['reception' => $bon->receptions->first()?->id]) }}"
                                         wire:navigate
                                         variant="primary"
-                                        title="{{ $commande->status === \App\Enums\CommandeStatus::Recue ? __('Commande déjà reçue') : __('Modifier') }}"
-                                        :disabled="$commande->status === \App\Enums\CommandeStatus::Recue"
-                                    >
-                                        Modifier
-                                    </flux:button>
+                                        icon="pencil"
+                                        title="{{ __('Modifier') }}"
+                                    />
+                                @elseif($commande && $isRecue)
+                                    <flux:button
+                                        variant="ghost"
+                                        size="sm"
+                                        icon="pencil"
+                                        disabled
+                                        title="{{ __('Modification impossible - Commande reçue') }}"
+                                        class="opacity-50 cursor-not-allowed"
+                                    />
                                 @else
                                     <flux:button
                                         variant="ghost"
                                         size="sm"
-                                        icon="pencil-square"
+                                        icon="pencil"
                                         disabled
                                         title="{{ __('Commande introuvable') }}"
                                     />
                                 @endif
 
+                                {{-- Bouton PDF --}}
                                 <flux:button
                                     href="{{ route('reception_commande.pdf', $bon->id) }}"
                                     target="_blank"
-                                    variant="filled"
+                                    variant="ghost"
+                                    icon="document-arrow-down"
                                     title="{{ __('Télécharger PDF') }}"
-                                >
-                                    Contrôle de réception
-                                </flux:button>
+                                />
 
                                 {{-- Bouton Supprimer --}}
                                 <flux:button
                                     wire:click.stop="confirmDelete({{ $bon->id }})"
-                                    variant="danger"
+                                    variant="ghost"
                                     icon="trash"
                                     title="{{ __('Supprimer') }}"
+                                    class="!text-red-500 hover:!text-red-600"
                                 />
                             </div>
                         </flux:table.cell>
@@ -345,7 +464,7 @@ new class extends Component
                     </flux:table.row>
                 @empty
                     <flux:table.row>
-                        <flux:table.cell colspan="8">
+                        <flux:table.cell colspan="9">
                             <div class="flex flex-col items-center justify-center py-12 text-center">
                                 <flux:icon name="inbox" class="text-zinc-400 mb-3" style="width:40px;height:40px;"/>
                                 <p class="text-zinc-400 font-medium text-sm">
