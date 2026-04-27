@@ -85,6 +85,7 @@ new class extends Component
             @if($this->commande->status === \App\Enums\CommandeStatus::Cloturee)
                 <flux:button
                     variant="primary"
+                    color="lime"
                     icon="truck"
                     href="{{ route('reception_commande.create', ['commande' => $this->commandeId]) }}"
                     wire:navigate
