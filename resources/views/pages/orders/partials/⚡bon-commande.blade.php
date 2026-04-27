@@ -75,7 +75,7 @@ new class extends Component
 
     .bc-label {
         display: inline-block;
-        background: #811844;
+        background: #3f3f46; /* zinc-700 */
         color: #fff;
         font-size: 0.62rem;
         font-weight: 700;
@@ -97,25 +97,25 @@ new class extends Component
     .bc-info-cell:last-child { border-right: none; }
 
     .bc-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-    .bc-table thead tr { border-bottom: 2px solid #811844; }
+    .bc-table thead tr { border-bottom: 2px solid #3f3f46; /* zinc-700 */ }
     .bc-table thead th {
         padding: 10px 10px;
         font-size: 0.62rem;
         font-weight: 700;
         letter-spacing: 0.12em;
         text-transform: uppercase;
-        color: #811844;
-        background: #fff5f7;
+        color: #3f3f46; /* zinc-700 */
+        background: #f4f4f5; /* zinc-100 */
     }
     .bc-table tbody tr { border-bottom: 1px solid #f3f4f6; transition: background 0.15s; }
-    .bc-table tbody tr:hover { background: #fff5f7; }
+    .bc-table tbody tr:hover { background: #f4f4f5; /* zinc-100 */ }
     .bc-table td { padding: 10px 10px; vertical-align: middle; }
 
     .bc-remise-badge {
         display: inline-flex;
         align-items: center;
-        background: #fce7f3;
-        color: #9f1239;
+        background: #e4e4e7; /* zinc-200 */
+        color: #27272a; /* zinc-800 */
         font-size: 0.65rem;
         font-weight: 700;
         padding: 2px 8px;
@@ -125,8 +125,8 @@ new class extends Component
     .bc-dest-badge {
         display: inline-flex;
         align-items: center;
-        background: #f4f4f5;
-        color: #52525b;
+        background: #f4f4f5; /* zinc-100 */
+        color: #52525b; /* zinc-600 */
         font-size: 0.65rem;
         font-weight: 600;
         padding: 2px 8px;
@@ -147,11 +147,11 @@ new class extends Component
         display: flex;
         justify-content: space-between;
         align-items: baseline;
-        background: #811844;
+        background: #3f3f46; /* zinc-700 */
         padding: 12px 16px;
         margin-top: 10px;
     }
-    .bc-totaux-net-label { color: #f9a8d4; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; }
+    .bc-totaux-net-label { color: #d4d4d8; /* zinc-300 */ font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; }
     .bc-totaux-net-value { color: #fff; font-size: 1.2rem; font-weight: 700; }
 
     .bc-status {
@@ -239,7 +239,7 @@ new class extends Component
                 <div class="bc-info-grid">
                     <div class="bc-info-cell">
                         <span class="bc-label">Fournisseur</span>
-                        <p class="font-bold text-sm" style="color:#811844;">
+                        <p class="font-bold text-sm text-zinc-700">
                             {{ $commande->fournisseur?->name ?? '—' }}
                         </p>
                         @if($commande->fournisseur?->email)
@@ -360,7 +360,7 @@ new class extends Component
                                         {{ $currency->format($detail->pu_achat_net) }}
                                     </td>
 
-                                    <td class="text-right tabular-nums whitespace-nowrap font-bold" style="color:#811844;">
+                                    <td class="text-right tabular-nums whitespace-nowrap font-bold text-zinc-700">
                                         {{ $currency->format($detail->pu_achat_net * $detail->quantite) }}
                                     </td>
 
@@ -400,7 +400,7 @@ new class extends Component
                         @if($remisePct > 0)
                             <div class="bc-totaux-row">
                                 <span class="bc-totaux-label">Remise ({{ $remisePct }} %)</span>
-                                <span class="font-semibold" style="color:#811844;">
+                                <span class="font-semibold text-zinc-700">
                                     − {{ $currency->format($totalBrut - $totalNet) }}
                                 </span>
                             </div>
