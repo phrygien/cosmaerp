@@ -53,6 +53,9 @@ Route::middleware(["auth", "verified"])->group(function () {
 
     Route::get('/reception/pdf/{bon}', \App\Http\Controllers\ReceptionController::class)
         ->name('reception_commande.pdf');
+
+    Route::get('/facture/pdf/{facture}', \App\Http\Controllers\FactureController::class)
+        ->name('facture.pdf');
 });
 
 require __DIR__ . "/settings.php";
