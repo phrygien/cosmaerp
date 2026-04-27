@@ -5,6 +5,11 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Facture {{ $facture->numero ?? $facture->id }}</title>
     <style>
+        @page {
+            size: landscape;
+            margin: 15mm;
+        }
+
         /* ============================================
            RESET & BASE STYLES
         ============================================ */
@@ -16,27 +21,23 @@
 
         body {
             font-family: 'DM Sans', sans-serif;
-            font-size: 12px;
+            font-size: 11px;
             color: #1e293b;
-            background: #f8fafc;
-            line-height: 1.5;
-            padding: 40px 20px;
+            background: white;
+            line-height: 1.4;
         }
 
         /* ============================================
            PAGE PRINCIPALE
         ============================================ */
         .page {
-            max-width: 900px;
+            max-width: 100%;
             margin: 0 auto;
-            background: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
-            overflow: hidden;
+            background: white;
         }
 
         .facture-inner {
-            padding: 48px 56px;
+            padding: 24px 32px;
         }
 
         /* ============================================
@@ -46,9 +47,9 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
-            margin-bottom: 48px;
+            margin-bottom: 32px;
             flex-wrap: wrap;
-            gap: 24px;
+            gap: 20px;
         }
 
         .brand-section {
@@ -56,21 +57,18 @@
         }
 
         .brand-name {
-            font-size: 28px;
+            font-size: 24px;
             font-weight: 700;
             letter-spacing: -0.5px;
-            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: #1e293b;
             margin-bottom: 4px;
         }
 
         .brand-sub {
-            font-size: 10px;
+            font-size: 9px;
             font-weight: 500;
-            color: #94a3b8;
-            letter-spacing: 2px;
+            color: #64748b;
+            letter-spacing: 1.5px;
             text-transform: uppercase;
         }
 
@@ -79,10 +77,10 @@
         }
 
         .doc-title {
-            font-size: 38px;
+            font-size: 32px;
             font-weight: 700;
             letter-spacing: -1px;
-            color: #0f172a;
+            color: #1e293b;
             line-height: 1;
         }
 
@@ -91,14 +89,14 @@
         ============================================ */
         .divider-light {
             border: none;
-            border-top: 1px solid #e2e8f0;
-            margin: 0 0 32px 0;
+            border-top: 1px solid #cbd5e1;
+            margin: 0 0 24px 0;
         }
 
         .divider-dark {
             border: none;
-            border-top: 2px solid #0f172a;
-            margin: 0 0 32px 0;
+            border-top: 2px solid #1e293b;
+            margin: 0 0 24px 0;
         }
 
         /* ============================================
@@ -107,9 +105,9 @@
         .info-grid {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 48px;
+            margin-bottom: 32px;
             flex-wrap: wrap;
-            gap: 24px;
+            gap: 20px;
         }
 
         .emitter-info {
@@ -117,30 +115,29 @@
         }
 
         .emitter-name {
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 700;
-            color: #0f172a;
-            margin-bottom: 8px;
+            color: #1e293b;
+            margin-bottom: 6px;
         }
 
         .emitter-details {
-            font-size: 10.5px;
+            font-size: 9.5px;
             color: #475569;
-            line-height: 1.6;
+            line-height: 1.5;
         }
 
         .facture-meta {
-            background: #f8fafc;
-            padding: 16px 20px;
-            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            padding: 12px 16px;
             min-width: 240px;
         }
 
         .meta-item {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 11px;
+            margin-bottom: 6px;
+            font-size: 10px;
         }
 
         .meta-item:last-child {
@@ -155,13 +152,13 @@
 
         .meta-value {
             font-weight: 600;
-            color: #0f172a;
+            color: #1e293b;
             font-family: 'DM Mono', monospace;
         }
 
         .meta-value.due {
             color: #dc2626;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 700;
         }
 
@@ -170,8 +167,8 @@
         ============================================ */
         .addresses-section {
             display: flex;
-            gap: 48px;
-            margin-bottom: 48px;
+            gap: 40px;
+            margin-bottom: 32px;
             flex-wrap: wrap;
         }
 
@@ -180,25 +177,25 @@
         }
 
         .address-label {
-            font-size: 9px;
+            font-size: 8px;
             font-weight: 600;
-            letter-spacing: 1.5px;
+            letter-spacing: 1px;
             text-transform: uppercase;
-            color: #94a3b8;
-            margin-bottom: 12px;
+            color: #64748b;
+            margin-bottom: 8px;
         }
 
         .address-name {
-            font-size: 13px;
+            font-size: 11px;
             font-weight: 700;
-            color: #0f172a;
-            margin-bottom: 6px;
+            color: #1e293b;
+            margin-bottom: 4px;
         }
 
         .address-detail {
-            font-size: 10.5px;
+            font-size: 9.5px;
             color: #475569;
-            line-height: 1.6;
+            line-height: 1.5;
         }
 
         /* ============================================
@@ -207,17 +204,17 @@
         .lines-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 32px;
+            margin-bottom: 24px;
         }
 
         .lines-table thead th {
-            font-size: 9px;
+            font-size: 8px;
             font-weight: 600;
-            letter-spacing: 1px;
+            letter-spacing: 0.8px;
             text-transform: uppercase;
             color: #64748b;
-            padding: 0 0 14px 0;
-            border-bottom: 1.5px solid #e2e8f0;
+            padding: 0 0 8px 0;
+            border-bottom: 1px solid #cbd5e1;
             text-align: left;
         }
 
@@ -230,8 +227,8 @@
         }
 
         .lines-table tbody td {
-            padding: 16px 0;
-            font-size: 11px;
+            padding: 10px 0;
+            font-size: 10px;
             color: #334155;
             border-bottom: 1px solid #f1f5f9;
             vertical-align: top;
@@ -251,20 +248,20 @@
 
         .product-name {
             font-weight: 600;
-            color: #0f172a;
-            margin-bottom: 4px;
+            color: #1e293b;
+            margin-bottom: 3px;
         }
 
         .product-ref {
-            font-size: 9px;
+            font-size: 8px;
             color: #94a3b8;
             font-family: 'DM Mono', monospace;
         }
 
         .product-tva {
-            font-size: 9px;
-            color: #a0aec0;
-            margin-top: 4px;
+            font-size: 8px;
+            color: #94a3b8;
+            margin-top: 3px;
         }
 
         .mono-font {
@@ -278,19 +275,19 @@
         .totals-container {
             display: flex;
             justify-content: flex-end;
-            margin-bottom: 48px;
+            margin-bottom: 32px;
         }
 
         .totals-box {
-            width: 320px;
+            width: 300px;
         }
 
         .total-line {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
-            font-size: 11px;
+            margin-bottom: 6px;
+            font-size: 10px;
         }
 
         .total-label {
@@ -303,32 +300,31 @@
         }
 
         .total-line.grand-total {
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1.5px solid #e2e8f0;
-            margin-bottom: 16px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #cbd5e1;
+            margin-bottom: 10px;
         }
 
         .total-line.grand-total .total-label {
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 700;
-            color: #0f172a;
+            color: #1e293b;
         }
 
         .total-line.grand-total .total-amount {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 700;
-            color: #0f172a;
+            color: #1e293b;
         }
 
         .payment-received {
-            margin-bottom: 16px;
+            margin-bottom: 10px;
         }
 
         .balance-box {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            padding: 16px 20px;
-            border-radius: 12px;
+            border: 2px solid #1e293b;
+            padding: 12px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -336,17 +332,17 @@
         }
 
         .balance-label {
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 600;
-            letter-spacing: 1px;
-            color: #cbd5e1;
+            letter-spacing: 0.8px;
+            color: #1e293b;
             text-transform: uppercase;
         }
 
         .balance-amount {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 700;
-            color: #ffffff;
+            color: #1e293b;
             font-family: 'DM Mono', monospace;
         }
 
@@ -357,18 +353,18 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding-top: 32px;
-            border-top: 1px solid #e2e8f0;
+            padding-top: 20px;
+            border-top: 1px solid #cbd5e1;
             margin-top: 16px;
         }
 
         .payment-info {
-            font-size: 10px;
+            font-size: 9px;
             color: #64748b;
         }
 
         .thanks-note {
-            font-size: 10.5px;
+            font-size: 9.5px;
             font-weight: 500;
             color: #475569;
             letter-spacing: 0.3px;
@@ -378,23 +374,23 @@
            EMPTY STATE
         ============================================ */
         .empty-row td {
-            padding: 12px 0 !important;
+            padding: 8px 0 !important;
         }
 
         .empty-message {
             text-align: center;
-            padding: 48px 24px !important;
+            padding: 32px 20px !important;
             color: #94a3b8;
             font-style: italic;
-            font-size: 11px;
+            font-size: 10px;
         }
 
         /* ============================================
            RESPONSIVE
         ============================================ */
-        @media (max-width: 700px) {
+        @media (max-width: 900px) {
             .facture-inner {
-                padding: 32px 24px;
+                padding: 20px;
             }
 
             .facture-header {
@@ -408,7 +404,7 @@
 
             .addresses-section {
                 flex-direction: column;
-                gap: 24px;
+                gap: 20px;
             }
 
             .totals-container {
@@ -428,7 +424,7 @@
         <div class="facture-header">
             <div class="brand-section">
                 <div class="brand-name">{{ $magasinEmetteur?->name ?? 'Cosma' }}</div>
-                <div class="brand-sub">Parfumeries · Depuis 1998</div>
+                <div class="brand-sub">Parfumeries</div>
             </div>
             <div class="doc-title-section">
                 <div class="doc-title">FACTURE</div>
@@ -475,7 +471,7 @@
                             : '—' }}
                     </span>
                 </div>
-                <div class="meta-item" style="margin-top: 12px; padding-top: 8px; border-top: 1px solid #e2e8f0;">
+                <div class="meta-item" style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #e2e8f0;">
                     <span class="meta-label">SOLDE DÛ</span>
                     <span class="meta-value due">{{ number_format($total_ttc, 2, ',', ' ') }} EUR</span>
                 </div>
@@ -513,11 +509,11 @@
         <table class="lines-table">
             <thead>
             <tr>
-                <th class="text-center" style="width: 80px;">Qté</th>
-                <th style="width: 35%;">Produit</th>
+                <th class="text-center" style="width: 60px;">Qté</th>
+                <th style="width: 30%;">Produit</th>
                 <th style="width: 30%;">Description</th>
-                <th class="text-right" style="width: 120px;">Prix HT</th>
-                <th class="text-right" style="width: 120px;">Total HT</th>
+                <th class="text-right" style="width: 100px;">Prix HT</th>
+                <th class="text-right" style="width: 100px;">Total HT</th>
             </tr>
             </thead>
             <tbody>
@@ -561,7 +557,7 @@
                     <span class="total-amount">{{ number_format($total_net_ht, 2, ',', ' ') }} €</span>
                 </div>
                 <div class="total-line">
-                    <span class="total-label">TVA ({{ number_format(($total_tva / max($total_net_ht, 0.01)) * 100, 1) }}%)</span>
+                    <span class="total-label">TVA</span>
                     <span class="total-amount">{{ number_format($total_tva, 2, ',', ' ') }} €</span>
                 </div>
                 <div class="total-line">
