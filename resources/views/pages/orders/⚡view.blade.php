@@ -134,7 +134,7 @@ new class extends Component
                     <div class="flex justify-between items-center">
                         <flux:subheading>Montant total</flux:subheading>
                         <span class="font-bold text-lg text-zinc-900 dark:text-white">
-                        {{ $this->formaxtCurrency($this->commande->montant_total) }}
+                        {{ $this->formatCurrency($this->commande->montant_total) }}
                     </span>
                     </div>
                 </div>
