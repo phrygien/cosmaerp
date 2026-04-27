@@ -8,7 +8,7 @@ new class extends Component
 };
 ?>
 
-<div class="max-w-7xl">
+<div class="max-w-7xl mx-auto">
     <flux:breadcrumbs class="mb-5">
         <flux:breadcrumbs.item href="#">Commande</flux:breadcrumbs.item>
         <flux:breadcrumbs.item>Details</flux:breadcrumbs.item>
