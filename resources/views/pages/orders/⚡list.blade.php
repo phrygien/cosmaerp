@@ -379,6 +379,11 @@ new class extends Component
     {
         $this->dispatch('show-bon-commande', id: $id);
     }
+
+    public function formatCurrency(?float $amount): string
+    {
+        return app(\App\Services\CurrencyService::class)->format($amount);
+    }
 };
 ?>
 
@@ -417,7 +422,7 @@ new class extends Component
         <flux:card class="p-5">
             <p class="text-sm text-zinc-500">Montant total</p>
             <p class="text-2xl font-bold mt-1 text-zinc-700 dark:text-zinc-200">
-                {{ number_format($this->stats['montant'], 2, ',', ' ') }} €
+                {{ $this->formatCurrency($this->stats['montant']) }}
             </p>
         </flux:card>
     </div>
@@ -549,7 +554,7 @@ new class extends Component
                         </flux:table.cell>
 
                         <flux:table.cell class="hidden lg:table-cell text-sm font-medium whitespace-nowrap">
-                            {{ number_format($commande->montant_total, 2, ',', ' ') }} €
+                            {{ $this->formatCurrency($commande->montant_total) }}
                         </flux:table.cell>
 
                         {{-- Cellule Statut : badges uniquement --}}
