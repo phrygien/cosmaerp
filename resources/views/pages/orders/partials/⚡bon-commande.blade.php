@@ -202,12 +202,9 @@ new class extends Component
                         @endif
                     </div>
                     <div class="flex items-start gap-3">
-                        <span class="bc-status bc-status-{{ $statusColor }}" style="margin-top:4px;">
-                            {{ $statusLabel }}
-                        </span>
                         <div class="flex gap-2">
                             <a href="{{ route('bon-commande.pdf', $commandeId) }}" target="_blank">
-                                <flux:button variant="primary" icon="arrow-down-tray">Bon de commande</flux:button>
+                                <flux:button variant="primary">Bon de commande</flux:button>
                             </a>
                             <flux:button
                                 wire:click="sendEmail"
@@ -217,6 +214,7 @@ new class extends Component
                                 size="sm"
                                 variant="ghost"
                                 :disabled="$emailSent || !$commande->fournisseur?->email"
+                                class="hidden"
                             >
                                 <span wire:loading.remove wire:target="sendEmail">
                                     {{ $emailSent ? 'Envoyé' : 'Envoyer' }}
