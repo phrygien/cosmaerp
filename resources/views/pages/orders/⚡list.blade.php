@@ -108,7 +108,7 @@ new class extends Component
             $validTransitions = [
                 CommandeStatus::Cree->value      => [CommandeStatus::Facturee, CommandeStatus::Annulee],
                 CommandeStatus::Facturee->value  => [CommandeStatus::Cloturee, CommandeStatus::Annulee],
-                CommandeStatus::Cloturee->value  => [],
+                CommandeStatus::Cloturee->value  => [CommandeStatus::Recue],
                 CommandeStatus::Recue->value     => [],
                 CommandeStatus::Annulee->value   => [],
             ];
@@ -185,6 +185,20 @@ new class extends Component
                 $commande->date_cloture = now();
                 $commande->etat         = CommandeEtat::Commande;
 
+            } elseif ($newStatus === CommandeStatus::Recue) {
+                $commande->date_reception = now();
+
+                $facture = Facture::where('commande_id', $commande->id)->first();
+                if ($facture) {
+                    $facture->update(['date_reception' => now()]);
+                }
+
+                Flux::toast(
+                    heading: 'Commande reçue',
+                    text: "La commande \"{$commande->libelle}\" a été marquée comme reçue",
+                    variant: 'success'
+                );
+
             } elseif ($newStatus === CommandeStatus::Annulee) {
                 $commande->date_annulation = now();
 
@@ -246,10 +260,12 @@ new class extends Component
 
     public function canEdit(CommandeStatus $status): bool
     {
+        //return $status === CommandeStatus::Cree;
+
         return !in_array($status, [
             CommandeStatus::Cloturee,
             CommandeStatus::Recue,
-            CommandeStatus::Annulee,
+            CommandeStatus::Annulee
         ]);
     }
 
@@ -345,13 +361,7 @@ new class extends Component
     #[Computed]
     public function activeFiltersCount(): int
     {
-        return collect([
-            $this->filterStatus,
-            $this->filterEtat,
-            $this->filterFournisseur,
-            $this->filterDateFrom,
-            $this->filterDateTo,
-        ])
+        return collect([$this->filterStatus, $this->filterEtat, $this->filterFournisseur, $this->filterDateFrom, $this->filterDateTo])
             ->filter(fn($v) => $v !== '')
             ->count();
     }
@@ -553,7 +563,7 @@ new class extends Component
                             {{ $this->formatCurrency($commande->montant_total) }}
                         </flux:table.cell>
 
-                        {{-- Cellule Statut --}}
+                        {{-- Cellule Statut : badges uniquement --}}
                         <flux:table.cell>
                             <div class="flex flex-wrap gap-2">
                                 <flux:badge size="sm" :color="$commande->status->color()">
@@ -571,6 +581,7 @@ new class extends Component
                         {{-- Cellule Action --}}
                         <flux:table.cell class="hidden md:table-cell">
 
+                            {{-- Spinner pendant la mise à jour --}}
                             @if(isset($updatingStatus[$commande->id]))
                                 <flux:button variant="ghost" size="sm" disabled>
                                     <svg class="animate-spin h-3 w-3 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -580,7 +591,7 @@ new class extends Component
                                     Mise à jour...
                                 </flux:button>
 
-                                {{-- Créée → bouton "Facturer" --}}
+                                {{-- Créée → bouton "Facturer" (blue) --}}
                             @elseif($commande->status === CommandeStatus::Cree)
                                 <flux:button
                                     variant="primary"
@@ -608,7 +619,26 @@ new class extends Component
                                     <span class="text-xs text-zinc-500 dark:text-zinc-400">Clôturer</span>
                                 </div>
 
-                                {{-- Clôturée, Reçue, Annulée → tiret --}}
+                                {{-- Clôturée → bouton "Marquer comme reçue" (green) --}}
+                            @elseif($commande->status === CommandeStatus::Cloturee)
+                                <flux:button
+                                    variant="primary"
+                                    color="green"
+                                    size="sm"
+                                    icon="inbox-arrow-down"
+                                    wire:click="updateStatus({{ $commande->id }}, {{ CommandeStatus::Recue->value }})"
+                                >
+                                    {{ CommandeStatus::Recue->label() }}
+                                </flux:button>
+
+                                {{-- Reçue → badge final --}}
+                            @elseif($commande->status === CommandeStatus::Recue)
+                                <flux:badge size="sm" color="green" class="gap-1">
+                                    <flux:icon name="check-circle" class="size-3" />
+                                    {{ CommandeStatus::Recue->label() }}
+                                </flux:badge>
+
+                                {{-- Annulée ou autre → rien --}}
                             @else
                                 <span class="text-zinc-400 text-xs">—</span>
                             @endif
@@ -659,13 +689,13 @@ new class extends Component
                             <div class="flex flex-col items-center justify-center py-12 text-center">
                                 <flux:icon name="shopping-cart" class="text-zinc-400 mb-3" style="width: 40px; height: 40px;" />
                                 <p class="text-zinc-400 font-medium text-sm">
-                                    @if ($search || $filterStatus !== '' || $filterEtat !== '' || $filterFournisseur !== '' || $filterDateFrom !== '' || $filterDateTo !== '')
+                                    @if ($search || $filterStatus !== '' || $filterFournisseur !== '')
                                         Aucune commande trouvée pour ces filtres
                                     @else
                                         Aucune commande enregistrée
                                     @endif
                                 </p>
-                                @if ($search || $filterStatus !== '' || $filterEtat !== '' || $filterFournisseur !== '' || $filterDateFrom !== '' || $filterDateTo !== '')
+                                @if ($search || $filterStatus !== '' || $filterFournisseur !== '')
                                     <flux:button variant="ghost" size="sm" wire:click="resetFilters" class="mt-3">
                                         Réinitialiser les filtres
                                     </flux:button>
