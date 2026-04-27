@@ -21,4 +21,12 @@ new class extends Component
             Bon de commande
         </flux:button>
     </div>
+
+    <flux:card class="mt-5">
+
+    </flux:card>
+
+    <flux:card class="mt-5">
+
+    </flux:card>
 </div>
