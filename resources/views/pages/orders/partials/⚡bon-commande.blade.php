@@ -206,21 +206,6 @@ new class extends Component
                             <a href="{{ route('bon-commande.pdf', $commandeId) }}" target="_blank">
                                 <flux:button variant="primary">Bon de commande</flux:button>
                             </a>
-                            <flux:button
-                                wire:click="sendEmail"
-                                wire:loading.attr="disabled"
-                                wire:target="sendEmail"
-                                :icon="$emailSent ? 'check-circle' : 'paper-airplane'"
-                                size="sm"
-                                variant="ghost"
-                                :disabled="$emailSent || !$commande->fournisseur?->email"
-                                class="hidden"
-                            >
-                                <span wire:loading.remove wire:target="sendEmail">
-                                    {{ $emailSent ? 'Envoyé' : 'Envoyer' }}
-                                </span>
-                                <span wire:loading wire:target="sendEmail">Envoi…</span>
-                            </flux:button>
                         </div>
                         @if($bonCommande?->numero_compte)
                             <div class="text-right">
