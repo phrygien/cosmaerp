@@ -451,8 +451,8 @@ new class extends Component
                 <flux:button wire:click="previousStep" variant="ghost">
                     &larr; Précédent
                 </flux:button>
-                <flux:button wire:click="confirmer" variant="primary" icon="check">
-                    Enregistrer les modifications
+                <flux:button wire:click="confirmer" variant="primary">
+                    Enregistrer et terminer la reception
                 </flux:button>
             </div>
         @endif
