@@ -623,10 +623,12 @@ new class extends Component
                             <flux:dropdown>
                                 <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom" />
                                 <flux:menu>
-                                    <flux:menu.item icon="document-text" wire:click="showBonCommande({{ $commande->id }})">
-                                        Détails de la commande
+{{--                                    <flux:menu.item icon="document-text" wire:click="showBonCommande({{ $commande->id }})">--}}
+{{--                                        Détails de la commande--}}
+{{--                                    </flux:menu.item>--}}
+                                    <flux:menu.item icon="pencil" href="{{ route('orders.view', $commande->id) }}" wire:navigate>
+                                        Details
                                     </flux:menu.item>
-
 {{--                                    @if(in_array($commande->status, [CommandeStatus::Facturee, CommandeStatus::Cloturee, CommandeStatus::Recue]))--}}
 {{--                                        <flux:menu.item icon="receipt-percent" href="{{ route('orders.facture', $commande->id) }}" wire:navigate>--}}
 {{--                                            Voir la facture--}}
