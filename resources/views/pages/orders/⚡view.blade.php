@@ -12,9 +12,9 @@ new class extends Component
     public string $sortBy = 'id';
     public string $sortDirection = 'asc';
 
-    public function mount(int $id): void
+    public function mount(int $commande_id): void
     {
-        $this->commandeId = $id;
+        $this->commandeId = $commande_id;
     }
 
     public function sort(string $column): void
