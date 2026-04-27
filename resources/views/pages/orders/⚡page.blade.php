@@ -8,6 +8,6 @@ new class extends Component
 };
 ?>
 
-<div class="max-w-7xl mx-auto">
+<div class="w-full mx-auto">
     <livewire:pages::orders.list />
 </div>
