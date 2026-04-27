@@ -81,6 +81,18 @@ new class extends Component
             <flux:button icon="document-text" href="{{ route('bon-commande.pdf', $commandeId) }}" target="_blank">
                 Bon de commande
             </flux:button>
+
+            @if($this->commande->status === \App\Enums\CommandeStatus::Cloturee)
+                <flux:button
+                    variant="primary"
+                    icon="truck"
+                    href="{{ route('reception_commande.create', ['commande_id' => $this->commandeId, 'step' => 1]) }}"
+                    wire:navigate
+                >
+                    Passer à la réception
+                </flux:button>
+            @endif
+
         </div>
     </div>
 
