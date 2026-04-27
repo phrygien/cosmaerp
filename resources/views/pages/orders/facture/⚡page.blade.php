@@ -219,7 +219,14 @@ new class extends Component
             <flux:heading size="xl" level="1">Facture N°{{ $this->facture->numero }}</flux:heading>
             <p class="text-sm text-zinc-500 mt-1">Commande : {{ $this->commande->libelle }}</p>
         </div>
-        <flux:button variant="primary" icon="printer" onclick="window.print()">Imprimer</flux:button>
+        <flux:button
+            href="{{ route('facture.pdf', $this->facture->id) }}"
+            target="_blank"
+            variant="primary"
+            icon="document-arrow-down"
+        >
+            Télécharger PDF
+        </flux:button>
     </div>
 
     <div class="border border-zinc-200 overflow-hidden" id="facture-print">
