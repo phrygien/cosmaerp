@@ -402,7 +402,7 @@ new class extends Component
                 {{-- ══ ACTIONS ══ --}}
                 <div class="px-5 py-4 border-t border-zinc-200 flex items-center justify-end gap-3">
                     <a href="{{ route('bon-commande.pdf', $commandeId) }}" target="_blank">
-                        <flux:button variant="primary" icon="document-arrow-down">
+                        <flux:button variant="primary">
                             Bon de commande
                         </flux:button>
                     </a>
