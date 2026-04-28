@@ -304,42 +304,26 @@ new class extends Component
                                 </flux:button>
 
 
-                                {{-- Bouton Modifier --}}
-                                @if($commande)
-                                    @if($commande->status === \App\Enums\CommandeStatus::Recue)
-                                        <flux:badge color="green" size="sm" inset="top bottom">
-                                            Commande reçue
-                                        </flux:badge>
-                                    @else
-                                        <flux:button
-                                            href="{{ route('reception_commande.edit', ['bon' => $bon->id]) }}"
-                                            wire:navigate
-                                            variant="primary"
-                                            title="{{ __('Modifier') }}"
-                                        >
-                                            Modifier
-                                        </flux:button>
-                                    @endif
-                                @else
-                                    <flux:button variant="ghost" size="sm" icon="pencil-square" disabled />
-                                @endif
+{{--                                --}}{{-- Bouton Modifier --}}
+{{--                                @if($commande)--}}
+{{--                                    @if($commande->status === \App\Enums\CommandeStatus::Recue)--}}
+{{--                                        <flux:badge color="green" size="sm" inset="top bottom">--}}
+{{--                                            Commande reçue--}}
+{{--                                        </flux:badge>--}}
+{{--                                    @else--}}
+{{--                                        <flux:button--}}
+{{--                                            href="{{ route('reception_commande.edit', ['bon' => $bon->id]) }}"--}}
+{{--                                            wire:navigate--}}
+{{--                                            variant="primary"--}}
+{{--                                            title="{{ __('Modifier') }}"--}}
+{{--                                        >--}}
+{{--                                            Modifier--}}
+{{--                                        </flux:button>--}}
+{{--                                    @endif--}}
+{{--                                @else--}}
+{{--                                    <flux:button variant="ghost" size="sm" icon="pencil-square" disabled />--}}
+{{--                                @endif--}}
 
-                                <flux:button
-                                    href="{{ route('reception_commande.pdf', $bon->id) }}"
-                                    target="_blank"
-                                    variant="filled"
-                                    title="{{ __('Télécharger PDF') }}"
-                                >
-                                    Contrôle de réception
-                                </flux:button>
-
-                                {{-- Bouton Supprimer --}}
-                                <flux:button
-                                    wire:click.stop="confirmDelete({{ $bon->id }})"
-                                    variant="danger"
-                                    icon="trash"
-                                    title="{{ __('Supprimer') }}"
-                                />
                             </div>
                         </flux:table.cell>
 
