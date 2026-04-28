@@ -16,7 +16,7 @@ new class extends Component
     #[Url(as: 'step', keep: true)]
     public int $currentStep = 1;
 
-    public ReceptionCommande $reception;
+    public BonCommande $bon;
 
     // Step 1 fields
     public ?int    $commande_id     = null;
@@ -26,25 +26,33 @@ new class extends Component
 
     public bool $showCancelModal = false;
 
-    public function mount(ReceptionCommande $reception): void
+    public function mount(BonCommande $bon): void
     {
-        $this->reception = $reception->load(['commande.fournisseur', 'commande.magasinLivraison']);
+        $bon->load([
+            'commande.fournisseur',
+            'commande.magasinLivraison',
+            'receptions',
+        ]);
 
-        $commande = $this->reception->commande;
+        $this->bon = $bon;
+
+        $commande = $bon->commande;
 
         if (!$commande) {
             $this->redirect(route('reception_commande.list'), navigate: true);
             return;
         }
 
-        $this->commande_id    = $commande->id;
-        $this->date_reception = $this->reception->date_reception
-            ? \Carbon\Carbon::parse($this->reception->date_reception)->format('Y-m-d')
-            : now()->format('Y-m-d');
-        $this->note = $this->reception->note;
+        $this->commande_id     = $commande->id;
+        $this->bon_commande_id = $bon->id;
 
-        $bon = BonCommande::where('commande_id', $this->commande_id)->first();
-        $this->bon_commande_id = $bon?->id;
+        // Date depuis la première réception ou aujourd'hui
+        $premiereReception = $bon->receptions->first();
+        $this->date_reception = $premiereReception?->created_at
+            ? $premiereReception->created_at->format('Y-m-d')
+            : now()->format('Y-m-d');
+
+        $this->note = $premiereReception?->note ?? null;
     }
 
     #[Computed]
@@ -57,8 +65,7 @@ new class extends Component
     #[Computed]
     public function bonCommande()
     {
-        if (!$this->commande_id) return null;
-        return BonCommande::where('commande_id', $this->commande_id)->first();
+        return $this->bon;
     }
 
     protected function rules(): array
@@ -114,7 +121,7 @@ new class extends Component
             return;
         }
 
-        $receptions = ReceptionCommande::where('commande_id', $this->commande_id)->get();
+        $receptions = ReceptionCommande::where('bon_commande_id', $this->bon_commande_id)->get();
 
         if ($receptions->isEmpty()) {
             Flux::toast(
@@ -127,12 +134,6 @@ new class extends Component
 
         try {
             DB::transaction(function () use ($details) {
-                // Mise à jour de la réception principale
-                $this->reception->update([
-                    'date_reception' => $this->date_reception,
-                    'note'           => $this->note,
-                ]);
-
                 // Réinitialisation du stock lié à cette commande
                 StockMagasin::whereIn('detail_commande_id', function ($query) {
                     $query->select('id')
@@ -186,14 +187,17 @@ new class extends Component
             );
         }
     }
-
 };
 ?>
 
 <div class="max-w-7xl mx-auto">
     <flux:breadcrumbs class="mb-5">
-        <flux:breadcrumbs.item href="{{ route('reception_commande.list') }}">Réception</flux:breadcrumbs.item>
-        <flux:breadcrumbs.item>Modifier la réception #{{ $reception->id }}</flux:breadcrumbs.item>
+        <flux:breadcrumbs.item href="{{ route('reception_commande.list') }}" wire:navigate>
+            Réceptions
+        </flux:breadcrumbs.item>
+        <flux:breadcrumbs.item>
+            Modifier — {{ $bon->numero_compte ? '№ '.$bon->numero_compte : '#'.$bon->id }}
+        </flux:breadcrumbs.item>
     </flux:breadcrumbs>
 
     <div class="flex items-center justify-between mb-6">
@@ -303,7 +307,6 @@ new class extends Component
 
                 </li>
             @endforeach
-
         </ol>
     </nav>
 
@@ -360,11 +363,7 @@ new class extends Component
                             <div>
                                 <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Bon de commande</p>
                                 <p class="text-sm font-semibold text-gray-900 dark:text-white">
-                                    @if($this->bonCommande)
-                                        № / {{ $this->bonCommande->id }}
-                                    @else
-                                        <flux:badge color="red" size="sm">Aucun bon</flux:badge>
-                                    @endif
+                                    {{ $bon->numero_compte ? '№ '.$bon->numero_compte : '#'.$bon->id }}
                                 </p>
                             </div>
                         </div>
@@ -404,9 +403,8 @@ new class extends Component
 
         {{-- STEP 2 : Produits reçus --}}
         @if($currentStep === 2 && $commande_id)
-            {{-- Aperçu commande --}}
             @if($this->selectedCommande)
-                <div class="mb-5 sm:col-span-2 rounded-lg bg-zinc-50 dark:bg-zinc-900
+                <div class="mb-5 rounded-lg bg-zinc-50 dark:bg-zinc-900
                             border border-zinc-200 dark:border-zinc-700
                             p-4 grid grid-cols-2 sm:grid-cols-4 gap-4">
                     <div>
@@ -430,11 +428,7 @@ new class extends Component
                     <div>
                         <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Bon de commande</p>
                         <p class="text-sm font-semibold text-gray-900 dark:text-white">
-                            @if($this->bonCommande)
-                                № / {{ $this->bonCommande->id }}
-                            @else
-                                <flux:badge color="red" size="sm">Aucun bon</flux:badge>
-                            @endif
+                            {{ $bon->numero_compte ? '№ '.$bon->numero_compte : '#'.$bon->id }}
                         </p>
                     </div>
                 </div>
@@ -452,7 +446,7 @@ new class extends Component
                     &larr; Précédent
                 </flux:button>
                 <flux:button wire:click="confirmer" variant="primary">
-                    Enregistrer et terminer la reception
+                    Enregistrer et terminer la réception
                 </flux:button>
             </div>
         @endif
