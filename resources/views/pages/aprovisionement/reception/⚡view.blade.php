@@ -53,8 +53,6 @@ new class extends Component
             <flux:button
                 href="{{ route('reception_commande.pdf', $bon->id) }}"
                 target="_blank"
-                variant="filled"
-                icon="document-arrow-down"
             >
                 {{ __('Contrôle de réception') }}
             </flux:button>
@@ -64,20 +62,10 @@ new class extends Component
                     href="{{ route('reception_commande.edit', ['bon' => $bon->id]) }}"
                     wire:navigate
                     variant="primary"
-                    icon="pencil-square"
                 >
                     {{ __('Modifier') }}
                 </flux:button>
             @endif
-
-            <flux:button
-                href="{{ route('reception_commande.list') }}"
-                wire:navigate
-                variant="ghost"
-                icon="arrow-left"
-            >
-                {{ __('Retour') }}
-            </flux:button>
         </div>
     </div>
 
