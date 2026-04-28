@@ -104,7 +104,7 @@ new class extends Component
                 <flux:button wire:click="$set('showCloturerModal', false)" variant="ghost">
                     Annuler
                 </flux:button>
-                <flux:button wire:click="cloturer" variant="primary" icon="check-circle">
+                <flux:button wire:click="cloturer" variant="primary" color="lime" icon="check-circle">
                     Oui, clôturer
                 </flux:button>
             </div>
