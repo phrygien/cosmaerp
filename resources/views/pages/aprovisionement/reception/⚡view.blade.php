@@ -103,10 +103,10 @@ new class extends Component
                 Le bouton Modifier ne sera plus disponible après cette opération.
             </flux:text>
             <div class="flex justify-end gap-3 pt-2">
-                <flux:button wire:click="$set('showCloturerModal', false)" variant="ghost">
+                <flux:button wire:click="$set('showCloturerModal', false)" variant="primary">
                     Annuler
                 </flux:button>
-                <flux:button wire:click="cloturer" variant="primary" icon="check-circle">
+                <flux:button wire:click="cloturer" variant="primary" color="lime" icon="check-circle">
                     Oui, clôturer
                 </flux:button>
             </div>
