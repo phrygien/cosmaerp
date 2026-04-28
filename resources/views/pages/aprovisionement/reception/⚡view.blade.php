@@ -13,13 +13,13 @@ new class extends Component
     public function mount(ReceptionCommande $reception): void
     {
         $this->reception = $reception->load([
-            'bonCommande.commande.fournisseur',
-            'bonCommande.commande.magasinLivraison',
-            'bonCommande.magasinLivraison',
-            'bonCommande.receptions.detailCommande.product',
+            'bon_commande.commande.fournisseur',
+            'bon_commande.commande.magasinLivraison',
+            'bon_commande.magasinLivraison',
+            'bon_commande.receptions.detail_commande.product',
         ]);
 
-        $this->bon = $this->reception->bonCommande;
+        $this->bon = $this->reception->bon_commande;
     }
 };
 ?>
@@ -31,7 +31,7 @@ new class extends Component
             {{ __('Réceptions') }}
         </flux:breadcrumbs.item>
         <flux:breadcrumbs.item>
-            {{ $bon?->numero_compte ? '№ '.$bon->numero_compte : '#'.$bon?->id }}
+            {{ $bon?->numero_compte ? '№ '.$bon->numero_compte : '#'.($bon?->id ?? '—') }}
         </flux:breadcrumbs.item>
     </flux:breadcrumbs>
 
@@ -132,7 +132,7 @@ new class extends Component
                         color="{{ $commande->status === \App\Enums\CommandeStatus::Recue ? 'green' : 'zinc' }}"
                         size="sm"
                     >
-                        {{ $commande->status?->label() ?? $commande->status }}
+                        {{ $commande->status?->value ?? '—' }}
                     </flux:badge>
                 @else
                     <span class="text-sm text-zinc-400">—</span>
@@ -148,16 +148,25 @@ new class extends Component
             <flux:heading size="lg">{{ __('Lignes de réception') }}</flux:heading>
 
             <div class="flex items-center gap-3">
+                @php
+                    $allReceptions  = $bon?->receptions ?? collect();
+                    $totalRecu      = $allReceptions->sum('recu');
+                    $totalInvendable = $allReceptions->sum('invendable');
+                @endphp
+
                 <flux:badge color="zinc" size="sm">
-                    {{ $bon?->receptions_count ?? $bon?->receptions->count() }} {{ __('ligne(s)') }}
+                    {{ $allReceptions->count() }} {{ __('ligne(s)') }}
                 </flux:badge>
 
-                @php $totalInvendable = $bon?->receptions->sum('invendable') ?? 0; @endphp
                 @if($totalInvendable > 0)
                     <flux:badge color="red" size="sm">
                         {{ $totalInvendable }} {{ __('invendable(s)') }}
                     </flux:badge>
                 @endif
+
+                <flux:badge color="green" size="sm">
+                    {{ $totalRecu }} {{ __('reçu(s)') }}
+                </flux:badge>
             </div>
         </div>
 
@@ -172,11 +181,13 @@ new class extends Component
             </flux:table.columns>
 
             <flux:table.rows>
-                @forelse ($bon?->receptions ?? [] as $ligne)
+                @forelse ($allReceptions as $ligne)
                     @php
-                        $detail  = $ligne->detailCommande;
-                        $product = $detail?->product;
-                        $ecart   = ($detail?->quantite ?? 0) - ($ligne->recu ?? 0);
+                        $detail   = $ligne->detail_commande;
+                        $product  = $detail?->product;
+                        $quantite = $detail?->quantite ?? 0;
+                        $recu     = $ligne->recu ?? 0;
+                        $ecart    = $quantite - $recu;
                     @endphp
 
                     <flux:table.row :key="$ligne->id" wire:key="ligne-{{ $ligne->id }}">
@@ -187,7 +198,9 @@ new class extends Component
                                 {{ $product?->designation ?? '—' }}
                             </p>
                             @if($product?->designation_variant)
-                                <p class="text-xs text-zinc-400 mt-0.5">{{ $product->designation_variant }}</p>
+                                <p class="text-xs text-zinc-400 mt-0.5">
+                                    {{ $product->designation_variant }}
+                                </p>
                             @endif
                         </flux:table.cell>
 
@@ -198,13 +211,13 @@ new class extends Component
 
                         {{-- Qté commandée --}}
                         <flux:table.cell class="text-center text-sm">
-                            {{ $detail?->quantite ?? '—' }}
+                            {{ $quantite ?: '—' }}
                         </flux:table.cell>
 
                         {{-- Qté reçue --}}
                         <flux:table.cell class="text-center">
                             <flux:badge color="green" size="sm" inset="top bottom">
-                                {{ $ligne->recu ?? 0 }}
+                                {{ $recu }}
                             </flux:badge>
                         </flux:table.cell>
 
