@@ -8,16 +8,16 @@ new class extends Component
 {
     public BonCommande $bon;
 
-    public function mount(BonCommande $bon): void
+    public function mount(int $reception): void
     {
-        $this->bon = $bon->load([
+        $this->bon = BonCommande::with([
             'commande.fournisseur',
             'commande.magasinLivraison',
             'commande.details.product',
             'magasinLivraison',
             'magasinFacturation',
             'receptions.detail_commande.product',
-        ]);
+        ])->findOrFail($reception);
     }
 };
 ?>
