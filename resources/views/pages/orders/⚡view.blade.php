@@ -80,6 +80,15 @@ new class extends Component
         );
     }
 
+    #[\Livewire\Attributes\Computed]
+    public function isEditable(): bool
+    {
+        return !in_array($this->commande->status, [
+            \App\Enums\CommandeStatus::Cloturee,
+            \App\Enums\CommandeStatus::Recue,
+            \App\Enums\CommandeStatus::Annulee,
+        ]);
+    }
 };
 ?>
 
@@ -93,11 +102,11 @@ new class extends Component
         <flux:heading size="xl" level="1">{{ __('Commande') }}</flux:heading>
 
         <div class="flex items-center gap-2">
-            <flux:button variant="danger" wire:click="delete" wire:confirm="Êtes-vous sûr de vouloir supprimer cette commande ?">
+            <flux:button variant="danger" wire:click="delete" wire:confirm="Êtes-vous sûr de vouloir supprimer cette commande ?" :disabled="!$this->isEditable">
                 Supprimer
             </flux:button>
 
-            <flux:button variant="primary" href="{{ route('orders.edit', ['commande_id' => $this->commandeId]) }}" wire:navigate>
+            <flux:button variant="primary" href="{{ route('orders.edit', ['commande_id' => $this->commandeId]) }}" wire:navigate :disabled="!$this->isEditable">
                 Modifier
             </flux:button>
 
