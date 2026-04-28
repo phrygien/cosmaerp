@@ -8,7 +8,7 @@ new class extends Component
 {
     public BonCommande $bon;
 
-    public function mount(int $reception): void
+    public function mount(int $bon): void
     {
         $this->bon = BonCommande::with([
             'commande.fournisseur',
@@ -17,7 +17,7 @@ new class extends Component
             'magasinLivraison',
             'magasinFacturation',
             'receptions.detail_commande.product',
-        ])->findOrFail($reception);
+        ])->findOrFail($bon);
     }
 };
 ?>
