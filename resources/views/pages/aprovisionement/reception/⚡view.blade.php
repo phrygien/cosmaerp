@@ -24,7 +24,7 @@ new class extends Component
 };
 ?>
 
-<div class="max-w-7xl">
+<div class="max-w-7xl mx-auto">
     <flux:breadcrumbs class="mb-5">
         <flux:breadcrumbs.item href="#">{{ __('Approvisionnement') }}</flux:breadcrumbs.item>
         <flux:breadcrumbs.item href="{{ route('reception_commande.list') }}" wire:navigate>
