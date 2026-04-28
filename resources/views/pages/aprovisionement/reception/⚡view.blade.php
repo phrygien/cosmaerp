@@ -31,7 +31,7 @@ new class extends Component
             {{ __('Réceptions') }}
         </flux:breadcrumbs.item>
         <flux:breadcrumbs.item>
-            {{ $bon->numero_compte ? '№ '.$bon->numero_compte : '#'.$bon->id }}
+            {{ $bon->numero_compte ? '№ '.$bon->numero_compte : '№ '.$bon->id }}
         </flux:breadcrumbs.item>
     </flux:breadcrumbs>
 
