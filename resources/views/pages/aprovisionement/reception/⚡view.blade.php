@@ -15,7 +15,9 @@ new class extends Component
         $this->reception = $reception->load([
             'bon_commande.commande.fournisseur',
             'bon_commande.commande.magasinLivraison',
+            'bon_commande.commande.details.product',
             'bon_commande.magasinLivraison',
+            'bon_commande.magasinFacturation',
             'bon_commande.receptions.detail_commande.product',
         ]);
 
@@ -74,101 +76,198 @@ new class extends Component
         </div>
     </div>
 
-    {{-- Informations générales --}}
-    <flux:card class="mt-5 p-6">
-        <flux:heading size="lg" class="mb-4">{{ __('Informations générales') }}</flux:heading>
+    @php
+        $commande        = $bon?->commande;
+        $fournisseur     = $commande?->fournisseur;
+        $magasin         = $commande?->magasinLivraison ?? $bon?->magasinLivraison;
+        $magasinFact     = $bon?->magasinFacturation;
+        $allReceptions   = $bon?->receptions ?? collect();
+        $totalRecu       = $allReceptions->sum('recu');
+        $totalInvendable = $allReceptions->sum('invendable');
+        $totalCommande   = $commande?->details->sum('quantite') ?? 0;
+    @endphp
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    {{-- ── Bloc principal : Bon de commande + Commande ── --}}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-5">
 
-            {{-- Bon de commande --}}
-            <div>
-                <p class="text-xs text-zinc-400 uppercase tracking-wide mb-1">{{ __('Bon de commande') }}</p>
-                <p class="font-semibold text-sm">
-                    {{ $bon?->numero_compte ? '№ '.$bon->numero_compte : '#'.($bon?->id ?? '—') }}
-                </p>
+        {{-- Bon de commande --}}
+        <flux:card class="p-6">
+            <div class="flex items-center gap-2 mb-4">
+                <flux:icon name="document-text" class="text-zinc-400" style="width:18px;height:18px;" />
+                <flux:heading size="lg">{{ __('Bon de commande') }}</flux:heading>
+            </div>
+
+            <dl class="space-y-3">
+                <div class="flex justify-between items-start">
+                    <dt class="text-xs text-zinc-400 uppercase tracking-wide">{{ __('Numéro') }}</dt>
+                    <dd class="font-semibold text-sm text-right">
+                        {{ $bon?->numero_compte ? '№ '.$bon->numero_compte : '#'.($bon?->id ?? '—') }}
+                    </dd>
+                </div>
+
                 @if($bon?->code_fournisseur)
-                    <p class="text-xs text-zinc-400 mt-0.5">{{ $bon->code_fournisseur }}</p>
+                    <div class="flex justify-between items-start">
+                        <dt class="text-xs text-zinc-400 uppercase tracking-wide">{{ __('Code fournisseur') }}</dt>
+                        <dd class="text-sm text-right font-mono">{{ $bon->code_fournisseur }}</dd>
+                    </div>
                 @endif
+
+                @if($bon?->date_commande)
+                    <div class="flex justify-between items-start">
+                        <dt class="text-xs text-zinc-400 uppercase tracking-wide">{{ __('Date commande') }}</dt>
+                        <dd class="text-sm text-right">
+                            {{ \Carbon\Carbon::parse($bon->date_commande)->format('d/m/Y') }}
+                        </dd>
+                    </div>
+                @endif
+
+                @if($bon?->date_livraison_prevue)
+                    <div class="flex justify-between items-start">
+                        <dt class="text-xs text-zinc-400 uppercase tracking-wide">{{ __('Livraison prévue') }}</dt>
+                        <dd class="text-sm text-right">
+                            {{ \Carbon\Carbon::parse($bon->date_livraison_prevue)->format('d/m/Y') }}
+                        </dd>
+                    </div>
+                @endif
+
+                <div class="flex justify-between items-start">
+                    <dt class="text-xs text-zinc-400 uppercase tracking-wide">{{ __('Magasin facturation') }}</dt>
+                    <dd class="text-sm text-right">{{ $magasinFact?->name ?? '—' }}</dd>
+                </div>
+
+                <div class="flex justify-between items-start">
+                    <dt class="text-xs text-zinc-400 uppercase tracking-wide">{{ __('Magasin livraison') }}</dt>
+                    <dd class="text-sm text-right">{{ $magasin?->name ?? '—' }}</dd>
+                </div>
+
+                @if($bon?->montant_commande_net)
+                    <div class="pt-2 border-t border-zinc-100 dark:border-zinc-700 flex justify-between items-start">
+                        <dt class="text-xs text-zinc-400 uppercase tracking-wide">{{ __('Montant net') }}</dt>
+                        <dd class="font-bold text-sm text-right">
+                            {{ number_format($bon->montant_commande_net, 2, ',', ' ') }} €
+                        </dd>
+                    </div>
+                @endif
+            </dl>
+        </flux:card>
+
+        {{-- Commande liée --}}
+        <flux:card class="p-6">
+            <div class="flex items-center gap-2 mb-4">
+                <flux:icon name="shopping-cart" class="text-zinc-400" style="width:18px;height:18px;" />
+                <flux:heading size="lg">{{ __('Commande') }}</flux:heading>
             </div>
 
-            {{-- Commande --}}
-            <div>
-                <p class="text-xs text-zinc-400 uppercase tracking-wide mb-1">{{ __('Commande') }}</p>
-                @if($commande)
-                    <p class="font-semibold text-sm">#{{ $commande->id }}</p>
+            @if($commande)
+                <dl class="space-y-3">
+                    <div class="flex justify-between items-start">
+                        <dt class="text-xs text-zinc-400 uppercase tracking-wide">{{ __('Référence') }}</dt>
+                        <dd class="font-semibold text-sm">#{{ $commande->id }}</dd>
+                    </div>
+
                     @if($commande->libelle)
-                        <p class="text-xs text-zinc-400 mt-0.5">{{ $commande->libelle }}</p>
+                        <div class="flex justify-between items-start">
+                            <dt class="text-xs text-zinc-400 uppercase tracking-wide">{{ __('Libellé') }}</dt>
+                            <dd class="text-sm text-right max-w-[60%]">{{ $commande->libelle }}</dd>
+                        </div>
                     @endif
-                @else
-                    <p class="text-sm text-zinc-400">—</p>
-                @endif
-            </div>
 
-            {{-- Fournisseur --}}
-            <div>
-                <p class="text-xs text-zinc-400 uppercase tracking-wide mb-1">{{ __('Fournisseur') }}</p>
-                <p class="font-semibold text-sm">{{ $commande?->fournisseur?->name ?? '—' }}</p>
-            </div>
+                    <div class="flex justify-between items-center">
+                        <dt class="text-xs text-zinc-400 uppercase tracking-wide">{{ __('Statut') }}</dt>
+                        <dd>
+                            <flux:badge
+                                color="{{ $commande->status === \App\Enums\CommandeStatus::Recue ? 'green' : 'zinc' }}"
+                                size="sm"
+                            >
+                                {{ $commande->status?->value ?? '—' }}
+                            </flux:badge>
+                        </dd>
+                    </div>
 
-            {{-- Magasin de livraison --}}
-            <div>
-                <p class="text-xs text-zinc-400 uppercase tracking-wide mb-1">{{ __('Magasin de livraison') }}</p>
-                @php $magasin = $commande?->magasinLivraison ?? $bon?->magasinLivraison; @endphp
-                <p class="font-semibold text-sm">{{ $magasin?->name ?? '—' }}</p>
-            </div>
+                    <div class="flex justify-between items-start">
+                        <dt class="text-xs text-zinc-400 uppercase tracking-wide">{{ __('Fournisseur') }}</dt>
+                        <dd class="text-sm text-right font-medium">{{ $fournisseur?->name ?? '—' }}</dd>
+                    </div>
 
-            {{-- Date de réception --}}
-            <div>
-                <p class="text-xs text-zinc-400 uppercase tracking-wide mb-1">{{ __('Date de réception') }}</p>
-                <p class="font-semibold text-sm">{{ $reception->created_at->format('d/m/Y') }}</p>
-                <p class="text-xs text-zinc-400 mt-0.5">{{ $reception->created_at->format('H:i') }}</p>
-            </div>
+                    @if($fournisseur?->code)
+                        <div class="flex justify-between items-start">
+                            <dt class="text-xs text-zinc-400 uppercase tracking-wide">{{ __('Code fournisseur') }}</dt>
+                            <dd class="text-sm text-right font-mono">{{ $fournisseur->code }}</dd>
+                        </div>
+                    @endif
 
-            {{-- Statut commande --}}
-            <div>
-                <p class="text-xs text-zinc-400 uppercase tracking-wide mb-1">{{ __('Statut commande') }}</p>
-                @if($commande)
-                    <flux:badge
-                        color="{{ $commande->status === \App\Enums\CommandeStatus::Recue ? 'green' : 'zinc' }}"
-                        size="sm"
-                    >
-                        {{ $commande->status?->value ?? '—' }}
-                    </flux:badge>
-                @else
-                    <span class="text-sm text-zinc-400">—</span>
-                @endif
-            </div>
+                    @if($fournisseur?->telephone)
+                        <div class="flex justify-between items-start">
+                            <dt class="text-xs text-zinc-400 uppercase tracking-wide">{{ __('Téléphone') }}</dt>
+                            <dd class="text-sm text-right">{{ $fournisseur->telephone }}</dd>
+                        </div>
+                    @endif
 
-        </div>
-    </flux:card>
+                    @if($fournisseur?->mail)
+                        <div class="flex justify-between items-start">
+                            <dt class="text-xs text-zinc-400 uppercase tracking-wide">{{ __('Email') }}</dt>
+                            <dd class="text-sm text-right">{{ $fournisseur->mail }}</dd>
+                        </div>
+                    @endif
 
-    {{-- Lignes de réception --}}
+                    @if($commande->montant_total)
+                        <div class="pt-2 border-t border-zinc-100 dark:border-zinc-700 flex justify-between items-start">
+                            <dt class="text-xs text-zinc-400 uppercase tracking-wide">{{ __('Montant total') }}</dt>
+                            <dd class="font-bold text-sm text-right">
+                                {{ number_format($commande->montant_total, 2, ',', ' ') }} €
+                            </dd>
+                        </div>
+                    @endif
+
+                    @if($commande->date_reception)
+                        <div class="flex justify-between items-start">
+                            <dt class="text-xs text-zinc-400 uppercase tracking-wide">{{ __('Date réception') }}</dt>
+                            <dd class="text-sm text-right">
+                                {{ $commande->date_reception->format('d/m/Y H:i') }}
+                            </dd>
+                        </div>
+                    @endif
+                </dl>
+            @else
+                <div class="flex flex-col items-center justify-center py-8 text-center">
+                    <flux:icon name="exclamation-triangle" class="text-zinc-300 mb-2" style="width:32px;height:32px;" />
+                    <p class="text-zinc-400 text-sm">{{ __('Commande introuvable') }}</p>
+                </div>
+            @endif
+        </flux:card>
+
+    </div>
+
+    {{-- ── Récapitulatif réception ── --}}
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-5">
+
+        <flux:card class="p-4 text-center">
+            <p class="text-xs text-zinc-400 uppercase tracking-wide mb-1">{{ __('Lignes') }}</p>
+            <p class="text-2xl font-bold">{{ $allReceptions->count() }}</p>
+        </flux:card>
+
+        <flux:card class="p-4 text-center">
+            <p class="text-xs text-zinc-400 uppercase tracking-wide mb-1">{{ __('Qté commandée') }}</p>
+            <p class="text-2xl font-bold">{{ $totalCommande }}</p>
+        </flux:card>
+
+        <flux:card class="p-4 text-center">
+            <p class="text-xs text-zinc-400 uppercase tracking-wide mb-1">{{ __('Qté reçue') }}</p>
+            <p class="text-2xl font-bold text-green-600">{{ $totalRecu }}</p>
+        </flux:card>
+
+        <flux:card class="p-4 text-center">
+            <p class="text-xs text-zinc-400 uppercase tracking-wide mb-1">{{ __('Invendable') }}</p>
+            <p class="text-2xl font-bold {{ $totalInvendable > 0 ? 'text-red-500' : 'text-zinc-300' }}">
+                {{ $totalInvendable }}
+            </p>
+        </flux:card>
+
+    </div>
+
+    {{-- ── Lignes de réception ── --}}
     <flux:card class="mt-5 p-6">
-        <div class="flex items-center justify-between mb-4">
-            <flux:heading size="lg">{{ __('Lignes de réception') }}</flux:heading>
-
-            <div class="flex items-center gap-3">
-                @php
-                    $allReceptions  = $bon?->receptions ?? collect();
-                    $totalRecu      = $allReceptions->sum('recu');
-                    $totalInvendable = $allReceptions->sum('invendable');
-                @endphp
-
-                <flux:badge color="zinc" size="sm">
-                    {{ $allReceptions->count() }} {{ __('ligne(s)') }}
-                </flux:badge>
-
-                @if($totalInvendable > 0)
-                    <flux:badge color="red" size="sm">
-                        {{ $totalInvendable }} {{ __('invendable(s)') }}
-                    </flux:badge>
-                @endif
-
-                <flux:badge color="green" size="sm">
-                    {{ $totalRecu }} {{ __('reçu(s)') }}
-                </flux:badge>
-            </div>
-        </div>
+        <flux:heading size="lg" class="mb-4">{{ __('Lignes de réception') }}</flux:heading>
 
         <flux:table variant="bordered">
             <flux:table.columns>
@@ -192,36 +291,27 @@ new class extends Component
 
                     <flux:table.row :key="$ligne->id" wire:key="ligne-{{ $ligne->id }}">
 
-                        {{-- Produit --}}
                         <flux:table.cell class="text-sm">
-                            <p class="font-medium">
-                                {{ $product?->designation ?? '—' }}
-                            </p>
+                            <p class="font-medium">{{ $product?->designation ?? '—' }}</p>
                             @if($product?->designation_variant)
-                                <p class="text-xs text-zinc-400 mt-0.5">
-                                    {{ $product->designation_variant }}
-                                </p>
+                                <p class="text-xs text-zinc-400 mt-0.5">{{ $product->designation_variant }}</p>
                             @endif
                         </flux:table.cell>
 
-                        {{-- Référence --}}
-                        <flux:table.cell class="text-sm text-zinc-400">
+                        <flux:table.cell class="text-sm text-zinc-400 font-mono">
                             {{ $product?->product_code ?? $product?->article ?? '—' }}
                         </flux:table.cell>
 
-                        {{-- Qté commandée --}}
                         <flux:table.cell class="text-center text-sm">
                             {{ $quantite ?: '—' }}
                         </flux:table.cell>
 
-                        {{-- Qté reçue --}}
                         <flux:table.cell class="text-center">
                             <flux:badge color="green" size="sm" inset="top bottom">
                                 {{ $recu }}
                             </flux:badge>
                         </flux:table.cell>
 
-                        {{-- Invendable --}}
                         <flux:table.cell class="text-center">
                             @if(($ligne->invendable ?? 0) > 0)
                                 <flux:badge color="red" size="sm" inset="top bottom">
@@ -232,20 +322,13 @@ new class extends Component
                             @endif
                         </flux:table.cell>
 
-                        {{-- Écart --}}
                         <flux:table.cell class="text-center">
                             @if($ecart > 0)
-                                <flux:badge color="amber" size="sm" inset="top bottom">
-                                    -{{ $ecart }}
-                                </flux:badge>
+                                <flux:badge color="amber" size="sm" inset="top bottom">-{{ $ecart }}</flux:badge>
                             @elseif($ecart < 0)
-                                <flux:badge color="blue" size="sm" inset="top bottom">
-                                    +{{ abs($ecart) }}
-                                </flux:badge>
+                                <flux:badge color="blue" size="sm" inset="top bottom">+{{ abs($ecart) }}</flux:badge>
                             @else
-                                <flux:badge color="green" size="sm" inset="top bottom">
-                                    ✓
-                                </flux:badge>
+                                <flux:badge color="green" size="sm" inset="top bottom">✓</flux:badge>
                             @endif
                         </flux:table.cell>
 
