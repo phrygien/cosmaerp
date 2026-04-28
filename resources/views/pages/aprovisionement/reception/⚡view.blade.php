@@ -1,27 +1,23 @@
 <?php
 
 use Livewire\Component;
-use App\Models\ReceptionCommande;
 use App\Models\BonCommande;
 use App\Enums\CommandeStatus;
 
 new class extends Component
 {
-    public ReceptionCommande $reception;
-    public ?BonCommande $bon = null;
+    public BonCommande $bon;
 
-    public function mount(ReceptionCommande $reception): void
+    public function mount(BonCommande $bon): void
     {
-        $this->reception = $reception->load([
-            'bon_commande.commande.fournisseur',
-            'bon_commande.commande.magasinLivraison',
-            'bon_commande.commande.details.product',
-            'bon_commande.magasinLivraison',
-            'bon_commande.magasinFacturation',
-            'bon_commande.receptions.detail_commande.product',
+        $this->bon = $bon->load([
+            'commande.fournisseur',
+            'commande.magasinLivraison',
+            'commande.details.product',
+            'magasinLivraison',
+            'magasinFacturation',
+            'receptions.detail_commande.product',
         ]);
-
-        $this->bon = $this->reception->bon_commande;
     }
 };
 ?>
@@ -33,30 +29,37 @@ new class extends Component
             {{ __('Réceptions') }}
         </flux:breadcrumbs.item>
         <flux:breadcrumbs.item>
-            {{ $bon?->numero_compte ? '№ '.$bon->numero_compte : '#'.($bon?->id ?? '—') }}
+            {{ $bon->numero_compte ? '№ '.$bon->numero_compte : '#'.$bon->id }}
         </flux:breadcrumbs.item>
     </flux:breadcrumbs>
+
+    @php
+        $commande        = $bon->commande;
+        $fournisseur     = $commande?->fournisseur;
+        $magasin         = $commande?->magasinLivraison ?? $bon->magasinLivraison;
+        $magasinFact     = $bon->magasinFacturation;
+        $allReceptions   = $bon->receptions ?? collect();
+        $totalRecu       = $allReceptions->sum('recu');
+        $totalInvendable = $allReceptions->sum('invendable');
+        $totalCommande   = $commande?->details->sum('quantite') ?? 0;
+    @endphp
 
     <div class="flex items-center justify-between mb-6">
         <flux:heading size="xl" level="1">{{ __('Détail de la réception') }}</flux:heading>
 
         <div class="flex items-center gap-2">
-            @if($bon)
-                <flux:button
-                    href="{{ route('reception_commande.pdf', $bon->id) }}"
-                    target="_blank"
-                    variant="filled"
-                    icon="document-arrow-down"
-                >
-                    {{ __('Contrôle de réception') }}
-                </flux:button>
-            @endif
-
-            @php $commande = $bon?->commande; @endphp
+            <flux:button
+                href="{{ route('reception_commande.pdf', $bon->id) }}"
+                target="_blank"
+                variant="filled"
+                icon="document-arrow-down"
+            >
+                {{ __('Contrôle de réception') }}
+            </flux:button>
 
             @if($commande && $commande->status !== \App\Enums\CommandeStatus::Recue)
                 <flux:button
-                    href="{{ route('reception_commande.edit', ['reception' => $reception->id]) }}"
+                    href="{{ route('reception_commande.edit', ['bon' => $bon->id]) }}"
                     wire:navigate
                     variant="primary"
                     icon="pencil-square"
@@ -76,21 +79,9 @@ new class extends Component
         </div>
     </div>
 
-    @php
-        $commande        = $bon?->commande;
-        $fournisseur     = $commande?->fournisseur;
-        $magasin         = $commande?->magasinLivraison ?? $bon?->magasinLivraison;
-        $magasinFact     = $bon?->magasinFacturation;
-        $allReceptions   = $bon?->receptions ?? collect();
-        $totalRecu       = $allReceptions->sum('recu');
-        $totalInvendable = $allReceptions->sum('invendable');
-        $totalCommande   = $commande?->details->sum('quantite') ?? 0;
-    @endphp
-
-    {{-- ── Bloc principal : Bon de commande + Commande ── --}}
+    {{-- ── Bon de commande + Commande ── --}}
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-5">
 
-        {{-- Bon de commande --}}
         <flux:card class="p-6">
             <div class="flex items-center gap-2 mb-4">
                 <flux:icon name="document-text" class="text-zinc-400" style="width:18px;height:18px;" />
@@ -101,18 +92,18 @@ new class extends Component
                 <div class="flex justify-between items-start">
                     <dt class="text-xs text-zinc-400 uppercase tracking-wide">{{ __('Numéro') }}</dt>
                     <dd class="font-semibold text-sm text-right">
-                        {{ $bon?->numero_compte ? '№ '.$bon->numero_compte : '#'.($bon?->id ?? '—') }}
+                        {{ $bon->numero_compte ? '№ '.$bon->numero_compte : '#'.$bon->id }}
                     </dd>
                 </div>
 
-                @if($bon?->code_fournisseur)
+                @if($bon->code_fournisseur)
                     <div class="flex justify-between items-start">
                         <dt class="text-xs text-zinc-400 uppercase tracking-wide">{{ __('Code fournisseur') }}</dt>
                         <dd class="text-sm text-right font-mono">{{ $bon->code_fournisseur }}</dd>
                     </div>
                 @endif
 
-                @if($bon?->date_commande)
+                @if($bon->date_commande)
                     <div class="flex justify-between items-start">
                         <dt class="text-xs text-zinc-400 uppercase tracking-wide">{{ __('Date commande') }}</dt>
                         <dd class="text-sm text-right">
@@ -121,7 +112,7 @@ new class extends Component
                     </div>
                 @endif
 
-                @if($bon?->date_livraison_prevue)
+                @if($bon->date_livraison_prevue)
                     <div class="flex justify-between items-start">
                         <dt class="text-xs text-zinc-400 uppercase tracking-wide">{{ __('Livraison prévue') }}</dt>
                         <dd class="text-sm text-right">
@@ -140,7 +131,7 @@ new class extends Component
                     <dd class="text-sm text-right">{{ $magasin?->name ?? '—' }}</dd>
                 </div>
 
-                @if($bon?->montant_commande_net)
+                @if($bon->montant_commande_net)
                     <div class="pt-2 border-t border-zinc-100 dark:border-zinc-700 flex justify-between items-start">
                         <dt class="text-xs text-zinc-400 uppercase tracking-wide">{{ __('Montant net') }}</dt>
                         <dd class="font-bold text-sm text-right">
@@ -151,7 +142,6 @@ new class extends Component
             </dl>
         </flux:card>
 
-        {{-- Commande liée --}}
         <flux:card class="p-6">
             <div class="flex items-center gap-2 mb-4">
                 <flux:icon name="shopping-cart" class="text-zinc-400" style="width:18px;height:18px;" />
@@ -191,7 +181,7 @@ new class extends Component
 
                     @if($fournisseur?->code)
                         <div class="flex justify-between items-start">
-                            <dt class="text-xs text-zinc-400 uppercase tracking-wide">{{ __('Code fournisseur') }}</dt>
+                            <dt class="text-xs text-zinc-400 uppercase tracking-wide">{{ __('Code') }}</dt>
                             <dd class="text-sm text-right font-mono">{{ $fournisseur->code }}</dd>
                         </div>
                     @endif
@@ -238,9 +228,8 @@ new class extends Component
 
     </div>
 
-    {{-- ── Récapitulatif réception ── --}}
+    {{-- ── KPI ── --}}
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-5">
-
         <flux:card class="p-4 text-center">
             <p class="text-xs text-zinc-400 uppercase tracking-wide mb-1">{{ __('Lignes') }}</p>
             <p class="text-2xl font-bold">{{ $allReceptions->count() }}</p>
@@ -262,7 +251,6 @@ new class extends Component
                 {{ $totalInvendable }}
             </p>
         </flux:card>
-
     </div>
 
     {{-- ── Lignes de réception ── --}}

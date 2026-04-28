@@ -296,7 +296,7 @@ new class extends Component
 
                                 {{-- Bouton Détails --}}
                                 <flux:button
-                                    href="{{ route('reception_commande.view', ['reception' => $bon->receptions->first()?->id]) }}"
+                                    href="{{ route('reception_commande.view', ['bon' => $bon->id]) }}"
                                     wire:navigate
                                     title="{{ __('Détails') }}"
                                 >
@@ -312,7 +312,7 @@ new class extends Component
                                         </flux:badge>
                                     @else
                                         <flux:button
-                                            href="{{ route('reception_commande.edit', ['reception' => $bon->receptions->first()?->id]) }}"
+                                            href="{{ route('reception_commande.edit', ['bon' => $bon->id]) }}"
                                             wire:navigate
                                             variant="primary"
                                             title="{{ __('Modifier') }}"
