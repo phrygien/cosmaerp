@@ -27,8 +27,8 @@ new class extends Component
         $this->magasinId = $id;
     }
 
-    public function updatedSearch(): void    { $this->resetPage(); }
-    public function updatedPerPage(): void   { $this->resetPage(); }
+    public function updatedSearch(): void      { $this->resetPage(); }
+    public function updatedPerPage(): void     { $this->resetPage(); }
     public function updatedFilterState(): void { $this->resetPage(); }
 
     public function resetFilters(): void
@@ -60,6 +60,12 @@ new class extends Component
     public function stocks()
     {
         return StockMagasin::with(['product.marque', 'product.categorie'])
+            ->select('product_id')
+            ->selectRaw('SUM(nb_item)                                 as total_items')
+            ->selectRaw('MAX(deposite_date)                           as latest_deposite_date')
+            ->selectRaw('SUM(CASE WHEN state = 1 THEN 1 ELSE 0 END)  as active_count')
+            ->selectRaw('SUM(CASE WHEN state = 0 THEN 1 ELSE 0 END)  as inactive_count')
+            ->selectRaw('COUNT(*)                                     as entry_count')
             ->where('magasin_id', $this->magasinId)
             ->when($this->search, fn($q) =>
             $q->whereHas('product', fn($p) =>
@@ -73,7 +79,8 @@ new class extends Component
             ->when($this->filterState !== '', fn($q) =>
             $q->where('state', $this->filterState)
             )
-            ->latest('deposite_date')
+            ->groupBy('product_id')
+            ->orderByDesc('latest_deposite_date')
             ->paginate($this->perPage);
     }
 };
@@ -210,15 +217,15 @@ new class extends Component
                 <flux:table.column>Produit</flux:table.column>
                 <flux:table.column class="hidden sm:table-cell">Code / EAN</flux:table.column>
                 <flux:table.column class="hidden md:table-cell">Marque / Catégorie</flux:table.column>
-                <flux:table.column class="hidden lg:table-cell">Gen Code</flux:table.column>
-                <flux:table.column class="hidden lg:table-cell">Date dépôt</flux:table.column>
-                <flux:table.column class="text-right">Qté</flux:table.column>
+                <flux:table.column class="hidden lg:table-cell">Dernière entrée</flux:table.column>
+                <flux:table.column class="text-right">Qté totale</flux:table.column>
+                <flux:table.column class="text-center hidden sm:table-cell">Entrées</flux:table.column>
                 <flux:table.column class="text-center">État</flux:table.column>
             </flux:table.columns>
 
             <flux:table.rows>
                 @forelse ($this->stocks as $stock)
-                    <flux:table.row :key="$stock->id" wire:key="stock-{{ $stock->id }}">
+                    <flux:table.row :key="$stock->product_id" wire:key="stock-{{ $stock->product_id }}">
 
                         {{-- Produit --}}
                         <flux:table.cell>
@@ -275,39 +282,45 @@ new class extends Component
                             </div>
                         </flux:table.cell>
 
-                        {{-- Gen Code --}}
+                        {{-- Dernière entrée --}}
                         <flux:table.cell class="hidden lg:table-cell">
-                            <p class="text-xs font-mono text-zinc-500 truncate max-w-[160px]">
-                                {{ $stock->gen_code ?? '—' }}
-                            </p>
-                        </flux:table.cell>
-
-                        {{-- Date dépôt --}}
-                        <flux:table.cell class="hidden lg:table-cell">
-                            @if ($stock->deposite_date)
+                            @if ($stock->latest_deposite_date)
                                 <p class="text-sm text-zinc-600 dark:text-zinc-300">
-                                    {{ \Carbon\Carbon::parse($stock->deposite_date)->format('d/m/Y') }}
+                                    {{ \Carbon\Carbon::parse($stock->latest_deposite_date)->format('d/m/Y') }}
                                 </p>
                             @else
                                 <span class="text-zinc-400 text-sm">—</span>
                             @endif
                         </flux:table.cell>
 
-                        {{-- Quantité --}}
+                        {{-- Quantité totale --}}
                         <flux:table.cell class="text-right">
-                            <span class="font-semibold text-sm {{ $stock->nb_item <= 0 ? 'text-red-500' : '' }}">
-                                {{ number_format($stock->nb_item, 0, ',', ' ') }}
+                            <span class="font-semibold text-sm {{ $stock->total_items <= 0 ? 'text-red-500' : '' }}">
+                                {{ number_format($stock->total_items, 0, ',', ' ') }}
                             </span>
                         </flux:table.cell>
 
-                        {{-- État --}}
+                        {{-- Entrées actives / inactives --}}
+                        <flux:table.cell class="text-center hidden sm:table-cell">
+                            <div class="flex items-center justify-center gap-1">
+                                @if ($stock->active_count > 0)
+                                    <flux:badge size="sm" color="green">{{ $stock->active_count }}</flux:badge>
+                                @endif
+                                @if ($stock->inactive_count > 0)
+                                    <flux:badge size="sm" color="zinc">{{ $stock->inactive_count }}</flux:badge>
+                                @endif
+                            </div>
+                        </flux:table.cell>
+
+                        {{-- État global --}}
                         <flux:table.cell class="text-center">
-                            <flux:badge
-                                :color="$stock->state == 1 ? 'green' : 'zinc'"
-                                size="sm"
-                            >
-                                {{ $stock->state == 1 ? 'Actif' : 'Inactif' }}
-                            </flux:badge>
+                            @if ($stock->active_count > 0 && $stock->inactive_count == 0)
+                                <flux:badge color="green" size="sm">Actif</flux:badge>
+                            @elseif ($stock->active_count == 0)
+                                <flux:badge color="zinc" size="sm">Inactif</flux:badge>
+                            @else
+                                <flux:badge color="yellow" size="sm">Mixte</flux:badge>
+                            @endif
                         </flux:table.cell>
 
                     </flux:table.row>
