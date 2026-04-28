@@ -106,9 +106,15 @@ new class extends Component
                 Supprimer
             </flux:button>
 
-            <flux:button variant="primary" href="{{ route('orders.edit', ['commande_id' => $this->commandeId]) }}" wire:navigate :disabled="!$this->isEditable">
-                Modifier
-            </flux:button>
+            @if($this->isEditable)
+                <flux:button variant="primary" href="{{ route('orders.edit', ['commande_id' => $this->commandeId]) }}" wire:navigate>
+                    Modifier
+                </flux:button>
+            @else
+                <flux:button variant="primary" disabled>
+                    Modifier
+                </flux:button>
+            @endif
 
             @php
                 $nextStatus = match($this->commande->status) {
