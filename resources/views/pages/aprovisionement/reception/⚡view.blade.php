@@ -3,10 +3,12 @@
 use Livewire\Component;
 use App\Models\BonCommande;
 use App\Enums\CommandeStatus;
+use Flux\Flux;
 
 new class extends Component
 {
     public BonCommande $bon;
+    public bool $showCloturerModal = false;
 
     public function mount(BonCommande $bon): void
     {
@@ -20,6 +22,51 @@ new class extends Component
         ]);
 
         $this->bon = $bon;
+    }
+
+    public function confirmCloturer(): void
+    {
+        $this->showCloturerModal = true;
+    }
+
+    public function cloturer(): void
+    {
+        $commande = $this->bon->commande;
+
+        if (!$commande) {
+            Flux::toast(heading: 'Erreur', text: 'Commande introuvable.', variant: 'danger');
+            $this->showCloturerModal = false;
+            return;
+        }
+
+        if ($commande->status === CommandeStatus::Recue) {
+            Flux::toast(heading: 'Déjà clôturée', text: 'Cette réception est déjà marquée comme reçue.', variant: 'warning');
+            $this->showCloturerModal = false;
+            return;
+        }
+
+        $commande->update([
+            'status'         => CommandeStatus::Recue,
+            'date_reception' => now(),
+        ]);
+
+        // Recharger pour mettre à jour l'affichage
+        $this->bon->load([
+            'commande.fournisseur',
+            'commande.magasinLivraison',
+            'commande.details.product',
+            'magasinLivraison',
+            'magasinFacturation',
+            'receptions.detail_commande.product',
+        ]);
+
+        $this->showCloturerModal = false;
+
+        Flux::toast(
+            heading: 'Réception clôturée',
+            text: 'La commande a été marquée comme reçue.',
+            variant: 'success'
+        );
     }
 };
 ?>
@@ -44,26 +91,64 @@ new class extends Component
         $totalRecu       = $allReceptions->sum('recu');
         $totalInvendable = $allReceptions->sum('invendable');
         $totalCommande   = $commande?->details->sum('quantite') ?? 0;
+        $estRecue        = $commande?->status === \App\Enums\CommandeStatus::Recue;
     @endphp
 
+    {{-- Modal confirmation clôture --}}
+    <flux:modal wire:model="showCloturerModal" name="cloturer-modal">
+        <div class="space-y-4 p-2">
+            <flux:heading size="lg">Clôturer la réception ?</flux:heading>
+            <flux:text>
+                Cette action marquera la commande comme <strong>Reçue</strong>.
+                Le bouton Modifier ne sera plus disponible après cette opération.
+            </flux:text>
+            <div class="flex justify-end gap-3 pt-2">
+                <flux:button wire:click="$set('showCloturerModal', false)" variant="ghost">
+                    Annuler
+                </flux:button>
+                <flux:button wire:click="cloturer" variant="primary" icon="check-circle">
+                    Oui, clôturer
+                </flux:button>
+            </div>
+        </div>
+    </flux:modal>
+
     <div class="flex items-center justify-between mb-6">
-        <flux:heading size="xl" level="1">{{ __('Détail de la réception') }}</flux:heading>
+        <div class="flex items-center gap-3">
+            <flux:heading size="xl" level="1">{{ __('Détail de la réception') }}</flux:heading>
+            @if($commande)
+                <flux:badge
+                    color="{{ $commande->status->color() }}"
+                    size="sm"
+                >
+                    {{ $commande->status->label() }}
+                </flux:badge>
+            @endif
+        </div>
 
         <div class="flex items-center gap-2">
             <flux:button
                 href="{{ route('reception_commande.pdf', $bon->id) }}"
                 target="_blank"
             >
-                {{ __('Generer Contrôle de réception') }}
+                {{ __('Contrôle de réception') }}
             </flux:button>
 
-            @if($commande && $commande->status !== \App\Enums\CommandeStatus::Recue)
+            @if($commande && !$estRecue)
                 <flux:button
                     href="{{ route('reception_commande.edit', ['bon' => $bon->id]) }}"
                     wire:navigate
-                    variant="primary"
+                    variant="filled"
                 >
                     {{ __('Modifier') }}
+                </flux:button>
+
+                <flux:button
+                    wire:click="confirmCloturer"
+                    variant="primary"
+                    icon="check-circle"
+                >
+                    {{ __('Clôturer la réception') }}
                 </flux:button>
             @endif
         </div>
@@ -155,11 +240,8 @@ new class extends Component
                     <div class="flex justify-between items-center">
                         <dt class="text-xs text-zinc-400 uppercase tracking-wide">{{ __('Statut') }}</dt>
                         <dd>
-                            <flux:badge
-                                color="{{ $commande->status === \App\Enums\CommandeStatus::Recue ? 'green' : 'zinc' }}"
-                                size="sm"
-                            >
-                                {{ $commande->status?->value ?? '—' }}
+                            <flux:badge color="{{ $commande->status->color() }}" size="sm">
+                                {{ $commande->status->label() }}
                             </flux:badge>
                         </dd>
                     </div>
