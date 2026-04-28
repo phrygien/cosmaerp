@@ -98,18 +98,6 @@ new class extends Component
         <flux:breadcrumbs.item>Détails</flux:breadcrumbs.item>
     </flux:breadcrumbs>
 
-    @if(!$this->isEditable)
-        <flux:callout
-            variant="warning"
-            icon="exclamation-circle"
-            heading="Commande non modifiable"
-            class="mb-5"
-        >
-            Les actions de modification et de suppression sont désactivées car la commande est au statut
-            <strong>{{ $this->commande->status->label() }}</strong>.
-        </flux:callout>
-    @endif
-
     <div class="flex items-center justify-between mb-6">
         <flux:heading size="xl" level="1">{{ __('Commande') }}</flux:heading>
 
