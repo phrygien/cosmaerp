@@ -54,7 +54,7 @@ new class extends Component
                 href="{{ route('reception_commande.pdf', $bon->id) }}"
                 target="_blank"
             >
-                {{ __('Contrôle de réception') }}
+                {{ __('Generer Contrôle de réception') }}
             </flux:button>
 
             @if($commande && $commande->status !== \App\Enums\CommandeStatus::Recue)
