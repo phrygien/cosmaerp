@@ -67,6 +67,11 @@ new class extends Component
             variant: 'success'
         );
     }
+
+    public function formatCurrency(?float $amount): string
+    {
+        return app(\App\Services\CurrencyService::class)->format($amount);
+    }
 };
 ?>
 
@@ -206,7 +211,7 @@ new class extends Component
                     <div class="pt-2 border-t border-zinc-100 dark:border-zinc-700 flex justify-between items-start">
                         <dt class="text-xs text-zinc-400 uppercase tracking-wide">{{ __('Montant net') }}</dt>
                         <dd class="font-bold text-sm text-right">
-                            {{ number_format($bon->montant_commande_net, 2, ',', ' ') }} €
+                            {{ $this->formatCurrency($bon->montant_commande_net) }} €
                         </dd>
                     </div>
                 @endif
@@ -272,7 +277,7 @@ new class extends Component
                         <div class="pt-2 border-t border-zinc-100 dark:border-zinc-700 flex justify-between items-start">
                             <dt class="text-xs text-zinc-400 uppercase tracking-wide">{{ __('Montant total') }}</dt>
                             <dd class="font-bold text-sm text-right">
-                                {{ number_format($commande->montant_total, 2, ',', ' ') }} €
+                                {{ $this->formatCurrency($commande->montant_total) }} €
                             </dd>
                         </div>
                     @endif
