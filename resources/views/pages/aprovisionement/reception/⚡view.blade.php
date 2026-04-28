@@ -50,7 +50,6 @@ new class extends Component
             'date_reception' => now(),
         ]);
 
-        // Recharger pour mettre à jour l'affichage
         $this->bon->load([
             'commande.fournisseur',
             'commande.magasinLivraison',
@@ -91,7 +90,6 @@ new class extends Component
         $totalRecu       = $allReceptions->sum('recu');
         $totalInvendable = $allReceptions->sum('invendable');
         $totalCommande   = $commande?->details->sum('quantite') ?? 0;
-        $estRecue        = $commande?->status === \App\Enums\CommandeStatus::Recue;
     @endphp
 
     {{-- Modal confirmation clôture --}}
@@ -103,10 +101,10 @@ new class extends Component
                 Le bouton Modifier ne sera plus disponible après cette opération.
             </flux:text>
             <div class="flex justify-end gap-3 pt-2">
-                <flux:button wire:click="$set('showCloturerModal', false)" variant="primary">
+                <flux:button wire:click="$set('showCloturerModal', false)" variant="ghost">
                     Annuler
                 </flux:button>
-                <flux:button wire:click="cloturer" variant="primary" color="lime" icon="check-circle">
+                <flux:button wire:click="cloturer" variant="primary" icon="check-circle">
                     Oui, clôturer
                 </flux:button>
             </div>
@@ -117,10 +115,7 @@ new class extends Component
         <div class="flex items-center gap-3">
             <flux:heading size="xl" level="1">{{ __('Détail de la réception') }}</flux:heading>
             @if($commande)
-                <flux:badge
-                    color="{{ $commande->status->color() }}"
-                    size="sm"
-                >
+                <flux:badge color="{{ $commande->status->color() }}" size="sm">
                     {{ $commande->status->label() }}
                 </flux:badge>
             @endif
@@ -134,11 +129,11 @@ new class extends Component
                 {{ __('Contrôle de réception') }}
             </flux:button>
 
-            @if($commande && !$estRecue)
+            @if($commande && $commande->status !== \App\Enums\CommandeStatus::Recue)
                 <flux:button
                     href="{{ route('reception_commande.edit', ['bon' => $bon->id]) }}"
                     wire:navigate
-                    variant="primary"
+                    variant="filled"
                 >
                     {{ __('Modifier') }}
                 </flux:button>
@@ -146,7 +141,6 @@ new class extends Component
                 <flux:button
                     wire:click="confirmCloturer"
                     variant="primary"
-                    color="lime"
                     icon="check-circle"
                 >
                     {{ __('Clôturer la réception') }}
