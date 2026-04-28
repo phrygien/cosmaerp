@@ -57,6 +57,29 @@ new class extends Component
     {
         return app(\App\Services\CurrencyService::class)->format($amount);
     }
+
+    public function updateStatus(): void
+    {
+        $commande = $this->commande;
+        $nextStatus = match($commande->status) {
+            \App\Enums\CommandeStatus::Cree     => \App\Enums\CommandeStatus::Facturee,
+            \App\Enums\CommandeStatus::Facturee => \App\Enums\CommandeStatus::Cloturee,
+            \App\Enums\CommandeStatus::Cloturee => \App\Enums\CommandeStatus::Recue,
+            default => null,
+        };
+
+        if ($nextStatus === null) return;
+
+        $commande->update(['status' => $nextStatus]);
+        $this->unsetComputedProperties(['commande']);
+
+        \Flux\Flux::toast(
+            heading: 'Statut mis à jour',
+            text: "La commande est maintenant « {$nextStatus->label()} ».",
+            variant: 'success'
+        );
+    }
+
 };
 ?>
 
@@ -77,6 +100,26 @@ new class extends Component
             <flux:button variant="primary" href="{{ route('orders.edit', ['commande_id' => $this->commandeId]) }}" wire:navigate>
                 Modifier
             </flux:button>
+
+            @php
+                $nextStatus = match($this->commande->status) {
+                    \App\Enums\CommandeStatus::Cree     => \App\Enums\CommandeStatus::Facturee,
+                    \App\Enums\CommandeStatus::Facturee => \App\Enums\CommandeStatus::Cloturee,
+                    \App\Enums\CommandeStatus::Cloturee => \App\Enums\CommandeStatus::Recue,
+                    default => null,
+                };
+            @endphp
+
+            @if($nextStatus)
+                <flux:button
+                    variant="primary"
+                    color="violet"
+                    wire:click="updateStatus"
+                    wire:confirm="Passer le statut à « {{ $nextStatus->label() }} » ?"
+                >
+                    → {{ $nextStatus->label() }}
+                </flux:button>
+            @endif
 
             <flux:button href="{{ route('bon-commande.pdf', $commandeId) }}" target="_blank">
                 Bon de commande
