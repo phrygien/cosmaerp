@@ -133,7 +133,7 @@ new class extends Component
                 <flux:button
                     href="{{ route('reception_commande.edit', ['bon' => $bon->id]) }}"
                     wire:navigate
-                    variant="filled"
+                    variant="primary"
                 >
                     {{ __('Modifier') }}
                 </flux:button>
@@ -141,6 +141,7 @@ new class extends Component
                 <flux:button
                     wire:click="confirmCloturer"
                     variant="primary"
+                    color="lime"
                     icon="check-circle"
                 >
                     {{ __('Clôturer la réception') }}
