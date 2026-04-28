@@ -296,24 +296,13 @@ new class extends Component
 
                                 {{-- Bouton Détails --}}
                                 <flux:button
-                                    wire:click.stop="openDetail({{ $bon->id }})"
-                                    title="{{ __('Détails') }}"
-                                >
-                                    Details
-                                </flux:button>
-
-                                {{-- Avant --}}
-                                <flux:button wire:click.stop="openDetail({{ $bon->id }})">
-                                    Details
-                                </flux:button>
-
-                                {{-- Après --}}
-                                <flux:button
                                     href="{{ route('reception_commande.view', ['reception' => $bon->receptions->first()?->id]) }}"
                                     wire:navigate
+                                    title="{{ __('Détails') }}"
                                 >
                                     {{ __('Détails') }}
                                 </flux:button>
+
 
                                 {{-- Bouton Modifier --}}
                                 @if($commande)
