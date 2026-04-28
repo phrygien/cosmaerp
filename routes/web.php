@@ -47,6 +47,7 @@ Route::middleware(["auth", "verified"])->group(function () {
         Route::livewire("/list", "pages::aprovisionement.page")->name("list");
         Route::livewire("/create", "pages::aprovisionement.reception.create")->name("create");
         Route::livewire("/edit/{reception}", "pages::aprovisionement.reception.edit")->name("edit");
+        Route::livewire("/view/{reception}", "pages::aprovisionement.reception.view")->name("view");
     });
 
     // PDF Bon de commande

@@ -302,6 +302,19 @@ new class extends Component
                                     Details
                                 </flux:button>
 
+                                {{-- Avant --}}
+                                <flux:button wire:click.stop="openDetail({{ $bon->id }})">
+                                    Details
+                                </flux:button>
+
+                                {{-- Après --}}
+                                <flux:button
+                                    href="{{ route('reception_commande.view', ['reception' => $bon->receptions->first()?->id]) }}"
+                                    wire:navigate
+                                >
+                                    {{ __('Détails') }}
+                                </flux:button>
+
                                 {{-- Bouton Modifier --}}
                                 @if($commande)
                                     @if($commande->status === \App\Enums\CommandeStatus::Recue)
