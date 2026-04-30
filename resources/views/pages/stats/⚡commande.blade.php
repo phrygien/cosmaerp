@@ -66,17 +66,26 @@ new class extends Component
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
 
         <flux:card class="flex flex-col gap-1 p-4 py-6 sm:py-8 justify-center">
-            <flux:subheading>Total commandes</flux:subheading>
+            <div class="flex items-center justify-between">
+                <flux:subheading>Total commandes</flux:subheading>
+                <i class="hgi-stroke hgi-shopping-cart-01 text-4xl text-zinc-400 dark:text-zinc-500"></i>
+            </div>
             <flux:heading size="xl">{{ $totalCommandes }}</flux:heading>
         </flux:card>
 
         <flux:card class="flex flex-col gap-1 p-4 py-6 sm:py-8 justify-center">
-            <flux:subheading>Montant total commande</flux:subheading>
+            <div class="flex items-center justify-between">
+                <flux:subheading>Montant total commande</flux:subheading>
+                <i class="hgi-stroke hgi-money-bag-01 text-4xl text-zinc-400 dark:text-zinc-500"></i>
+            </div>
             <flux:heading size="xl">{{ $this->formatCurrency($montantTotal) }}</flux:heading>
         </flux:card>
 
         <flux:card class="flex flex-col gap-1 p-4 py-6 sm:py-8 justify-center">
-            <flux:subheading>Commande Créées</flux:subheading>
+            <div class="flex items-center justify-between">
+                <flux:subheading>Commande Créées</flux:subheading>
+                <i class="hgi-stroke hgi-add-circle text-4xl text-zinc-400 dark:text-zinc-500"></i>
+            </div>
             <flux:heading size="xl">{{ $enAttente }}</flux:heading>
         </flux:card>
 
