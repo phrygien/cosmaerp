@@ -52,7 +52,8 @@
 
         <flux:sidebar.spacer />
 
-        <flux:sidebar.group expandable expanded heading="Réception" class="grid" icon="queue-list">
+        <flux:sidebar.group expandable expanded heading="Réception" class="grid">
+            <x-slot name="icon"><i class="hgi-stroke hgi-folder-01 text-2xl"></i></x-slot>
             <flux:sidebar.item href="{{ route('reception_commande.list') }}" wire:navigate>{{ __('Historique réception') }}</flux:sidebar.item>
             <flux:sidebar.item href="{{ route('reception_commande.create') }}" wire:navigate>{{ __('Nouvelle réception') }}</flux:sidebar.item>
         </flux:sidebar.group>
