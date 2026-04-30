@@ -242,7 +242,6 @@ new class extends Component
         <div class="flex items-center gap-2">
             <flux:button wire:click="resetForm" variant="ghost">Réinitialiser</flux:button>
             <flux:button wire:click="save" variant="primary">
-                <i class="hgi-stroke hgi-floppy-disk text-sm"></i>
                 Enregistrer
             </flux:button>
         </div>
@@ -455,7 +454,6 @@ new class extends Component
             {{-- Actions --}}
             <div class="flex flex-col gap-2">
                 <flux:button wire:click="save" variant="primary" class="w-full">
-                    <i class="hgi-stroke hgi-floppy-disk text-sm"></i>
                     Enregistrer la facture
                 </flux:button>
                 <flux:button wire:click="resetForm" variant="ghost" class="w-full">
