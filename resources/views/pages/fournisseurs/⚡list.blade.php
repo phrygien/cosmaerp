@@ -322,7 +322,6 @@ new class extends Component
 
         <flux:modal.trigger name="create-fournisseur">
             <flux:button variant="primary" class="w-full sm:w-auto">
-                <i class="hgi-stroke hgi-add-circle"></i>
                 Ajouter un fournisseur
             </flux:button>
         </flux:modal.trigger>
@@ -333,7 +332,7 @@ new class extends Component
         <flux:card class="p-5">
             <div class="flex items-center justify-between">
                 <p class="text-sm text-zinc-500">Total Fournisseurs</p>
-                <i class="hgi-stroke hgi-truck-01 text-2xl text-zinc-400"></i>
+                <i class="hgi-stroke hgi-rounded hgi-building-05 text-2xl text-zinc-400"></i>
             </div>
             <p class="text-3xl font-bold mt-1">{{ $this->stats['total'] }}</p>
         </flux:card>
