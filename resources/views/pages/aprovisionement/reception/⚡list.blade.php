@@ -142,7 +142,6 @@ new class extends Component
         <flux:heading size="xl" level="1">{{ __('Réceptions de commandes') }}</flux:heading>
 
         <flux:button href="{{ route('reception_commande.create') }}" wire:navigate variant="primary">
-            <i class="hgi-stroke hgi-add-circle"></i>
             {{ __('Nouvelle réception') }}
         </flux:button>
     </div>

@@ -383,9 +383,6 @@ new class extends Component
 };
 ?>
 
-<?php
-// ... (PHP inchangé)
-?>
 
 <div>
     <flux:breadcrumbs class="mb-5">
@@ -397,7 +394,6 @@ new class extends Component
         <flux:heading size="xl" level="1">{{ __('Précommande') }}</flux:heading>
 
         <flux:button variant="primary" class="w-full sm:w-auto" href="{{ route('orders.create') }}" wire:navigate>
-            <i class="hgi-stroke hgi-add-circle"></i>
             Nouvelle précommande
         </flux:button>
     </div>
