@@ -8,6 +8,6 @@ new class extends Component
 };
 ?>
 
-<div>
-    {{-- Breathing in, I calm body and mind. Breathing out, I smile. - Thich Nhat Hanh --}}
+<div class="max-w-7xl mx-auto">
+   <livewire:pages::facturation.list />
 </div>
