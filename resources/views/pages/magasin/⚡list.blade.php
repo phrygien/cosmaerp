@@ -193,24 +193,32 @@ new class extends Component
     <!-- Stat Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <flux:card class="p-5">
-            <p class="text-sm text-zinc-500">Total dépôt</p>
+            <div class="flex items-center justify-between">
+                <p class="text-sm text-zinc-500">Total dépôt</p>
+                <i class="hgi-stroke hgi-store-01 text-2xl text-zinc-400"></i>
+            </div>
             <p class="text-3xl font-bold mt-1">{{ $this->stats['total'] }}</p>
         </flux:card>
 
         <flux:card class="p-5">
-            <p class="text-sm text-zinc-500">Dépôt Actifs</p>
+            <div class="flex items-center justify-between">
+                <p class="text-sm text-zinc-500">Dépôt Actifs</p>
+                <i class="hgi-stroke hgi-checkmark-circle-01 text-2xl text-green-400"></i>
+            </div>
             <p class="text-3xl font-bold mt-1 text-green-500">{{ $this->stats['active'] }}</p>
         </flux:card>
 
         <flux:card class="p-5">
-            <p class="text-sm text-zinc-500">Dépôt Inactifs</p>
+            <div class="flex items-center justify-between">
+                <p class="text-sm text-zinc-500">Dépôt Inactifs</p>
+                <i class="hgi-stroke hgi-cancel-circle text-2xl text-zinc-400"></i>
+            </div>
             <p class="text-3xl font-bold mt-1 text-zinc-400">{{ $this->stats['inactive'] }}</p>
         </flux:card>
     </div>
 
     <flux:card class="p-5">
 
-        <!-- En-tête tableau : recherche | toggle filtres | per page -->
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
             <div class="flex items-center gap-2">
                 <flux:input
@@ -220,14 +228,13 @@ new class extends Component
                     class="w-full sm:w-80"
                 />
 
-                <!-- Bouton toggle filtres avec badge compteur -->
                 <div class="relative">
                     <flux:button
                         wire:click="toggleFilters"
                         :variant="$showFilters ? 'primary' : 'ghost'"
-                        icon="funnel"
                         size="sm"
                     >
+                        <i class="hgi-stroke hgi-filter-01"></i>
                         Filtres
                     </flux:button>
                     @if($this->activeFiltersCount > 0)
@@ -246,7 +253,6 @@ new class extends Component
             </flux:select>
         </div>
 
-        <!-- Panneau de filtres (togglable) -->
         @if($showFilters)
             <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 mb-4 bg-zinc-50 dark:bg-zinc-800/50">
                 <div class="flex items-center justify-between mb-3">
@@ -277,54 +283,29 @@ new class extends Component
             </div>
         @endif
 
-        <!-- Table -->
         <flux:table :paginate="$this->magasins" variant="bordered">
             <flux:table.columns>
-                <flux:table.column
-                    sortable
-                    :sorted="$sortBy === 'name'"
-                    :direction="$sortDirection"
-                    wire:click="sort('name')"
-                >
+                <flux:table.column sortable :sorted="$sortBy === 'name'" :direction="$sortDirection" wire:click="sort('name')">
                     Nom
                 </flux:table.column>
-
-                <flux:table.column
-                    sortable
-                    :sorted="$sortBy === 'type'"
-                    :direction="$sortDirection"
-                    wire:click="sort('type')"
-                    class="hidden sm:table-cell"
-                >
+                <flux:table.column sortable :sorted="$sortBy === 'type'" :direction="$sortDirection" wire:click="sort('type')" class="hidden sm:table-cell">
                     Type
                 </flux:table.column>
-
-                <flux:table.column class="hidden md:table-cell">
-                    Contact
-                </flux:table.column>
-
-                <flux:table.column class="hidden lg:table-cell">
-                    URL
-                </flux:table.column>
-
-                <flux:table.column class="text-center">
-                    État
-                </flux:table.column>
-
-                <flux:table.column></flux:table.column>
+                <flux:table.column class="hidden md:table-cell">Contact</flux:table.column>
+                <flux:table.column class="hidden lg:table-cell">URL</flux:table.column>
+                <flux:table.column class="text-center">État</flux:table.column>
+                <flux:table.column class="text-right">Actions</flux:table.column>
             </flux:table.columns>
 
             <flux:table.rows>
                 @forelse ($this->magasins as $magasin)
                     <flux:table.row :key="$magasin->id" wire:key="magasin-{{ $magasin->id }}">
 
-                        <!-- Nom — cliquable vers la page détail -->
                         <flux:table.cell>
                             <a href="{{ route('magasin.view', $magasin->id) }}"
                                class="font-medium text-sm hover:text-blue-500 hover:underline">
                                 {{ $magasin->name }}
                             </a>
-                            <!-- Type visible en mobile -->
                             @if ($magasin->type)
                                 <p class="mt-0.5 sm:hidden">
                                     <flux:badge size="sm" color="purple" inset="top bottom">
@@ -332,51 +313,34 @@ new class extends Component
                                     </flux:badge>
                                 </p>
                             @endif
-                            <!-- Contact visible en mobile -->
                             <div class="text-xs text-zinc-400 mt-0.5 md:hidden space-y-0.5">
-                                @if ($magasin->email)
-                                    <p>{{ $magasin->email }}</p>
-                                @endif
-                                @if ($magasin->telephone)
-                                    <p>{{ $magasin->telephone }}</p>
-                                @endif
+                                @if ($magasin->email)<p>{{ $magasin->email }}</p>@endif
+                                @if ($magasin->telephone)<p>{{ $magasin->telephone }}</p>@endif
                             </div>
                             @if ($magasin->adress)
                                 <p class="text-xs text-zinc-400 mt-0.5 md:hidden">{{ $magasin->adress }}</p>
                             @endif
                         </flux:table.cell>
 
-                        <!-- Type caché en mobile -->
                         <flux:table.cell class="hidden sm:table-cell">
                             @if ($magasin->type)
-                                <flux:badge size="sm" color="purple" inset="top bottom">
-                                    {{ $magasin->type }}
-                                </flux:badge>
+                                <flux:badge size="sm" color="purple" inset="top bottom">{{ $magasin->type }}</flux:badge>
                             @else
                                 <span class="text-zinc-400 text-sm">—</span>
                             @endif
                         </flux:table.cell>
 
-                        <!-- Contact caché en mobile -->
                         <flux:table.cell class="hidden md:table-cell">
                             <div class="space-y-0.5">
-                                @if ($magasin->email)
-                                    <p class="text-xs text-zinc-400">{{ $magasin->email }}</p>
-                                @endif
-                                @if ($magasin->telephone)
-                                    <p class="text-xs text-zinc-400">{{ $magasin->telephone }}</p>
-                                @endif
-                                @if (!$magasin->email && !$magasin->telephone)
-                                    <span class="text-zinc-400 text-sm">—</span>
-                                @endif
+                                @if ($magasin->email)<p class="text-xs text-zinc-400">{{ $magasin->email }}</p>@endif
+                                @if ($magasin->telephone)<p class="text-xs text-zinc-400">{{ $magasin->telephone }}</p>@endif
+                                @if (!$magasin->email && !$magasin->telephone)<span class="text-zinc-400 text-sm">—</span>@endif
                             </div>
                         </flux:table.cell>
 
-                        <!-- URL cachée en mobile/tablet -->
                         <flux:table.cell class="hidden lg:table-cell">
                             @if ($magasin->store_url)
-                                <a href="{{ $magasin->store_url }}"
-                                   target="_blank"
+                                <a href="{{ $magasin->store_url }}" target="_blank"
                                    class="text-xs text-blue-400 hover:text-blue-300 hover:underline truncate max-w-xs block">
                                     {{ $magasin->store_url }}
                                 </a>
@@ -385,7 +349,6 @@ new class extends Component
                             @endif
                         </flux:table.cell>
 
-                        <!-- État avec Toggle -->
                         <flux:table.cell class="text-center">
                             <div class="flex items-center justify-center">
                                 @if(isset($updatingStates[$magasin->id]))
@@ -412,24 +375,45 @@ new class extends Component
                             <span class="sr-only">{{ $magasin->state == 1 ? 'Actif' : 'Inactif' }}</span>
                         </flux:table.cell>
 
-                        <!-- Actions -->
-                        <flux:table.cell>
-                            <flux:dropdown>
-                                <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom" />
-                                <flux:menu>
-                                    <flux:menu.item icon="eye" :href="route('magasin.view', $magasin->id)">
-                                        Voir détails
-                                    </flux:menu.item>
-                                    <flux:menu.separator />
-                                    <flux:menu.item icon="pencil" wire:click="edit({{ $magasin->id }})">
-                                        Modifier
-                                    </flux:menu.item>
-                                    <flux:menu.separator />
-                                    <flux:menu.item icon="trash" variant="danger" wire:click="confirmDelete({{ $magasin->id }})">
-                                        Supprimer
-                                    </flux:menu.item>
-                                </flux:menu>
-                            </flux:dropdown>
+                        {{-- Actions directes --}}
+                        <flux:table.cell class="text-right">
+                            <div class="flex items-center justify-end gap-1">
+
+                                {{-- Voir détails --}}
+                                <flux:button
+                                    size="sm"
+                                    variant="ghost"
+                                    inset="top bottom"
+                                    href="{{ route('magasin.view', $magasin->id) }}"
+                                    wire:navigate
+                                    title="Voir détails"
+                                >
+                                    <i class="hgi-stroke hgi-eye text-zinc-500"></i>
+                                </flux:button>
+
+                                {{-- Modifier --}}
+                                <flux:button
+                                    size="sm"
+                                    variant="ghost"
+                                    inset="top bottom"
+                                    wire:click="edit({{ $magasin->id }})"
+                                    title="Modifier"
+                                >
+                                    <i class="hgi-stroke hgi-pencil-edit-01 text-indigo-400 hover:text-indigo-600"></i>
+                                </flux:button>
+
+                                {{-- Supprimer --}}
+                                <flux:button
+                                    size="sm"
+                                    variant="ghost"
+                                    inset="top bottom"
+                                    wire:click="confirmDelete({{ $magasin->id }})"
+                                    title="Supprimer"
+                                >
+                                    <i class="hgi-stroke hgi-delete-02 text-red-400 hover:text-red-600"></i>
+                                </flux:button>
+
+                            </div>
                         </flux:table.cell>
 
                     </flux:table.row>
@@ -438,7 +422,7 @@ new class extends Component
                     <flux:table.row>
                         <flux:table.cell colspan="6">
                             <div class="flex flex-col items-center justify-center py-12 text-center">
-                                <flux:icon name="building-storefront" class="text-zinc-400 mb-3" style="width: 40px; height: 40px;" />
+                                <i class="hgi-stroke hgi-store-01 text-5xl text-zinc-400 mb-3"></i>
                                 <p class="text-zinc-400 font-medium text-sm">
                                     @if ($search || $filterState !== '' || $filterType !== '')
                                         Aucun magasin trouvé pour ces filtres
