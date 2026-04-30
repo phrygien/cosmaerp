@@ -103,15 +103,18 @@ new class extends Component
 
         <div class="flex items-center gap-2">
             <flux:button variant="danger" wire:click="delete" wire:confirm="Êtes-vous sûr de vouloir supprimer cette commande ?" :disabled="!$this->isEditable">
+                <i class="hgi-stroke hgi-delete-02"></i>
                 Supprimer
             </flux:button>
 
             @if($this->isEditable)
                 <flux:button variant="primary" href="{{ route('orders.edit', ['commande_id' => $this->commandeId]) }}" wire:navigate>
+                    <i class="hgi-stroke hgi-pencil-edit-01"></i>
                     Modifier
                 </flux:button>
             @else
                 <flux:button variant="primary" disabled>
+                    <i class="hgi-stroke hgi-pencil-edit-01"></i>
                     Modifier
                 </flux:button>
             @endif
@@ -132,11 +135,13 @@ new class extends Component
                     wire:click="updateStatus"
                     wire:confirm="Passer le statut à « {{ $nextStatus->label() }} » ?"
                 >
-                    → {{ $nextStatus->label() }}
+                    <i class="hgi-stroke hgi-arrow-right-02"></i>
+                    {{ $nextStatus->label() }}
                 </flux:button>
             @endif
 
             <flux:button href="{{ route('bon-commande.pdf', $commandeId) }}" target="_blank">
+                <i class="hgi-stroke hgi-pdf-01"></i>
                 Bon de commande
             </flux:button>
 
@@ -144,17 +149,16 @@ new class extends Component
                 <flux:button
                     variant="primary"
                     color="lime"
-                    icon="truck"
                     href="{{ route('reception_commande.create', ['commande' => $this->commandeId]) }}"
                     wire:navigate
                 >
+                    <i class="hgi-stroke hgi-truck-01"></i>
                     Passer à la réception
                 </flux:button>
             @endif
 
         </div>
     </div>
-
     {{-- Informations générales de la commande --}}
     <flux:card class="mt-5 bg-zinc-50 dark:bg-zinc-800/50">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
