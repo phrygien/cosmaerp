@@ -35,7 +35,7 @@
         </flux:sidebar.group>
 
         <flux:sidebar.item :href="route('fournisseurs')" :current="request()->routeIs('fournisseurs')" wire:navigate>
-            <x-slot name="icon"><i class="hgi hgi-stroke hgi-rounded hgi-container-truck-01 text-2xl"></i></x-slot>
+            <x-slot name="icon"><i class="hgi hgi-stroke hgi-rounded hgi-rounded hgi-building-05 text-2xl"></i></x-slot>
             {{ __('Fournisseurs') }}
         </flux:sidebar.item>
 
