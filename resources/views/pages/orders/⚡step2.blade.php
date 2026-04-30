@@ -477,25 +477,25 @@ new class extends Component
                                         <flux:button
                                             size="sm"
                                             variant="ghost"
-                                            icon="pencil-square"
                                             inset="top bottom"
                                             class="text-indigo-500 hover:text-indigo-700"
                                             wire:click="editRepartition({{ $detail->id }})"
                                             wire:loading.attr="disabled"
                                             wire:target="editRepartition({{ $detail->id }})"
                                         >
+                                            <i class="hgi-stroke hgi-pencil-edit-01"></i>
                                             Modifier
                                         </flux:button>
                                     @else
                                         <flux:button
                                             size="sm"
                                             variant="ghost"
-                                            icon="plus-circle"
                                             inset="top bottom"
                                             wire:click="openRepartition({{ $product->id }})"
                                             wire:loading.attr="disabled"
                                             wire:target="openRepartition({{ $product->id }})"
                                         >
+                                            <i class="hgi-stroke hgi-add-circle"></i>
                                             Ajouter
                                         </flux:button>
                                     @endif
