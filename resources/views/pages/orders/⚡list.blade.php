@@ -383,6 +383,10 @@ new class extends Component
 };
 ?>
 
+<?php
+// ... (PHP inchangé)
+?>
+
 <div>
     <flux:breadcrumbs class="mb-5">
         <flux:breadcrumbs.item href="#">Précommande</flux:breadcrumbs.item>
@@ -393,6 +397,7 @@ new class extends Component
         <flux:heading size="xl" level="1">{{ __('Précommande') }}</flux:heading>
 
         <flux:button variant="primary" class="w-full sm:w-auto" href="{{ route('orders.create') }}" wire:navigate>
+            <i class="hgi-stroke hgi-add-circle"></i>
             Nouvelle précommande
         </flux:button>
     </div>
@@ -400,23 +405,38 @@ new class extends Component
     <!-- Stat Cards -->
     <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6">
         <flux:card class="p-5">
-            <p class="text-sm text-zinc-500">Total Commandes</p>
+            <div class="flex items-center justify-between">
+                <p class="text-sm text-zinc-500">Total Commandes</p>
+                <i class="hgi-stroke hgi-shopping-cart-01 text-2xl text-zinc-400"></i>
+            </div>
             <p class="text-3xl font-bold mt-1">{{ $this->stats['total'] }}</p>
         </flux:card>
         <flux:card class="p-5">
-            <p class="text-sm text-zinc-500">{{ CommandeStatus::Cree->label() }}</p>
+            <div class="flex items-center justify-between">
+                <p class="text-sm text-zinc-500">{{ CommandeStatus::Cree->label() }}</p>
+                <i class="hgi-stroke hgi-note-01 text-2xl text-blue-400"></i>
+            </div>
             <p class="text-3xl font-bold mt-1 text-blue-500">{{ $this->stats['crees'] }}</p>
         </flux:card>
         <flux:card class="p-5">
-            <p class="text-sm text-zinc-500">{{ CommandeStatus::Facturee->label() }}</p>
+            <div class="flex items-center justify-between">
+                <p class="text-sm text-zinc-500">{{ CommandeStatus::Facturee->label() }}</p>
+                <i class="hgi-stroke hgi-invoice-01 text-2xl text-amber-400"></i>
+            </div>
             <p class="text-3xl font-bold mt-1 text-amber-500">{{ $this->stats['facturees'] }}</p>
         </flux:card>
         <flux:card class="p-5">
-            <p class="text-sm text-zinc-500">{{ CommandeStatus::Cloturee->label() }}</p>
+            <div class="flex items-center justify-between">
+                <p class="text-sm text-zinc-500">{{ CommandeStatus::Cloturee->label() }}</p>
+                <i class="hgi-stroke hgi-checkmark-circle-01 text-2xl text-purple-400"></i>
+            </div>
             <p class="text-3xl font-bold mt-1 text-purple-500">{{ $this->stats['cloturees'] }}</p>
         </flux:card>
         <flux:card class="p-5">
-            <p class="text-sm text-zinc-500">Montant total</p>
+            <div class="flex items-center justify-between">
+                <p class="text-sm text-zinc-500">Montant total</p>
+                <i class="hgi-stroke hgi-money-bag-01 text-2xl text-zinc-400"></i>
+            </div>
             <p class="text-2xl font-bold mt-1 text-zinc-700 dark:text-zinc-200">
                 {{ $this->formatCurrency($this->stats['montant']) }}
             </p>
@@ -437,9 +457,9 @@ new class extends Component
                     <flux:button
                         wire:click="toggleFilters"
                         :variant="$showFilters ? 'primary' : 'ghost'"
-                        icon="funnel"
                         size="sm"
                     >
+                        <i class="hgi-stroke hgi-filter-01"></i>
                         Filtres
                     </flux:button>
                     @if($this->activeFiltersCount > 0)
@@ -470,7 +490,6 @@ new class extends Component
                 </div>
 
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
-
                     <flux:radio.group wire:model.live="filterStatus" variant="segmented">
                         <flux:radio label="Tous" value="" />
                         @foreach(CommandeStatus::cases() as $case)
@@ -514,13 +533,11 @@ new class extends Component
                 <flux:table.column sortable :sorted="$sortBy === 'status'" :direction="$sortDirection" wire:click="sort('status')">
                     Statut
                 </flux:table.column>
-                <flux:table.column class="hidden md:table-cell">
-                    Action
-                </flux:table.column>
+                <flux:table.column class="hidden md:table-cell">Action</flux:table.column>
                 <flux:table.column sortable :sorted="$sortBy === 'created_at'" :direction="$sortDirection" wire:click="sort('created_at')" class="hidden sm:table-cell">
                     Date
                 </flux:table.column>
-                <flux:table.column></flux:table.column>
+                <flux:table.column>Options</flux:table.column>
             </flux:table.columns>
 
             <flux:table.rows>
@@ -553,13 +570,11 @@ new class extends Component
                             {{ $this->formatCurrency($commande->montant_total) }}
                         </flux:table.cell>
 
-                        {{-- Cellule Statut --}}
                         <flux:table.cell>
                             <div class="flex flex-wrap gap-2">
                                 <flux:badge size="sm" :color="$commande->status->color()">
                                     {{ $commande->status->label() }}
                                 </flux:badge>
-
                                 @if ($commande->etat)
                                     <flux:badge size="sm" :color="$commande->etat->color()">
                                         {{ $commande->etat->label() }}
@@ -570,7 +585,6 @@ new class extends Component
 
                         {{-- Cellule Action --}}
                         <flux:table.cell class="hidden md:table-cell">
-
                             @if(isset($updatingStatus[$commande->id]))
                                 <flux:button variant="ghost" size="sm" disabled>
                                     <svg class="animate-spin h-3 w-3 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -580,19 +594,17 @@ new class extends Component
                                     Mise à jour...
                                 </flux:button>
 
-                                {{-- Créée → bouton "Facturer" --}}
                             @elseif($commande->status === CommandeStatus::Cree)
                                 <flux:button
                                     variant="primary"
                                     color="blue"
                                     size="sm"
-                                    icon="document-text"
                                     wire:click="updateStatus({{ $commande->id }}, {{ CommandeStatus::Facturee->value }})"
                                 >
+                                    <i class="hgi-stroke hgi-invoice-01"></i>
                                     {{ CommandeStatus::Facturee->label() }}
                                 </flux:button>
 
-                                {{-- Facturée → toggle pour clôturer --}}
                             @elseif($commande->status === CommandeStatus::Facturee)
                                 <div class="flex items-center gap-2">
                                     <button
@@ -608,49 +620,59 @@ new class extends Component
                                     <span class="text-xs text-zinc-500 dark:text-zinc-400">Clôturer</span>
                                 </div>
 
-                                {{-- Clôturée, Reçue, Annulée → tiret --}}
                             @else
                                 <span class="text-zinc-400 text-xs">—</span>
                             @endif
-
                         </flux:table.cell>
 
                         <flux:table.cell class="hidden sm:table-cell text-zinc-400 text-sm whitespace-nowrap">
                             {{ $commande->created_at->translatedFormat('d F Y') }}
                         </flux:table.cell>
 
+                        {{-- Actions directes --}}
                         <flux:table.cell>
-                            <flux:dropdown>
-                                <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom" />
-                                <flux:menu>
-{{--                                    <flux:menu.item icon="document-text" wire:click="showBonCommande({{ $commande->id }})">--}}
-{{--                                        Détails de la commande--}}
-{{--                                    </flux:menu.item>--}}
-                                    <flux:menu.item href="{{ route('orders.view', $commande->id) }}" wire:navigate>
-                                        Details
-                                    </flux:menu.item>
-{{--                                    @if(in_array($commande->status, [CommandeStatus::Facturee, CommandeStatus::Cloturee, CommandeStatus::Recue]))--}}
-{{--                                        <flux:menu.item icon="receipt-percent" href="{{ route('orders.facture', $commande->id) }}" wire:navigate>--}}
-{{--                                            Voir la facture--}}
-{{--                                        </flux:menu.item>--}}
-{{--                                    @endif--}}
+                            <div class="flex items-center gap-1">
+                                {{-- Voir détails --}}
+                                <flux:button
+                                    size="sm"
+                                    variant="ghost"
+                                    inset="top bottom"
+                                    href="{{ route('orders.view', $commande->id) }}"
+                                    wire:navigate
+                                    title="Voir les détails"
+                                >
+                                    <i class="hgi-stroke hgi-eye text-zinc-500 hover:text-zinc-700"></i>
+                                </flux:button>
 
-                                    @if($this->canEdit($commande->status))
-                                        <flux:menu.item icon="pencil" href="{{ route('orders.edit', $commande->id) }}" wire:navigate>
-                                            Modifier
-                                        </flux:menu.item>
-                                    @else
-                                        <flux:menu.item icon="pencil" disabled class="opacity-50 cursor-not-allowed">
-                                            Modifier ({{ $commande->status->label() }})
-                                        </flux:menu.item>
-                                    @endif
+                                {{-- Modifier --}}
+                                @if($this->canEdit($commande->status))
+                                    <flux:button
+                                        size="sm"
+                                        variant="ghost"
+                                        inset="top bottom"
+                                        href="{{ route('orders.edit', $commande->id) }}"
+                                        wire:navigate
+                                        title="Modifier"
+                                    >
+                                        <i class="hgi-stroke hgi-pencil-edit-01 text-indigo-400 hover:text-indigo-600"></i>
+                                    </flux:button>
+                                @else
+                                    <flux:button size="sm" variant="ghost" inset="top bottom" disabled title="Modification impossible">
+                                        <i class="hgi-stroke hgi-pencil-edit-01 text-zinc-300"></i>
+                                    </flux:button>
+                                @endif
 
-                                    <flux:menu.separator />
-                                    <flux:menu.item icon="trash" variant="danger" wire:click="confirmDelete({{ $commande->id }})">
-                                        Supprimer
-                                    </flux:menu.item>
-                                </flux:menu>
-                            </flux:dropdown>
+                                {{-- Supprimer --}}
+                                <flux:button
+                                    size="sm"
+                                    variant="ghost"
+                                    inset="top bottom"
+                                    wire:click="confirmDelete({{ $commande->id }})"
+                                    title="Supprimer"
+                                >
+                                    <i class="hgi-stroke hgi-delete-02 text-red-400 hover:text-red-600"></i>
+                                </flux:button>
+                            </div>
                         </flux:table.cell>
 
                     </flux:table.row>
@@ -659,7 +681,7 @@ new class extends Component
                     <flux:table.row>
                         <flux:table.cell colspan="8">
                             <div class="flex flex-col items-center justify-center py-12 text-center">
-                                <flux:icon name="shopping-cart" class="text-zinc-400 mb-3" style="width: 40px; height: 40px;" />
+                                <i class="hgi-stroke hgi-shopping-cart-01 text-5xl text-zinc-400 mb-3"></i>
                                 <p class="text-zinc-400 font-medium text-sm">
                                     @if ($search || $filterStatus !== '' || $filterEtat !== '' || $filterFournisseur !== '' || $filterDateFrom !== '' || $filterDateTo !== '')
                                         Aucune commande trouvée pour ces filtres
