@@ -158,7 +158,6 @@ new class extends Component
         <flux:breadcrumbs.item>Liste</flux:breadcrumbs.item>
     </flux:breadcrumbs>
 
-    <!-- Heading + bouton -->
     <div class="flex items-center justify-between mb-6">
         <flux:heading size="xl" level="1">{{ __('Marques') }}</flux:heading>
 
@@ -172,24 +171,32 @@ new class extends Component
     <!-- Stat Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <flux:card class="p-5">
-            <p class="text-sm text-zinc-500">Total Marques</p>
+            <div class="flex items-center justify-between">
+                <p class="text-sm text-zinc-500">Total Marques</p>
+                <i class="hgi-stroke hgi-tag-01 text-2xl text-zinc-400"></i>
+            </div>
             <p class="text-3xl font-bold mt-1">{{ $this->stats['total'] }}</p>
         </flux:card>
 
         <flux:card class="p-5">
-            <p class="text-sm text-zinc-500">Marques Actives</p>
+            <div class="flex items-center justify-between">
+                <p class="text-sm text-zinc-500">Marques Actives</p>
+                <i class="hgi-stroke hgi-checkmark-circle-01 text-2xl text-green-400"></i>
+            </div>
             <p class="text-3xl font-bold mt-1 text-green-500">{{ $this->stats['active'] }}</p>
         </flux:card>
 
         <flux:card class="p-5">
-            <p class="text-sm text-zinc-500">Marques Inactives</p>
+            <div class="flex items-center justify-between">
+                <p class="text-sm text-zinc-500">Marques Inactives</p>
+                <i class="hgi-stroke hgi-cancel-circle text-2xl text-zinc-400"></i>
+            </div>
             <p class="text-3xl font-bold mt-1 text-zinc-400">{{ $this->stats['inactive'] }}</p>
         </flux:card>
     </div>
 
     <flux:card class="p-5">
 
-        <!-- En-tête tableau : recherche | toggle filtres | per page -->
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
             <div class="flex items-center gap-2">
                 <flux:input
@@ -199,14 +206,13 @@ new class extends Component
                     class="w-full sm:w-72"
                 />
 
-                <!-- Bouton toggle filtres avec badge compteur -->
                 <div class="relative">
                     <flux:button
                         wire:click="toggleFilters"
                         :variant="$showFilters ? 'primary' : 'ghost'"
-                        icon="funnel"
                         size="sm"
                     >
+                        <i class="hgi-stroke hgi-filter-01"></i>
                         Filtres
                     </flux:button>
                     @if($this->activeFiltersCount > 0)
@@ -225,7 +231,6 @@ new class extends Component
             </flux:select>
         </div>
 
-        <!-- Panneau de filtres (togglable) -->
         @if($showFilters)
             <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 mb-4 bg-zinc-50 dark:bg-zinc-800/50">
                 <div class="flex items-center justify-between mb-3">
@@ -247,46 +252,25 @@ new class extends Component
             </div>
         @endif
 
-        <!-- Table -->
         <flux:table :paginate="$this->marques" variant="bordered">
             <flux:table.columns>
-                <flux:table.column
-                    sortable
-                    :sorted="$sortBy === 'code'"
-                    :direction="$sortDirection"
-                    wire:click="sort('code')"
-                >
-                    Code
-                </flux:table.column>
-
-                <flux:table.column
-                    sortable
-                    :sorted="$sortBy === 'name'"
-                    :direction="$sortDirection"
-                    wire:click="sort('name')"
-                >
-                    Nom
-                </flux:table.column>
-
+                <flux:table.column sortable :sorted="$sortBy === 'code'" :direction="$sortDirection" wire:click="sort('code')">Code</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'name'" :direction="$sortDirection" wire:click="sort('name')">Nom</flux:table.column>
                 <flux:table.column class="hidden sm:table-cell">Catégories</flux:table.column>
-
                 <flux:table.column class="text-center">État</flux:table.column>
-
-                <flux:table.column></flux:table.column>
+                <flux:table.column class="text-right">Actions</flux:table.column>
             </flux:table.columns>
 
             <flux:table.rows>
                 @forelse ($this->marques as $marque)
                     <flux:table.row :key="$marque->code" wire:key="marque-{{ $marque->code }}">
 
-                        <!-- Code -->
                         <flux:table.cell>
                             <flux:badge size="sm" color="zinc" inset="top bottom">
                                 {{ $marque->code }}
                             </flux:badge>
                         </flux:table.cell>
 
-                        <!-- Nom -->
                         <flux:table.cell>
                             <p class="font-medium text-sm">{{ $marque->name }}</p>
                             <p class="text-xs text-zinc-400 mt-0.5 sm:hidden">
@@ -294,14 +278,12 @@ new class extends Component
                             </p>
                         </flux:table.cell>
 
-                        <!-- Catégories -->
                         <flux:table.cell class="hidden sm:table-cell">
                             <flux:badge size="sm" color="blue" inset="top bottom">
                                 {{ $marque->categories_count }} catégorie{{ $marque->categories_count > 1 ? 's' : '' }}
                             </flux:badge>
                         </flux:table.cell>
 
-                        <!-- État avec Toggle -->
                         <flux:table.cell class="text-center">
                             <div class="flex items-center justify-center">
                                 @if($updatingMarqueId === $marque->code)
@@ -328,20 +310,33 @@ new class extends Component
                             <span class="sr-only">{{ $marque->state == 1 ? 'Actif' : 'Inactif' }}</span>
                         </flux:table.cell>
 
-                        <!-- Actions -->
-                        <flux:table.cell>
-                            <flux:dropdown>
-                                <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom" />
-                                <flux:menu>
-                                    <flux:menu.item icon="pencil" wire:click="edit('{{ $marque->code }}')">
-                                        Modifier
-                                    </flux:menu.item>
-                                    <flux:menu.separator />
-                                    <flux:menu.item icon="trash" variant="danger" wire:click="confirmDelete('{{ $marque->code }}')">
-                                        Supprimer
-                                    </flux:menu.item>
-                                </flux:menu>
-                            </flux:dropdown>
+                        {{-- Actions directes --}}
+                        <flux:table.cell class="text-right">
+                            <div class="flex items-center justify-end gap-1">
+
+                                {{-- Modifier --}}
+                                <flux:button
+                                    size="sm"
+                                    variant="ghost"
+                                    inset="top bottom"
+                                    wire:click="edit('{{ $marque->code }}')"
+                                    title="Modifier"
+                                >
+                                    <i class="hgi-stroke hgi-pencil-edit-01 text-indigo-400"></i>
+                                </flux:button>
+
+                                {{-- Supprimer --}}
+                                <flux:button
+                                    size="sm"
+                                    variant="ghost"
+                                    inset="top bottom"
+                                    wire:click="confirmDelete('{{ $marque->code }}')"
+                                    title="Supprimer"
+                                >
+                                    <i class="hgi-stroke hgi-delete-02 text-red-400"></i>
+                                </flux:button>
+
+                            </div>
                         </flux:table.cell>
 
                     </flux:table.row>
@@ -350,7 +345,7 @@ new class extends Component
                     <flux:table.row>
                         <flux:table.cell colspan="5">
                             <div class="flex flex-col items-center justify-center py-12 text-center">
-                                <flux:icon name="tag" class="text-zinc-400 mb-3" style="width: 40px; height: 40px;" />
+                                <i class="hgi-stroke hgi-tag-01 text-5xl text-zinc-400 mb-3"></i>
                                 <p class="text-zinc-400 font-medium text-sm">
                                     @if ($search || $filterState !== '')
                                         Aucune marque trouvée pour ces filtres
