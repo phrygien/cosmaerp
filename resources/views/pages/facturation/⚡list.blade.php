@@ -131,7 +131,7 @@ new class extends Component
         <flux:heading size="xl" level="1">{{ __('Factures') }}</flux:heading>
 
         <flux:modal.trigger name="create-facture">
-            <flux:button variant="primary" class="w-full sm:w-auto">
+            <flux:button variant="primary" class="w-full sm:w-auto" href="{{ route('facturation.create') }}" wire:navigate>
                 Ajouter une facture
             </flux:button>
         </flux:modal.trigger>
@@ -372,7 +372,6 @@ new class extends Component
 
     </flux:card>
 
-    <livewire:pages::facturation.create />
     <livewire:pages::facturation.edit />
     <livewire:pages::facturation.delete />
 </div>
