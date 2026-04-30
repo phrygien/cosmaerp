@@ -19,7 +19,7 @@
             class="[&[data-current]]:text-rose-500 [&[data-current]_i]:text-rose-500"
         >
             <x-slot name="icon"><i class="hgi-stroke hgi-home-01 text-2xl"></i></x-slot>
-            {{ __('Dashboard') }}
+            {{ __('Tableau de board') }}
         </flux:sidebar.item>
 
         <flux:sidebar.spacer />
