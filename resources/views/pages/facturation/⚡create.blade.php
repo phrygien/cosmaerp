@@ -6,6 +6,7 @@ use Livewire\Attributes\Validate;
 use App\Models\Facture;
 use App\Models\Commande;
 use App\Models\DetailCommande;
+use App\Enums\TypeFacture;
 use Flux\Flux;
 use Illuminate\Support\Facades\DB;
 
@@ -18,8 +19,8 @@ new class extends Component
     #[Validate('required|string|max:255')]
     public string $libelle        = '';
 
-    #[Validate('required|in:commande,retour_commande')]
-    public string $type           = 'commande';
+    #[Validate('required|in:Commande,Retour')]
+    public string $type           = TypeFacture::Commande->value;
 
     #[Validate('required|exists:commande,id')]
     public ?int   $commande_id    = null;
@@ -241,9 +242,7 @@ new class extends Component
 
         <div class="flex items-center gap-2">
             <flux:button wire:click="resetForm" variant="ghost">Réinitialiser</flux:button>
-            <flux:button wire:click="save" variant="primary">
-                Enregistrer
-            </flux:button>
+            <flux:button wire:click="save" variant="primary">Enregistrer</flux:button>
         </div>
     </div>
 
@@ -258,38 +257,46 @@ new class extends Component
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-                    <flux:field>
-                        <flux:label>N° Facture <flux:badge size="sm" color="red">*</flux:badge></flux:label>
-                        <flux:input wire:model="numero" placeholder="FAC-2024-001" />
-                        <flux:error name="numero" />
-                    </flux:field>
+                    <flux:input
+                        wire:model="numero"
+                        label="N° Facture"
+                        placeholder="FAC-2024-001"
+                        description="Identifiant unique de la facture."
+                    />
+                    <flux:error name="numero" />
 
                     <flux:field>
-                        <flux:label>Type <flux:badge size="sm" color="red">*</flux:badge></flux:label>
+                        <flux:label>Type</flux:label>
                         <flux:radio.group wire:model="type" variant="segmented" class="mt-1">
-                            <flux:radio label="Commande"        value="commande" />
-                            <flux:radio label="Retour commande" value="retour_commande" />
+                            @foreach(\App\Enums\TypeFacture::cases() as $case)
+                                <flux:radio :label="$case->label()" :value="$case->value" />
+                            @endforeach
                         </flux:radio.group>
                         <flux:error name="type" />
                     </flux:field>
 
-                    <flux:field class="sm:col-span-2">
-                        <flux:label>Libellé <flux:badge size="sm" color="red">*</flux:badge></flux:label>
-                        <flux:input wire:model="libelle" placeholder="Description de la facture" />
-                        <flux:error name="libelle" />
-                    </flux:field>
+                    <flux:input
+                        wire:model="libelle"
+                        label="Libellé"
+                        placeholder="Description de la facture"
+                        class="sm:col-span-2"
+                    />
+                    <flux:error name="libelle" />
 
-                    <flux:field>
-                        <flux:label>Date de commande <flux:badge size="sm" color="red">*</flux:badge></flux:label>
-                        <flux:input wire:model="date_commande" type="date" />
-                        <flux:error name="date_commande" />
-                    </flux:field>
+                    <flux:input
+                        wire:model="date_commande"
+                        type="date"
+                        label="Date de commande"
+                    />
+                    <flux:error name="date_commande" />
 
-                    <flux:field>
-                        <flux:label>Date de réception</flux:label>
-                        <flux:input wire:model="date_reception" type="date" />
-                        <flux:error name="date_reception" />
-                    </flux:field>
+                    <flux:input
+                        wire:model="date_reception"
+                        type="date"
+                        label="Date de réception"
+                        description="Optionnel."
+                    />
+                    <flux:error name="date_reception" />
 
                 </div>
             </flux:card>
@@ -301,7 +308,7 @@ new class extends Component
                 <div class="grid grid-cols-1 gap-4">
 
                     <flux:field>
-                        <flux:label>Commande <flux:badge size="sm" color="red">*</flux:badge></flux:label>
+                        <flux:label>Commande</flux:label>
                         <flux:select wire:model.live="commande_id" placeholder="Sélectionner une commande">
                             <flux:select.option value="">— Choisir une commande —</flux:select.option>
                             @foreach($this->commandes as $c)
@@ -401,17 +408,26 @@ new class extends Component
 
                 <div class="space-y-3">
 
-                    <flux:field>
-                        <flux:label>Remise globale (%)</flux:label>
-                        <flux:input wire:model.live="remise" type="number" min="0" max="100" step="0.01" placeholder="0" />
-                        <flux:error name="remise" />
-                    </flux:field>
+                    <flux:input
+                        wire:model.live="remise"
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        label="Remise globale (%)"
+                        placeholder="0"
+                    />
+                    <flux:error name="remise" />
 
-                    <flux:field>
-                        <flux:label>Taxe (%)</flux:label>
-                        <flux:input wire:model.live="tax" type="number" min="0" step="0.01" placeholder="0" />
-                        <flux:error name="tax" />
-                    </flux:field>
+                    <flux:input
+                        wire:model.live="tax"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        label="Taxe (%)"
+                        placeholder="0"
+                    />
+                    <flux:error name="tax" />
 
                     <div class="border-t border-zinc-200 dark:border-zinc-700 pt-3 mt-3 space-y-2 text-sm">
                         <div class="flex justify-between text-zinc-500">
