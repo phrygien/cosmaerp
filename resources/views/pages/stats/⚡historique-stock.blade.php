@@ -78,17 +78,26 @@ new class extends Component
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-5">
 
         <flux:card class="flex flex-col gap-1 p-4 py-6 sm:py-8 justify-center">
-            <flux:subheading>Total en stock</flux:subheading>
+            <div class="flex items-center justify-between">
+                <flux:subheading>Total en stock</flux:subheading>
+                <i class="hgi-stroke hgi-archive-01 text-4xl text-zinc-400 dark:text-zinc-500"></i>
+            </div>
             <flux:heading size="xl">{{ number_format($totalStock, 0, ',', ' ') }}</flux:heading>
         </flux:card>
 
         <flux:card class="flex flex-col gap-1 p-4 py-6 sm:py-8 justify-center">
-            <flux:subheading>Dépôts actifs</flux:subheading>
+            <div class="flex items-center justify-between">
+                <flux:subheading>Dépôts actifs</flux:subheading>
+                <i class="hgi-stroke hgi-store-01 text-4xl text-zinc-400 dark:text-zinc-500"></i>
+            </div>
             <flux:heading size="xl">{{ $totalDepots }}</flux:heading>
         </flux:card>
 
         <flux:card class="flex flex-col gap-1 p-4 py-6 sm:py-8 justify-center">
-            <flux:subheading>Semaine courante</flux:subheading>
+            <div class="flex items-center justify-between">
+                <flux:subheading>Semaine courante</flux:subheading>
+                <i class="hgi-stroke hgi-calendar-01 text-4xl text-zinc-400 dark:text-zinc-500"></i>
+            </div>
             <flux:heading size="xl">{{ $semaineCourante }}</flux:heading>
         </flux:card>
 
