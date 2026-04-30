@@ -317,12 +317,12 @@ new class extends Component
         <flux:breadcrumbs.item>Liste</flux:breadcrumbs.item>
     </flux:breadcrumbs>
 
-    <!-- Heading + bouton -->
     <div class="flex items-center justify-between mb-6">
         <flux:heading size="xl" level="1">{{ __('Fournisseurs') }}</flux:heading>
 
         <flux:modal.trigger name="create-fournisseur">
             <flux:button variant="primary" class="w-full sm:w-auto">
+                <i class="hgi-stroke hgi-add-circle"></i>
                 Ajouter un fournisseur
             </flux:button>
         </flux:modal.trigger>
@@ -331,17 +331,26 @@ new class extends Component
     <!-- Stat Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <flux:card class="p-5">
-            <p class="text-sm text-zinc-500">Total Fournisseurs</p>
+            <div class="flex items-center justify-between">
+                <p class="text-sm text-zinc-500">Total Fournisseurs</p>
+                <i class="hgi-stroke hgi-truck-01 text-2xl text-zinc-400"></i>
+            </div>
             <p class="text-3xl font-bold mt-1">{{ $this->stats['total'] }}</p>
         </flux:card>
 
         <flux:card class="p-5">
-            <p class="text-sm text-zinc-500">Fournisseurs Actifs</p>
+            <div class="flex items-center justify-between">
+                <p class="text-sm text-zinc-500">Fournisseurs Actifs</p>
+                <i class="hgi-stroke hgi-checkmark-circle-01 text-2xl text-green-400"></i>
+            </div>
             <p class="text-3xl font-bold mt-1 text-green-500">{{ $this->stats['active'] }}</p>
         </flux:card>
 
         <flux:card class="p-5">
-            <p class="text-sm text-zinc-500">Fournisseurs Inactifs</p>
+            <div class="flex items-center justify-between">
+                <p class="text-sm text-zinc-500">Fournisseurs Inactifs</p>
+                <i class="hgi-stroke hgi-cancel-circle text-2xl text-zinc-400"></i>
+            </div>
             <p class="text-3xl font-bold mt-1 text-zinc-400">{{ $this->stats['inactive'] }}</p>
         </flux:card>
     </div>
@@ -360,34 +369,35 @@ new class extends Component
                 <flux:button
                     size="sm"
                     variant="filled"
-                    icon="check-circle"
                     wire:click="bulkActivate"
                     wire:confirm="Activer les {{ count($selectedIds) }} fournisseur(s) sélectionné(s) ?"
                 >
+                    <i class="hgi-stroke hgi-checkmark-circle-01"></i>
                     Activer
                 </flux:button>
 
                 <flux:button
                     size="sm"
                     variant="ghost"
-                    icon="x-circle"
                     wire:click="bulkDeactivate"
                     wire:confirm="Désactiver les {{ count($selectedIds) }} fournisseur(s) sélectionné(s) ?"
                 >
+                    <i class="hgi-stroke hgi-cancel-circle"></i>
                     Désactiver
                 </flux:button>
 
                 <flux:button
                     size="sm"
                     variant="danger"
-                    icon="trash"
                     wire:click="bulkDelete"
                     wire:confirm="Supprimer définitivement les {{ count($selectedIds) }} fournisseur(s) sélectionné(s) ? Cette action est irréversible."
                 >
+                    <i class="hgi-stroke hgi-delete-02"></i>
                     Supprimer
                 </flux:button>
 
                 <flux:button size="sm" variant="ghost" wire:click="clearSelection">
+                    <i class="hgi-stroke hgi-cancel-01"></i>
                     Annuler
                 </flux:button>
             </div>
@@ -396,7 +406,6 @@ new class extends Component
 
     <flux:card class="p-5">
 
-        <!-- En-tête tableau : recherche | toggle filtres | per page -->
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
             <div class="flex items-center gap-2">
                 <flux:input
@@ -406,14 +415,13 @@ new class extends Component
                     class="w-full sm:w-80"
                 />
 
-                <!-- Bouton toggle filtres avec badge compteur -->
                 <div class="relative">
                     <flux:button
                         wire:click="toggleFilters"
                         :variant="$showFilters ? 'primary' : 'ghost'"
-                        icon="funnel"
                         size="sm"
                     >
+                        <i class="hgi-stroke hgi-filter-01"></i>
                         Filtres
                     </flux:button>
                     @if($this->activeFiltersCount > 0)
@@ -432,7 +440,6 @@ new class extends Component
             </flux:select>
         </div>
 
-        <!-- Panneau de filtres (togglable) -->
         @if($showFilters)
             <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 mb-4 bg-zinc-50 dark:bg-zinc-800/50">
                 <div class="flex items-center justify-between mb-3">
@@ -454,7 +461,6 @@ new class extends Component
             </div>
         @endif
 
-        <!-- Table -->
         <flux:table :paginate="$this->fournisseurs" variant="bordered">
             <flux:table.columns>
                 <flux:table.column class="w-10">
@@ -463,124 +469,57 @@ new class extends Component
                         :disabled="$this->fournisseurs->isEmpty()"
                     />
                 </flux:table.column>
-
-                <flux:table.column
-                    sortable
-                    :sorted="$sortBy === 'code'"
-                    :direction="$sortDirection"
-                    wire:click="sort('code')"
-                >
-                    Code
-                </flux:table.column>
-
-                <flux:table.column
-                    sortable
-                    :sorted="$sortBy === 'name'"
-                    :direction="$sortDirection"
-                    wire:click="sort('name')"
-                >
-                    Nom
-                </flux:table.column>
-
-                <flux:table.column
-                    sortable
-                    :sorted="$sortBy === 'raison_social'"
-                    :direction="$sortDirection"
-                    wire:click="sort('raison_social')"
-                    class="hidden md:table-cell"
-                >
-                    Raison sociale
-                </flux:table.column>
-
-                <flux:table.column class="hidden lg:table-cell">
-                    Contact
-                </flux:table.column>
-
-                <flux:table.column
-                    sortable
-                    :sorted="$sortBy === 'ville'"
-                    :direction="$sortDirection"
-                    wire:click="sort('ville')"
-                    class="hidden sm:table-cell"
-                >
-                    Ville
-                </flux:table.column>
-
-                <flux:table.column class="text-center">
-                    État
-                </flux:table.column>
-
-                <flux:table.column></flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'code'" :direction="$sortDirection" wire:click="sort('code')">Code</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'name'" :direction="$sortDirection" wire:click="sort('name')">Nom</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'raison_social'" :direction="$sortDirection" wire:click="sort('raison_social')" class="hidden md:table-cell">Raison sociale</flux:table.column>
+                <flux:table.column class="hidden lg:table-cell">Contact</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'ville'" :direction="$sortDirection" wire:click="sort('ville')" class="hidden sm:table-cell">Ville</flux:table.column>
+                <flux:table.column class="text-center">État</flux:table.column>
+                <flux:table.column class="text-right">Actions</flux:table.column>
             </flux:table.columns>
 
             <flux:table.rows>
                 @forelse ($this->fournisseurs as $fournisseur)
-                    <flux:table.row
-                        :key="$fournisseur->id"
-                        wire:key="fournisseur-{{ $fournisseur->id }}"
-                    >
-                        <!-- Checkbox -->
+                    <flux:table.row :key="$fournisseur->id" wire:key="fournisseur-{{ $fournisseur->id }}">
+
                         <flux:table.cell>
-                            <flux:checkbox
-                                value="{{ $fournisseur->id }}"
-                                wire:model.live="selectedIds"
-                            />
+                            <flux:checkbox value="{{ $fournisseur->id }}" wire:model.live="selectedIds" />
                         </flux:table.cell>
 
-                        <!-- Code -->
                         <flux:table.cell>
                             <flux:badge size="sm" color="zinc" inset="top bottom">
                                 {{ $fournisseur->code }}
                             </flux:badge>
                         </flux:table.cell>
 
-                        <!-- Nom -->
                         <flux:table.cell>
                             <p class="font-medium text-sm">{{ $fournisseur->name }}</p>
-                            <p class="text-xs text-zinc-400 mt-0.5 md:hidden">
-                                {{ $fournisseur->raison_social ?? '—' }}
-                            </p>
-                            <p class="text-xs text-zinc-400 sm:hidden">
-                                {{ $fournisseur->ville ?? '—' }}
-                            </p>
+                            <p class="text-xs text-zinc-400 mt-0.5 md:hidden">{{ $fournisseur->raison_social ?? '—' }}</p>
+                            <p class="text-xs text-zinc-400 sm:hidden">{{ $fournisseur->ville ?? '—' }}</p>
                             @if($fournisseur->telephone || $fournisseur->mail)
                                 <div class="text-xs text-zinc-400 mt-1 lg:hidden">
-                                    @if($fournisseur->telephone)
-                                        <div>Tél: {{ $fournisseur->telephone }}</div>
-                                    @endif
-                                    @if($fournisseur->mail)
-                                        <div>Mail: {{ $fournisseur->mail }}</div>
-                                    @endif
+                                    @if($fournisseur->telephone)<div>Tél: {{ $fournisseur->telephone }}</div>@endif
+                                    @if($fournisseur->mail)<div>Mail: {{ $fournisseur->mail }}</div>@endif
                                 </div>
                             @endif
                         </flux:table.cell>
 
-                        <!-- Raison sociale -->
                         <flux:table.cell class="hidden md:table-cell text-zinc-400 text-sm">
                             {{ $fournisseur->raison_social ?? '—' }}
                         </flux:table.cell>
 
-                        <!-- Contact -->
                         <flux:table.cell class="hidden lg:table-cell">
                             <div class="space-y-0.5">
-                                @if ($fournisseur->mail)
-                                    <p class="text-xs text-zinc-400">{{ $fournisseur->mail }}</p>
-                                @endif
-                                @if ($fournisseur->telephone)
-                                    <p class="text-xs text-zinc-400">{{ $fournisseur->telephone }}</p>
-                                @endif
-                                @if (!$fournisseur->mail && !$fournisseur->telephone)
-                                    <span class="text-zinc-400 text-sm">—</span>
-                                @endif
+                                @if ($fournisseur->mail)<p class="text-xs text-zinc-400">{{ $fournisseur->mail }}</p>@endif
+                                @if ($fournisseur->telephone)<p class="text-xs text-zinc-400">{{ $fournisseur->telephone }}</p>@endif
+                                @if (!$fournisseur->mail && !$fournisseur->telephone)<span class="text-zinc-400 text-sm">—</span>@endif
                             </div>
                         </flux:table.cell>
 
-                        <!-- Ville -->
                         <flux:table.cell class="hidden sm:table-cell text-zinc-400 text-sm">
                             {{ $fournisseur->ville ?? '—' }}
                         </flux:table.cell>
 
-                        <!-- État avec Toggle -->
                         <flux:table.cell class="text-center">
                             <div class="flex items-center justify-center">
                                 @if($updatingSupplierId === $fournisseur->id)
@@ -597,34 +536,54 @@ new class extends Component
                                         class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 hover:opacity-80"
                                         style="background-color: {{ $fournisseur->state == 1 ? '#22c55e' : '#d1d5db' }}"
                                     >
-                                    <span
-                                        class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
-                                        style="transform: translateX({{ $fournisseur->state == 1 ? '24px' : '4px' }})"
-                                    />
+                                        <span
+                                            class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                                            style="transform: translateX({{ $fournisseur->state == 1 ? '24px' : '4px' }})"
+                                        />
                                     </button>
                                 @endif
                             </div>
                             <span class="sr-only">{{ $fournisseur->state == 1 ? 'Actif' : 'Inactif' }}</span>
                         </flux:table.cell>
 
-                        <!-- Actions -->
-                        <flux:table.cell>
-                            <flux:dropdown>
-                                <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom" />
-                                <flux:menu>
-                                    <flux:menu.item icon="eye" wire:click="showDetails({{ $fournisseur->id }})">
-                                        Voir les détails
-                                    </flux:menu.item>
-                                    <flux:menu.separator />
-                                    <flux:menu.item icon="pencil" wire:click="edit({{ $fournisseur->id }})">
-                                        Modifier
-                                    </flux:menu.item>
-                                    <flux:menu.separator />
-                                    <flux:menu.item icon="trash" variant="danger" wire:click="confirmDelete({{ $fournisseur->id }})">
-                                        Supprimer
-                                    </flux:menu.item>
-                                </flux:menu>
-                            </flux:dropdown>
+                        {{-- Actions directes --}}
+                        <flux:table.cell class="text-right">
+                            <div class="flex items-center justify-end gap-1">
+
+                                {{-- Voir détails --}}
+                                <flux:button
+                                    size="sm"
+                                    variant="ghost"
+                                    inset="top bottom"
+                                    wire:click="showDetails({{ $fournisseur->id }})"
+                                    title="Voir les détails"
+                                >
+                                    <i class="hgi-stroke hgi-eye text-zinc-500"></i>
+                                </flux:button>
+
+                                {{-- Modifier --}}
+                                <flux:button
+                                    size="sm"
+                                    variant="ghost"
+                                    inset="top bottom"
+                                    wire:click="edit({{ $fournisseur->id }})"
+                                    title="Modifier"
+                                >
+                                    <i class="hgi-stroke hgi-pencil-edit-01 text-indigo-400"></i>
+                                </flux:button>
+
+                                {{-- Supprimer --}}
+                                <flux:button
+                                    size="sm"
+                                    variant="ghost"
+                                    inset="top bottom"
+                                    wire:click="confirmDelete({{ $fournisseur->id }})"
+                                    title="Supprimer"
+                                >
+                                    <i class="hgi-stroke hgi-delete-02 text-red-400"></i>
+                                </flux:button>
+
+                            </div>
                         </flux:table.cell>
 
                     </flux:table.row>
@@ -633,7 +592,7 @@ new class extends Component
                     <flux:table.row>
                         <flux:table.cell colspan="8">
                             <div class="flex flex-col items-center justify-center py-12 text-center">
-                                <flux:icon name="building-storefront" class="text-zinc-400 mb-3" style="width: 40px; height: 40px;" />
+                                <i class="hgi-stroke hgi-truck-01 text-5xl text-zinc-400 mb-3"></i>
                                 <p class="text-zinc-400 font-medium text-sm">
                                     @if ($search || $filterState !== '')
                                         Aucun fournisseur trouvé pour ces filtres
