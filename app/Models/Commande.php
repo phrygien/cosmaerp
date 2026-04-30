@@ -46,4 +46,9 @@ class Commande extends Model
     {
         return $this->hasMany(DetailCommande::class, 'commande_id', 'id');
     }
+
+    public function factures(): HasMany
+    {
+        return $this->hasMany(Facture::class);
+    }
 }

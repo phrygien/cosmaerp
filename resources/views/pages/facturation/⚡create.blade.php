@@ -57,6 +57,7 @@ new class extends Component
     {
         return Commande::with('fournisseur')
             ->where('status', \App\Enums\CommandeStatus::Recue)
+            ->whereDoesntHave('factures', fn($q) => $q->where('state', 0))
             ->orderByDesc('created_at')
             ->get();
     }
