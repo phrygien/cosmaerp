@@ -17,7 +17,7 @@
             :current="request()->routeIs('dashboard')"
             wire:navigate
         >
-            <x-slot name="icon"><i class="hgi-stroke hgi-home-01 text-2xl"></i></x-slot>
+            <x-slot name="icon"><i class="hgi-stroke hgi-rounded hgi-dashboard-circle-settings text-2xl"></i></x-slot>
             {{ __('Dashboard') }}
         </flux:sidebar.item>
 
@@ -112,6 +112,20 @@
                 :current="request()->routeIs('reception_commande.create*') || request()->is('reception/create*')"
                 wire:navigate
             >{{ __('Nouvelle réception') }}</flux:sidebar.item>
+        </flux:sidebar.group>
+
+        <flux:sidebar.group expandable expanded heading="Facturation" class="grid">
+            <x-slot name="icon"><i class="hgi-stroke hgi-rounded hgi-coupon-02 text-2xl"></i></x-slot>
+            <flux:sidebar.item
+                href="{{ route('facturation.list') }}"
+                :current="request()->routeIs('facturation.list') || (request()->is('facturation*') && !request()->is('facturation/create*'))"
+                wire:navigate
+            >{{ __('Liste facturation') }}</flux:sidebar.item>
+            <flux:sidebar.item
+                href="{{ route('facturation.create') }}"
+                :current="request()->routeIs('facturation.create*') || request()->is('facturation/create*')"
+                wire:navigate
+            >{{ __('Nouvelle facture') }}</flux:sidebar.item>
         </flux:sidebar.group>
 
     </flux:sidebar.nav>

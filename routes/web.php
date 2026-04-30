@@ -50,6 +50,13 @@ Route::middleware(["auth", "verified"])->group(function () {
         Route::livewire("/view/{bon}", "pages::aprovisionement.reception.view")->name("view");
     });
 
+    // Facturation
+    Route::prefix("facturation")->name("facturation.")->group(function () {
+        Route::livewire("/list", "pages::facturation.page")->name("list");
+        Route::livewire("/create", "pages::facturation.create")->name("create");
+        Route::livewire("/edit/{facture}", "pages::facturation.edit")->name("edit");
+    });
+
     // PDF Bon de commande
     Route::get("/commandes/{id}/bon-commande/pdf", [BonCommandePdfController::class, "download"])
         ->name("bon-commande.pdf");
