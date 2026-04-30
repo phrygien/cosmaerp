@@ -166,7 +166,7 @@ new class extends Component
             {{-- Infos commande --}}
             <div class="space-y-4">
                 <div class="flex items-center gap-2 mb-3">
-                    <flux:icon name="clipboard-document-list" class="text-zinc-400" />
+                    <i class="hgi-stroke hgi-clipboard text-xl text-zinc-400"></i>
                     <flux:heading size="sm">Commande</flux:heading>
                 </div>
 
@@ -218,7 +218,7 @@ new class extends Component
             {{-- Infos fournisseur --}}
             <div class="space-y-4">
                 <div class="flex items-center gap-2 mb-3">
-                    <flux:icon name="building-office" class="text-zinc-400" />
+                    <i class="hgi-stroke hgi-building-01 text-xl text-zinc-400"></i>
                     <flux:heading size="sm">Fournisseur</flux:heading>
                 </div>
 
@@ -276,7 +276,7 @@ new class extends Component
             {{-- Infos magasin --}}
             <div class="space-y-4">
                 <div class="flex items-center gap-2 mb-3">
-                    <flux:icon name="map-pin" class="text-zinc-400" />
+                    <i class="hgi-stroke hgi-location-01 text-xl text-zinc-400"></i>
                     <flux:heading size="sm">Magasin de livraison</flux:heading>
                 </div>
 
