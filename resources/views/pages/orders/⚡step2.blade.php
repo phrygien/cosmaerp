@@ -695,20 +695,22 @@ new class extends Component
                                     <flux:button
                                         size="sm"
                                         variant="ghost"
-                                        icon="pencil-square"
                                         inset="top bottom"
                                         class="text-indigo-400 hover:text-indigo-600"
                                         wire:click="editRepartition({{ $detail->id }})"
-                                    />
+                                    >
+                                        <i class="hgi-stroke hgi-pencil-edit-01"></i>
+                                    </flux:button>
                                     <flux:button
                                         size="sm"
                                         variant="ghost"
-                                        icon="trash"
                                         inset="top bottom"
                                         class="text-red-400 hover:text-red-600"
                                         wire:click="removeDetail({{ $detail->id }})"
                                         wire:confirm="Supprimer ce produit de la commande ?"
-                                    />
+                                    >
+                                        <i class="hgi-stroke hgi-delete-02"></i>
+                                    </flux:button>
                                 </div>
                             </div>
 
