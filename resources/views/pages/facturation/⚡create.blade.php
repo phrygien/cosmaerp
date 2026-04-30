@@ -243,7 +243,7 @@ new class extends Component
         <flux:heading size="xl" level="1">Nouvelle Facture</flux:heading>
 
         <div class="flex items-center gap-2">
-            <flux:button wire:click="resetForm" variant="ghost">Réinitialiser</flux:button>
+            <flux:button wire:click="resetForm">Réinitialiser</flux:button>
             <flux:button wire:click="save" variant="primary">Enregistrer</flux:button>
             <flux:button variant="danger" href="{{ route('facturation.list') }}" wire:navigate>Annuler</flux:button>
         </div>
@@ -460,16 +460,6 @@ new class extends Component
                     <flux:radio label="Validée"  value="1" />
                 </flux:radio.group>
             </flux:card>
-
-            {{-- Actions --}}
-            <div class="flex flex-col gap-2">
-                <flux:button wire:click="save" variant="primary" class="w-full">
-                    Enregistrer la facture
-                </flux:button>
-                <flux:button wire:click="resetForm" variant="ghost" class="w-full">
-                    Réinitialiser
-                </flux:button>
-            </div>
 
         </div>
 
