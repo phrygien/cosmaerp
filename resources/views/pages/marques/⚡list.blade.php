@@ -154,36 +154,33 @@ new class extends Component
 
 <div>
     <flux:breadcrumbs class="mb-5">
-        <flux:breadcrumbs.item href="#">Utilisateur</flux:breadcrumbs.item>
-        <flux:breadcrumbs.item>List</flux:breadcrumbs.item>
+        <flux:breadcrumbs.item href="#">Marque</flux:breadcrumbs.item>
+        <flux:breadcrumbs.item>Liste</flux:breadcrumbs.item>
     </flux:breadcrumbs>
 
     <div class="flex items-center justify-between mb-6">
-        <flux:heading size="xl" level="1">{{ __('Utilisateurs') }}</flux:heading>
+        <flux:heading size="xl" level="1">{{ __('Marques') }}</flux:heading>
 
-        @if (!$showTrashed)
-            <flux:modal.trigger name="create-user">
-                <flux:button variant="primary" class="w-full sm:w-auto">
-                    <i class="hgi-stroke hgi-add-circle"></i>
-                    Ajouter un utilisateur
-                </flux:button>
-            </flux:modal.trigger>
-        @endif
+        <flux:modal.trigger name="create-marque">
+            <flux:button variant="primary" class="w-full sm:w-auto">
+                Ajouter une marque
+            </flux:button>
+        </flux:modal.trigger>
     </div>
 
     <!-- Stat Cards -->
-    <div class="grid grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <flux:card class="p-5">
             <div class="flex items-center justify-between">
-                <p class="text-sm text-zinc-500">Total Utilisateurs</p>
-                <i class="hgi-stroke hgi-user-group text-2xl text-zinc-400"></i>
+                <p class="text-sm text-zinc-500">Total Marques</p>
+                <i class="hgi-stroke hgi-tag-01 text-2xl text-zinc-400"></i>
             </div>
             <p class="text-3xl font-bold mt-1">{{ $this->stats['total'] }}</p>
         </flux:card>
 
         <flux:card class="p-5">
             <div class="flex items-center justify-between">
-                <p class="text-sm text-zinc-500">Actifs</p>
+                <p class="text-sm text-zinc-500">Marques Actives</p>
                 <i class="hgi-stroke hgi-checkmark-circle-01 text-2xl text-green-400"></i>
             </div>
             <p class="text-3xl font-bold mt-1 text-green-500">{{ $this->stats['active'] }}</p>
@@ -191,30 +188,12 @@ new class extends Component
 
         <flux:card class="p-5">
             <div class="flex items-center justify-between">
-                <p class="text-sm text-zinc-500">Inactifs</p>
+                <p class="text-sm text-zinc-500">Marques Inactives</p>
                 <i class="hgi-stroke hgi-cancel-circle text-2xl text-zinc-400"></i>
             </div>
             <p class="text-3xl font-bold mt-1 text-zinc-400">{{ $this->stats['inactive'] }}</p>
         </flux:card>
-
-        <flux:card class="p-5">
-            <div class="flex items-center justify-between">
-                <p class="text-sm text-zinc-500">Supprimés</p>
-                <i class="hgi-stroke hgi-delete-02 text-2xl text-red-400"></i>
-            </div>
-            <p class="text-3xl font-bold mt-1 text-red-400">{{ $this->stats['trashed'] }}</p>
-        </flux:card>
     </div>
-
-    <!-- Bandeau trashed -->
-    @if ($showTrashed)
-        <div class="flex items-start gap-2 mb-4 px-4 py-2.5 rounded-lg bg-red-500/10 border border-red-500/20">
-            <i class="hgi-stroke hgi-alert-02 text-red-400 shrink-0 mt-0.5"></i>
-            <p class="text-sm text-red-400">
-                Vous consultez les utilisateurs supprimés. Vous pouvez les restaurer ou les supprimer définitivement.
-            </p>
-        </div>
-    @endif
 
     <flux:card class="p-5">
 
@@ -222,9 +201,9 @@ new class extends Component
             <div class="flex items-center gap-2">
                 <flux:input
                     wire:model.live.debounce="search"
-                    placeholder="Rechercher un utilisateur..."
+                    placeholder="Rechercher une marque..."
                     icon="magnifying-glass"
-                    class="w-full sm:w-80"
+                    class="w-full sm:w-72"
                 />
 
                 <div class="relative">
@@ -264,134 +243,99 @@ new class extends Component
                 </div>
 
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
-                    <flux:radio.group wire:model.live="filterStatus" variant="segmented">
-                        <flux:radio label="Tous"     value=""        />
-                        <flux:radio label="Actifs"   value="enable"  />
-                        <flux:radio label="Inactifs" value="disable" />
+                    <flux:radio.group wire:model.live="filterState" variant="segmented">
+                        <flux:radio label="Tous"    value=""  />
+                        <flux:radio label="Actif"   value="1" />
+                        <flux:radio label="Inactif" value="0" />
                     </flux:radio.group>
-
-                    <flux:tooltip :content="$showTrashed ? 'Masquer les supprimés' : 'Voir les supprimés'">
-                        <flux:button
-                            :variant="$showTrashed ? 'danger' : 'ghost'"
-                            size="sm"
-                            wire:click="$toggle('showTrashed')"
-                        >
-                            <i class="hgi-stroke hgi-delete-02"></i>
-                            {{ $showTrashed ? 'Masquer les supprimés' : 'Voir les supprimés' }}
-                        </flux:button>
-                    </flux:tooltip>
                 </div>
             </div>
         @endif
 
-        <flux:table :paginate="$this->users" variant="bordered">
+        <flux:table :paginate="$this->marques" variant="bordered">
             <flux:table.columns>
-                <flux:table.column sortable :sorted="$sortBy === 'name'" :direction="$sortDirection" wire:click="sort('name')">Utilisateur</flux:table.column>
-                <flux:table.column sortable :sorted="$sortBy === 'email'" :direction="$sortDirection" wire:click="sort('email')" class="hidden md:table-cell">Email</flux:table.column>
-                <flux:table.column sortable :sorted="$sortBy === 'status'" :direction="$sortDirection" wire:click="sort('status')">Statut</flux:table.column>
-                <flux:table.column class="hidden lg:table-cell">Rôles</flux:table.column>
-                <flux:table.column sortable :sorted="$sortBy === 'created_at'" :direction="$sortDirection" wire:click="sort('created_at')" class="hidden sm:table-cell">Créé le</flux:table.column>
-                @if ($showTrashed)
-                    <flux:table.column class="hidden sm:table-cell">Supprimé le</flux:table.column>
-                @endif
+                <flux:table.column sortable :sorted="$sortBy === 'code'" :direction="$sortDirection" wire:click="sort('code')">Code</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'name'" :direction="$sortDirection" wire:click="sort('name')">Nom</flux:table.column>
+                <flux:table.column class="hidden sm:table-cell">Catégories</flux:table.column>
+                <flux:table.column class="text-center">État</flux:table.column>
                 <flux:table.column class="text-right">Actions</flux:table.column>
             </flux:table.columns>
 
             <flux:table.rows>
-                @forelse ($this->users as $user)
-                    <flux:table.row :key="$user->id" wire:key="user-{{ $user->id }}" class="{{ $showTrashed ? 'opacity-60' : '' }}">
+                @forelse ($this->marques as $marque)
+                    <flux:table.row :key="$marque->code" wire:key="marque-{{ $marque->code }}">
 
                         <flux:table.cell>
-                            <div class="flex items-center gap-3">
-                                <flux:avatar size="sm" name="{{ $user->name }}" />
-                                <div class="min-w-0">
-                                    <p class="text-sm font-medium truncate">{{ $user->name }}</p>
-                                    <p class="text-xs text-zinc-400 truncate md:hidden">{{ $user->email }}</p>
-                                    <p class="text-xs text-zinc-400 sm:hidden">{{ $user->created_at->translatedFormat('d F Y') }}</p>
-                                </div>
-                            </div>
-                        </flux:table.cell>
-
-                        <flux:table.cell class="hidden md:table-cell text-zinc-400 text-sm">
-                            {{ $user->email }}
+                            <flux:badge size="sm" color="zinc" inset="top bottom">
+                                {{ $marque->code }}
+                            </flux:badge>
                         </flux:table.cell>
 
                         <flux:table.cell>
-                            @if ($user->status === 'enable')
-                                <flux:badge size="sm" color="green" inset="top bottom">Activé</flux:badge>
-                            @else
-                                <flux:badge size="sm" color="red" inset="top bottom">Désactivé</flux:badge>
-                            @endif
+                            <p class="font-medium text-sm">{{ $marque->name }}</p>
+                            <p class="text-xs text-zinc-400 mt-0.5 sm:hidden">
+                                {{ $marque->categories_count }} catégorie{{ $marque->categories_count > 1 ? 's' : '' }}
+                            </p>
                         </flux:table.cell>
 
-                        <flux:table.cell class="hidden lg:table-cell">
-                            <div class="flex flex-wrap gap-1">
-                                @forelse ($user->roles as $role)
-                                    <flux:badge size="sm" color="purple" inset="top bottom">{{ $role->name }}</flux:badge>
-                                @empty
-                                    <span class="text-zinc-400 text-sm">Aucun rôle</span>
-                                @endforelse
+                        <flux:table.cell class="hidden sm:table-cell">
+                            <flux:badge size="sm" color="blue" inset="top bottom">
+                                {{ $marque->categories_count }} catégorie{{ $marque->categories_count > 1 ? 's' : '' }}
+                            </flux:badge>
+                        </flux:table.cell>
+
+                        <flux:table.cell class="text-center">
+                            <div class="flex items-center justify-center">
+                                @if($updatingMarqueId === $marque->code)
+                                    <svg class="animate-spin h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                                    </svg>
+                                @else
+                                    <button
+                                        wire:click="toggleState('{{ $marque->code }}')"
+                                        type="button"
+                                        role="switch"
+                                        aria-checked="{{ $marque->state == 1 ? 'true' : 'false' }}"
+                                        class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 hover:opacity-80"
+                                        style="background-color: {{ $marque->state == 1 ? '#22c55e' : '#d1d5db' }}"
+                                    >
+                                        <span
+                                            class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                                            style="transform: translateX({{ $marque->state == 1 ? '24px' : '4px' }})"
+                                        />
+                                    </button>
+                                @endif
                             </div>
+                            <span class="sr-only">{{ $marque->state == 1 ? 'Actif' : 'Inactif' }}</span>
                         </flux:table.cell>
-
-                        <flux:table.cell class="hidden sm:table-cell text-zinc-400 text-sm whitespace-nowrap">
-                            {{ $user->created_at->translatedFormat('d F Y') }}
-                        </flux:table.cell>
-
-                        @if ($showTrashed)
-                            <flux:table.cell class="hidden sm:table-cell text-red-400 text-sm whitespace-nowrap">
-                                {{ $user->deleted_at->translatedFormat('d F Y') }}
-                            </flux:table.cell>
-                        @endif
 
                         {{-- Actions directes --}}
                         <flux:table.cell class="text-right">
                             <div class="flex items-center justify-end gap-1">
-                                @if ($showTrashed)
-                                    {{-- Restaurer --}}
-                                    <flux:button
-                                        size="sm"
-                                        variant="ghost"
-                                        inset="top bottom"
-                                        wire:click="restore({{ $user->id }})"
-                                        title="Restaurer"
-                                    >
-                                        <i class="hgi-stroke hgi-arrow-turn-backward text-green-400"></i>
-                                    </flux:button>
 
-                                    {{-- Supprimer définitivement --}}
-                                    <flux:button
-                                        size="sm"
-                                        variant="ghost"
-                                        inset="top bottom"
-                                        wire:click="forceDelete({{ $user->id }})"
-                                        title="Supprimer définitivement"
-                                    >
-                                        <i class="hgi-stroke hgi-delete-02 text-red-400"></i>
-                                    </flux:button>
-                                @else
-                                    {{-- Modifier --}}
-                                    <flux:button
-                                        size="sm"
-                                        variant="ghost"
-                                        inset="top bottom"
-                                        wire:click="edit({{ $user->id }})"
-                                        title="Modifier"
-                                    >
-                                        <i class="hgi-stroke hgi-pencil-edit-01 text-indigo-400"></i>
-                                    </flux:button>
+                                {{-- Modifier --}}
+                                <flux:button
+                                    size="sm"
+                                    variant="ghost"
+                                    inset="top bottom"
+                                    wire:click="edit('{{ $marque->code }}')"
+                                    title="Modifier"
+                                >
+                                    <i class="hgi-stroke hgi-pencil-edit-01 text-indigo-400"></i>
+                                </flux:button>
 
-                                    {{-- Supprimer --}}
-                                    <flux:button
-                                        size="sm"
-                                        variant="ghost"
-                                        inset="top bottom"
-                                        wire:click="confirmDelete({{ $user->id }})"
-                                        title="Supprimer"
-                                    >
-                                        <i class="hgi-stroke hgi-delete-02 text-red-400"></i>
-                                    </flux:button>
-                                @endif
+                                {{-- Supprimer --}}
+                                <flux:button
+                                    size="sm"
+                                    variant="ghost"
+                                    inset="top bottom"
+                                    wire:click="confirmDelete('{{ $marque->code }}')"
+                                    title="Supprimer"
+                                >
+                                    <i class="hgi-stroke hgi-delete-02 text-red-400"></i>
+                                </flux:button>
+
                             </div>
                         </flux:table.cell>
 
@@ -399,21 +343,17 @@ new class extends Component
 
                 @empty
                     <flux:table.row>
-                        <flux:table.cell :colspan="$showTrashed ? 7 : 6">
+                        <flux:table.cell colspan="5">
                             <div class="flex flex-col items-center justify-center py-12 text-center">
-                                @if ($showTrashed)
-                                    <i class="hgi-stroke hgi-delete-02 text-5xl text-zinc-400 mb-3"></i>
-                                @else
-                                    <i class="hgi-stroke hgi-user-group text-5xl text-zinc-400 mb-3"></i>
-                                @endif
+                                <i class="hgi-stroke hgi-tag-01 text-5xl text-zinc-400 mb-3"></i>
                                 <p class="text-zinc-400 font-medium text-sm">
-                                    @if ($search || $filterStatus !== '' || $showTrashed)
-                                        Aucun utilisateur trouvé pour ces filtres
+                                    @if ($search || $filterState !== '')
+                                        Aucune marque trouvée pour ces filtres
                                     @else
-                                        Aucun utilisateur enregistré
+                                        Aucune marque enregistrée
                                     @endif
                                 </p>
-                                @if ($search || $filterStatus !== '')
+                                @if ($search || $filterState !== '')
                                     <flux:button variant="ghost" size="sm" wire:click="resetFilters" class="mt-3">
                                         Réinitialiser les filtres
                                     </flux:button>
@@ -427,7 +367,7 @@ new class extends Component
 
     </flux:card>
 
-    <livewire:pages::users.create />
-    <livewire:pages::users.edit />
-    <livewire:pages::users.delete />
+    <livewire:pages::marques.create />
+    <livewire:pages::marques.edit />
+    <livewire:pages::marques.delete />
 </div>
