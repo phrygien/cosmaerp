@@ -141,11 +141,8 @@ new class extends Component
     <div class="flex items-center justify-between mb-6">
         <flux:heading size="xl" level="1">{{ __('Réceptions de commandes') }}</flux:heading>
 
-        <flux:button
-            href="{{ route('reception_commande.create') }}"
-            wire:navigate
-            variant="primary"
-        >
+        <flux:button href="{{ route('reception_commande.create') }}" wire:navigate variant="primary">
+            <i class="hgi-stroke hgi-add-circle"></i>
             {{ __('Nouvelle réception') }}
         </flux:button>
     </div>
@@ -161,9 +158,11 @@ new class extends Component
             </flux:text>
             <div class="flex justify-end gap-3 pt-2">
                 <flux:button wire:click="$set('showDeleteModal', false)" variant="ghost">
+                    <i class="hgi-stroke hgi-cancel-01"></i>
                     Annuler
                 </flux:button>
-                <flux:button wire:click="supprimer" variant="danger" icon="trash">
+                <flux:button wire:click="supprimer" variant="danger">
+                    <i class="hgi-stroke hgi-delete-02"></i>
                     Oui, supprimer
                 </flux:button>
             </div>
@@ -200,9 +199,7 @@ new class extends Component
                 >{{ __('Date') }}</flux:table.column>
 
                 <flux:table.column>{{ __('Bon de commande') }}</flux:table.column>
-
                 <flux:table.column>{{ __('Commande') }}</flux:table.column>
-
                 <flux:table.column>{{ __('Fournisseur') }}</flux:table.column>
 
                 <flux:table.column class="hidden sm:table-cell">
@@ -294,35 +291,28 @@ new class extends Component
                         <flux:table.cell class="text-right">
                             <div class="flex items-center justify-end gap-1">
 
-                                {{-- Bouton Détails --}}
+                                {{-- Détails --}}
                                 <flux:button
+                                    size="sm"
+                                    variant="ghost"
+                                    inset="top bottom"
                                     href="{{ route('reception_commande.view', ['bon' => $bon->id]) }}"
                                     wire:navigate
-                                    title="{{ __('Détails') }}"
+                                    title="{{ __('Voir les détails') }}"
                                 >
-                                    {{ __('Détails') }}
+                                    <i class="hgi-stroke hgi-eye text-zinc-500"></i>
                                 </flux:button>
 
-
-{{--                                --}}{{-- Bouton Modifier --}}
-{{--                                @if($commande)--}}
-{{--                                    @if($commande->status === \App\Enums\CommandeStatus::Recue)--}}
-{{--                                        <flux:badge color="green" size="sm" inset="top bottom">--}}
-{{--                                            Commande reçue--}}
-{{--                                        </flux:badge>--}}
-{{--                                    @else--}}
-{{--                                        <flux:button--}}
-{{--                                            href="{{ route('reception_commande.edit', ['bon' => $bon->id]) }}"--}}
-{{--                                            wire:navigate--}}
-{{--                                            variant="primary"--}}
-{{--                                            title="{{ __('Modifier') }}"--}}
-{{--                                        >--}}
-{{--                                            Modifier--}}
-{{--                                        </flux:button>--}}
-{{--                                    @endif--}}
-{{--                                @else--}}
-{{--                                    <flux:button variant="ghost" size="sm" icon="pencil-square" disabled />--}}
-{{--                                @endif--}}
+                                {{-- Supprimer --}}
+                                <flux:button
+                                    size="sm"
+                                    variant="ghost"
+                                    inset="top bottom"
+                                    wire:click="confirmDelete({{ $bon->id }})"
+                                    title="{{ __('Supprimer') }}"
+                                >
+                                    <i class="hgi-stroke hgi-delete-02 text-red-400 hover:text-red-600"></i>
+                                </flux:button>
 
                             </div>
                         </flux:table.cell>
@@ -332,7 +322,7 @@ new class extends Component
                     <flux:table.row>
                         <flux:table.cell colspan="8">
                             <div class="flex flex-col items-center justify-center py-12 text-center">
-                                <flux:icon name="inbox" class="text-zinc-400 mb-3" style="width:40px;height:40px;"/>
+                                <i class="hgi-stroke hgi-inbox-01 text-5xl text-zinc-400 mb-3"></i>
                                 <p class="text-zinc-400 font-medium text-sm">
                                     @if($search)
                                         {{ __('Aucune réception trouvée pour cette recherche') }}
@@ -350,9 +340,9 @@ new class extends Component
                                         wire:navigate
                                         variant="primary"
                                         size="sm"
-                                        icon="plus"
                                         class="mt-3"
                                     >
+                                        <i class="hgi-stroke hgi-add-circle"></i>
                                         {{ __('Créer la première réception') }}
                                     </flux:button>
                                 @endif
