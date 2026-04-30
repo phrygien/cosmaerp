@@ -255,58 +255,9 @@ new class extends Component
             <flux:card class="p-5">
                 <flux:heading size="lg" class="mb-4">Informations générales</flux:heading>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="flex flex-col gap-4">
 
-                    <flux:input
-                        wire:model="numero"
-                        label="N° Facture"
-                        placeholder="FAC-2024-001"
-                        description="Identifiant unique de la facture."
-                    />
-                    <flux:error name="numero" />
-
-                    <flux:field>
-                        <flux:label>Type</flux:label>
-                        <flux:radio.group wire:model="type" variant="segmented" class="mt-1">
-                            @foreach(\App\Enums\TypeFacture::cases() as $case)
-                                <flux:radio :label="$case->label()" :value="$case->value" />
-                            @endforeach
-                        </flux:radio.group>
-                        <flux:error name="type" />
-                    </flux:field>
-
-                    <flux:input
-                        wire:model="libelle"
-                        label="Libellé"
-                        placeholder="Description de la facture"
-                        class="sm:col-span-2"
-                    />
-                    <flux:error name="libelle" />
-
-                    <flux:input
-                        wire:model="date_commande"
-                        type="date"
-                        label="Date de commande"
-                    />
-                    <flux:error name="date_commande" />
-
-                    <flux:input
-                        wire:model="date_reception"
-                        type="date"
-                        label="Date de réception"
-                        description="Optionnel."
-                    />
-                    <flux:error name="date_reception" />
-
-                </div>
-            </flux:card>
-
-            {{-- Commande --}}
-            <flux:card class="p-5">
-                <flux:heading size="lg" class="mb-4">Commande liée</flux:heading>
-
-                <div class="grid grid-cols-1 gap-4">
-
+                    {{-- Commande en premier --}}
                     <flux:field>
                         <flux:label>Commande</flux:label>
                         <flux:select wire:model.live="commande_id" placeholder="Sélectionner une commande">
@@ -334,6 +285,46 @@ new class extends Component
                             </div>
                         </div>
                     @endif
+
+                    <flux:input
+                        wire:model="numero"
+                        label="N° Facture"
+                        placeholder="FAC-2024-001"
+                        description="Identifiant unique de la facture."
+                    />
+                    <flux:error name="numero" />
+
+                    <flux:field>
+                        <flux:label>Type</flux:label>
+                        <flux:radio.group wire:model="type" variant="segmented" class="mt-1">
+                            @foreach(\App\Enums\TypeFacture::cases() as $case)
+                                <flux:radio :label="$case->label()" :value="$case->value" />
+                            @endforeach
+                        </flux:radio.group>
+                        <flux:error name="type" />
+                    </flux:field>
+
+                    <flux:input
+                        wire:model="libelle"
+                        label="Libellé"
+                        placeholder="Description de la facture"
+                    />
+                    <flux:error name="libelle" />
+
+                    <flux:input
+                        wire:model="date_commande"
+                        type="date"
+                        label="Date de commande"
+                    />
+                    <flux:error name="date_commande" />
+
+                    <flux:input
+                        wire:model="date_reception"
+                        type="date"
+                        label="Date de réception"
+                        description="Optionnel."
+                    />
+                    <flux:error name="date_reception" />
 
                 </div>
             </flux:card>
