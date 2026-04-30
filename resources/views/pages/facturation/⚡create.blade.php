@@ -56,6 +56,7 @@ new class extends Component
     public function commandes()
     {
         return Commande::with('fournisseur')
+            ->where('status', \App\Enums\CommandeStatus::Recue)
             ->orderByDesc('created_at')
             ->get();
     }
