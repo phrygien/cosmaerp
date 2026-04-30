@@ -12,7 +12,12 @@
     </flux:sidebar.header>
 
     <flux:sidebar.nav>
-        <flux:sidebar.item :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
+        <flux:sidebar.item
+            :href="route('dashboard')"
+            :current="request()->routeIs('dashboard')"
+            wire:navigate
+            class="[&[data-current]]:text-rose-500 [&[data-current]_i]:text-rose-500"
+        >
             <x-slot name="icon"><i class="hgi-stroke hgi-home-01 text-2xl"></i></x-slot>
             {{ __('Dashboard') }}
         </flux:sidebar.item>
@@ -21,41 +26,95 @@
 
         <flux:sidebar.group expandable expanded heading="Administration" class="grid">
             <x-slot name="icon"><i class="hgi-stroke hgi-settings-01 text-2xl"></i></x-slot>
-            <flux:sidebar.item href="{{ route('permissions') }}" wire:navigate>{{ __('Permissions') }}</flux:sidebar.item>
-            <flux:sidebar.item href="{{ route('roles') }}" wire:navigate>{{ __('Roles') }}</flux:sidebar.item>
-            <flux:sidebar.item href="{{ route('users') }}" wire:navigate>{{ __('Utilisateurs') }}</flux:sidebar.item>
+            <flux:sidebar.item
+                href="{{ route('permissions') }}"
+                wire:navigate
+                class="[&[data-current]]:text-rose-500 [&[data-current]_i]:text-rose-500"
+            >{{ __('Permissions') }}</flux:sidebar.item>
+            <flux:sidebar.item
+                href="{{ route('roles') }}"
+                wire:navigate
+                class="[&[data-current]]:text-rose-500 [&[data-current]_i]:text-rose-500"
+            >{{ __('Roles') }}</flux:sidebar.item>
+            <flux:sidebar.item
+                href="{{ route('users') }}"
+                wire:navigate
+                class="[&[data-current]]:text-rose-500 [&[data-current]_i]:text-rose-500"
+            >{{ __('Utilisateurs') }}</flux:sidebar.item>
         </flux:sidebar.group>
 
         <flux:sidebar.group expandable expanded heading="Catalogues" class="grid">
             <x-slot name="icon"><i class="hgi-stroke hgi-layers-01 text-2xl"></i></x-slot>
-            <flux:sidebar.item href="{{ route('catalogue.marques') }}" wire:navigate>{{ __('Marques') }}</flux:sidebar.item>
-            <flux:sidebar.item href="{{ route('catalogue.categories') }}" wire:navigate>{{ __('Categories') }}</flux:sidebar.item>
-            <flux:sidebar.item href="{{ route('catalogue.parkod') }}" wire:navigate>{{ __('PARKOD') }}</flux:sidebar.item>
-            <flux:sidebar.item href="{{ route('catalogue.products') }}" wire:navigate>{{ __('Produits') }}</flux:sidebar.item>
+            <flux:sidebar.item
+                href="{{ route('catalogue.marques') }}"
+                wire:navigate
+                class="[&[data-current]]:text-rose-500 [&[data-current]_i]:text-rose-500"
+            >{{ __('Marques') }}</flux:sidebar.item>
+            <flux:sidebar.item
+                href="{{ route('catalogue.categories') }}"
+                wire:navigate
+                class="[&[data-current]]:text-rose-500 [&[data-current]_i]:text-rose-500"
+            >{{ __('Categories') }}</flux:sidebar.item>
+            <flux:sidebar.item
+                href="{{ route('catalogue.parkod') }}"
+                wire:navigate
+                class="[&[data-current]]:text-rose-500 [&[data-current]_i]:text-rose-500"
+            >{{ __('PARKOD') }}</flux:sidebar.item>
+            <flux:sidebar.item
+                href="{{ route('catalogue.products') }}"
+                wire:navigate
+                class="[&[data-current]]:text-rose-500 [&[data-current]_i]:text-rose-500"
+            >{{ __('Produits') }}</flux:sidebar.item>
         </flux:sidebar.group>
 
-        <flux:sidebar.item :href="route('fournisseurs')" :current="request()->routeIs('fournisseurs')" wire:navigate>
-            <x-slot name="icon"><i class="hgi hgi-stroke hgi-rounded hgi-rounded hgi-building-05 text-2xl"></i></x-slot>
+        <flux:sidebar.item
+            :href="route('fournisseurs')"
+            :current="request()->routeIs('fournisseurs')"
+            wire:navigate
+            class="[&[data-current]]:text-rose-500 [&[data-current]_i]:text-rose-500"
+        >
+            <x-slot name="icon"><i class="hgi hgi-stroke hgi-rounded hgi-building-05 text-2xl"></i></x-slot>
             {{ __('Fournisseurs') }}
         </flux:sidebar.item>
 
-        <flux:sidebar.item :href="route('magasin')" :current="request()->routeIs('magasin')" wire:navigate>
+        <flux:sidebar.item
+            :href="route('magasin')"
+            :current="request()->routeIs('magasin')"
+            wire:navigate
+            class="[&[data-current]]:text-rose-500 [&[data-current]_i]:text-rose-500"
+        >
             <x-slot name="icon"><i class="hgi-stroke hgi-store-01 text-2xl"></i></x-slot>
             {{ __('Dépôt') }}
         </flux:sidebar.item>
 
         <flux:sidebar.group expandable expanded heading="Précommande" class="grid">
             <x-slot name="icon"><i class="hgi-stroke hgi-shopping-cart-01 text-2xl"></i></x-slot>
-            <flux:sidebar.item href="{{ route('orders.list') }}" wire:navigate>{{ __('Liste') }}</flux:sidebar.item>
-            <flux:sidebar.item href="{{ route('orders.create') }}" wire:navigate>{{ __('Nouvelle') }}</flux:sidebar.item>
+            <flux:sidebar.item
+                href="{{ route('orders.list') }}"
+                wire:navigate
+                class="[&[data-current]]:text-rose-500 [&[data-current]_i]:text-rose-500"
+            >{{ __('Liste') }}</flux:sidebar.item>
+            <flux:sidebar.item
+                href="{{ route('orders.create') }}"
+                wire:navigate
+                class="[&[data-current]]:text-rose-500 [&[data-current]_i]:text-rose-500"
+            >{{ __('Nouvelle') }}</flux:sidebar.item>
         </flux:sidebar.group>
 
         <flux:sidebar.spacer />
 
         <flux:sidebar.group expandable expanded heading="Réception" class="grid">
             <x-slot name="icon"><i class="hgi-stroke hgi-folder-01 text-2xl"></i></x-slot>
-            <flux:sidebar.item href="{{ route('reception_commande.list') }}" wire:navigate>{{ __('Historique réception') }}</flux:sidebar.item>
-            <flux:sidebar.item href="{{ route('reception_commande.create') }}" wire:navigate>{{ __('Nouvelle réception') }}</flux:sidebar.item>
+            <flux:sidebar.item
+                href="{{ route('reception_commande.list') }}"
+                wire:navigate
+                class="[&[data-current]]:text-rose-500 [&[data-current]_i]:text-rose-500"
+            >{{ __('Historique réception') }}</flux:sidebar.item>
+            <flux:sidebar.item
+                href="{{ route('reception_commande.create') }}"
+                wire:navigate
+                class="[&[data-current]]:text-rose-500 [&[data-current]_i]:text-rose-500"
+            >{{ __('Nouvelle réception') }}</flux:sidebar.item>
         </flux:sidebar.group>
 
     </flux:sidebar.nav>
@@ -64,7 +123,6 @@
 
     <x-desktop-user-menu class="sm:hidden sm:block" :name="auth()->user()->name" />
 </flux:sidebar>
-
 <!-- Mobile User Menu -->
 <flux:header class="lg:hidden">
     <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
