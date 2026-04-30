@@ -130,7 +130,6 @@ new class extends Component {
         <flux:breadcrumbs.item>Liste</flux:breadcrumbs.item>
     </flux:breadcrumbs>
 
-    <!-- Heading + bouton -->
     <div class="flex items-center justify-between mb-6">
         <flux:heading size="xl" level="1">{{ __('Permissions') }}</flux:heading>
 
@@ -144,24 +143,32 @@ new class extends Component {
     <!-- Stat Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <flux:card class="p-5">
-            <p class="text-sm text-zinc-500">Total Permissions</p>
+            <div class="flex items-center justify-between">
+                <p class="text-sm text-zinc-500">Total Permissions</p>
+                <i class="hgi-stroke hgi-license text-2xl text-zinc-400"></i>
+            </div>
             <p class="text-3xl font-bold mt-1">{{ $this->stats['total'] }}</p>
         </flux:card>
 
         <flux:card class="p-5">
-            <p class="text-sm text-zinc-500">Groupes distincts</p>
+            <div class="flex items-center justify-between">
+                <p class="text-sm text-zinc-500">Groupes distincts</p>
+                <i class="hgi-stroke hgi-folder-01 text-2xl text-blue-400"></i>
+            </div>
             <p class="text-3xl font-bold mt-1 text-blue-500">{{ $this->stats['groups'] }}</p>
         </flux:card>
 
         <flux:card class="p-5">
-            <p class="text-sm text-zinc-500">Sans rôle assigné</p>
+            <div class="flex items-center justify-between">
+                <p class="text-sm text-zinc-500">Sans rôle assigné</p>
+                <i class="hgi-stroke hgi-alert-02 text-2xl text-zinc-400"></i>
+            </div>
             <p class="text-3xl font-bold mt-1 text-zinc-400">{{ $this->stats['no_role'] }}</p>
         </flux:card>
     </div>
 
     <flux:card class="p-5">
 
-        <!-- En-tête tableau : recherche | toggle filtres | per page -->
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
             <div class="flex items-center gap-2">
                 <flux:input
@@ -171,14 +178,13 @@ new class extends Component {
                     class="w-full sm:w-80"
                 />
 
-                <!-- Bouton toggle filtres avec badge compteur -->
                 <div class="relative">
                     <flux:button
                         wire:click="toggleFilters"
                         :variant="$showFilters ? 'primary' : 'ghost'"
-                        icon="funnel"
                         size="sm"
                     >
+                        <i class="hgi-stroke hgi-filter-01"></i>
                         Filtres
                     </flux:button>
                     @if($this->activeFiltersCount > 0)
@@ -197,7 +203,6 @@ new class extends Component {
             </flux:select>
         </div>
 
-        <!-- Panneau de filtres (togglable) -->
         @if($showFilters)
             <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 mb-4 bg-zinc-50 dark:bg-zinc-800/50">
                 <div class="flex items-center justify-between mb-3">
@@ -220,113 +225,79 @@ new class extends Component {
             </div>
         @endif
 
-        <!-- Table -->
         <flux:table :paginate="$this->permissions" variant="bordered">
             <flux:table.columns>
-                <flux:table.column
-                    sortable
-                    :sorted="$sortBy === 'name'"
-                    :direction="$sortDirection"
-                    wire:click="sort('name')"
-                >
-                    Nom
-                </flux:table.column>
-
-                <flux:table.column
-                    sortable
-                    :sorted="$sortBy === 'slug'"
-                    :direction="$sortDirection"
-                    wire:click="sort('slug')"
-                    class="hidden sm:table-cell"
-                >
-                    Slug
-                </flux:table.column>
-
-                <flux:table.column
-                    sortable
-                    :sorted="$sortBy === 'group'"
-                    :direction="$sortDirection"
-                    wire:click="sort('group')"
-                    class="hidden md:table-cell"
-                >
-                    Groupe
-                </flux:table.column>
-
-                <flux:table.column class="hidden lg:table-cell">
-                    Rôles
-                </flux:table.column>
-
-                <flux:table.column></flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'name'" :direction="$sortDirection" wire:click="sort('name')">Nom</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'slug'" :direction="$sortDirection" wire:click="sort('slug')" class="hidden sm:table-cell">Slug</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'group'" :direction="$sortDirection" wire:click="sort('group')" class="hidden md:table-cell">Groupe</flux:table.column>
+                <flux:table.column class="hidden lg:table-cell">Rôles</flux:table.column>
+                <flux:table.column class="text-right">Actions</flux:table.column>
             </flux:table.columns>
 
             <flux:table.rows>
                 @forelse ($this->permissions as $permission)
                     <flux:table.row :key="$permission->id" wire:key="permission-{{ $permission->id }}">
 
-                        <!-- Nom -->
                         <flux:table.cell>
                             <p class="font-medium text-sm">{{ $permission->name }}</p>
-                            <!-- Slug visible en mobile uniquement -->
                             <p class="mt-0.5 sm:hidden">
-                                <flux:badge size="sm" color="zinc" inset="top bottom">
-                                    {{ $permission->slug }}
-                                </flux:badge>
+                                <flux:badge size="sm" color="zinc" inset="top bottom">{{ $permission->slug }}</flux:badge>
                             </p>
-                            <!-- Groupe visible en mobile/tablet uniquement -->
-                            <p class="text-xs text-zinc-400 mt-0.5 md:hidden">
-                                {{ $permission->group ?? '—' }}
-                            </p>
-                            <!-- Rôles visibles en mobile/tablet uniquement -->
+                            <p class="text-xs text-zinc-400 mt-0.5 md:hidden">{{ $permission->group ?? '—' }}</p>
                             <div class="flex flex-wrap gap-1 mt-1 lg:hidden">
                                 @forelse ($permission->roles as $role)
-                                    <flux:badge size="sm" color="blue" inset="top bottom">
-                                        {{ $role->name }}
-                                    </flux:badge>
+                                    <flux:badge size="sm" color="blue" inset="top bottom">{{ $role->name }}</flux:badge>
                                 @empty
                                     <span class="text-zinc-400 text-xs">Aucun rôle</span>
                                 @endforelse
                             </div>
                         </flux:table.cell>
 
-                        <!-- Slug caché en mobile -->
                         <flux:table.cell class="hidden sm:table-cell whitespace-nowrap">
-                            <flux:badge size="sm" color="zinc" inset="top bottom">
-                                {{ $permission->slug }}
-                            </flux:badge>
+                            <flux:badge size="sm" color="zinc" inset="top bottom">{{ $permission->slug }}</flux:badge>
                         </flux:table.cell>
 
-                        <!-- Groupe caché en mobile/tablet -->
                         <flux:table.cell class="hidden md:table-cell text-zinc-400">
                             {{ $permission->group ?? '—' }}
                         </flux:table.cell>
 
-                        <!-- Rôles cachés en mobile/tablet/desktop -->
                         <flux:table.cell class="hidden lg:table-cell">
                             <div class="flex flex-wrap gap-1">
                                 @forelse ($permission->roles as $role)
-                                    <flux:badge size="sm" color="blue" inset="top bottom">
-                                        {{ $role->name }}
-                                    </flux:badge>
+                                    <flux:badge size="sm" color="blue" inset="top bottom">{{ $role->name }}</flux:badge>
                                 @empty
                                     <span class="text-zinc-400 text-sm">Aucun rôle</span>
                                 @endforelse
                             </div>
                         </flux:table.cell>
 
-                        <!-- Actions -->
-                        <flux:table.cell>
-                            <flux:dropdown>
-                                <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom" />
-                                <flux:menu>
-                                    <flux:menu.item icon="pencil" wire:click="edit({{ $permission->id }})">
-                                        Modifier
-                                    </flux:menu.item>
-                                    <flux:menu.separator />
-                                    <flux:menu.item icon="trash" variant="danger" wire:click="confirmDelete({{ $permission->id }})">
-                                        Supprimer
-                                    </flux:menu.item>
-                                </flux:menu>
-                            </flux:dropdown>
+                        {{-- Actions directes --}}
+                        <flux:table.cell class="text-right">
+                            <div class="flex items-center justify-end gap-1">
+
+                                {{-- Modifier --}}
+                                <flux:button
+                                    size="sm"
+                                    variant="ghost"
+                                    inset="top bottom"
+                                    wire:click="edit({{ $permission->id }})"
+                                    title="Modifier"
+                                >
+                                    <i class="hgi-stroke hgi-pencil-edit-01 text-indigo-400"></i>
+                                </flux:button>
+
+                                {{-- Supprimer --}}
+                                <flux:button
+                                    size="sm"
+                                    variant="ghost"
+                                    inset="top bottom"
+                                    wire:click="confirmDelete({{ $permission->id }})"
+                                    title="Supprimer"
+                                >
+                                    <i class="hgi-stroke hgi-delete-02 text-red-400"></i>
+                                </flux:button>
+
+                            </div>
                         </flux:table.cell>
 
                     </flux:table.row>
@@ -335,7 +306,7 @@ new class extends Component {
                     <flux:table.row>
                         <flux:table.cell colspan="5">
                             <div class="flex flex-col items-center justify-center py-12 text-center">
-                                <flux:icon name="shield-exclamation" class="text-zinc-400 mb-3" style="width: 40px; height: 40px;" />
+                                <i class="hgi-stroke hgi-license text-5xl text-zinc-400 mb-3"></i>
                                 <p class="text-zinc-400 font-medium text-sm">
                                     @if ($search || $filterGroup)
                                         Aucune permission trouvée pour ces filtres
