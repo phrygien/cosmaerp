@@ -245,6 +245,7 @@ new class extends Component
         <div class="flex items-center gap-2">
             <flux:button wire:click="resetForm" variant="ghost">Réinitialiser</flux:button>
             <flux:button wire:click="save" variant="primary">Enregistrer</flux:button>
+            <flux:button variant="danger" href="{{ route('facturation.list') }}" wire:navigate>Annuler</flux:button>
         </div>
     </div>
 
