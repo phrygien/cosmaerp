@@ -482,7 +482,8 @@
                     <tr>
                         <td style="vertical-align:top; padding-right:10px;">
                             <div class="icon-block">
-                                <img src="{{ asset('truck-delivery.png') }}" />
+                                <img src="{{ public_path('truck-delivery.png') }}"
+                                     style="width:24px; height:24px;" />
                             </div>
                         </td>
                         <td>
