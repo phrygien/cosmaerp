@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Table(name: 'facture')]
-#[Fillable(['fournisseur_id', 'type', 'libelle', 'numero', 'date_commande', 'montant', 'date_reception', 'commande_id', 'remise', 'tax', 'state'])]
+#[Fillable(['fournisseur_id', 'type', 'libelle', 'numero', 'date_commande', 'montant', 'date_reception', 'commande_id', 'remise', 'tax', 'state', 'created_by', 'validated_by', 'date_validation'])]
 class Facture extends Model
 {
     public function forfaisseur(): BelongsTo
@@ -25,5 +25,15 @@ class Facture extends Model
     public function detailsFacture(): HasMany
     {
         return $this->hasMany(DetailFacture::class, 'facture_id', 'id');
+    }
+
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\User::class, 'created_by', 'id');
+    }
+
+    public function validatedBy(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\User::class, 'validated_by', 'id');
     }
 }

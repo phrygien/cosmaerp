@@ -84,6 +84,7 @@ new class extends Component
             }
 
             $facture->state = 1;
+            $facture->validated_by = auth()->id(),
             $facture->date_validation = now();
             $facture->save();
 
@@ -156,7 +157,7 @@ new class extends Component
     public function factures()
     {
         return Facture::query()
-            ->with(['forfaisseur', 'commande'])
+            ->with(['forfaisseur', 'commande', 'validatedBy'])
             ->withCount('detailsFacture')
             ->when($this->search, fn($q) => $q
                 ->where('numero', 'like', "%{$this->search}%")
@@ -364,7 +365,7 @@ new class extends Component
 
                         {{-- État avec Toggle --}}
                         <flux:table.cell class="text-center">
-                            <div class="flex items-center justify-center">
+                            <div class="flex flex-col items-center justify-center gap-1">
                                 @if(isset($updatingStates[$facture->id]))
                                     <div class="flex items-center justify-center">
                                         <svg class="animate-spin h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -384,16 +385,23 @@ new class extends Component
                                         <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-1" />
                                         <span class="sr-only">Valider la facture</span>
                                     </button>
-                                    <span class="text-xs text-zinc-400 ml-2">Valider</span>
+                                    <span class="text-xs text-zinc-400">Valider</span>
                                 @else
                                     <flux:badge size="sm" color="green" class="gap-1">
                                         <flux:icon name="check-circle" class="size-3" />
                                         Validée
                                     </flux:badge>
+                                    @if($facture->validatedBy)
+                                        <p class="text-xs text-zinc-400">{{ $facture->validatedBy->name }}</p>
+                                    @endif
+                                    @if($facture->date_validation)
+                                        <p class="text-xs text-zinc-400">
+                                            {{ \Carbon\Carbon::parse($facture->date_validation)->format('d/m/Y H:i') }}
+                                        </p>
+                                    @endif
                                 @endif
                             </div>
                         </flux:table.cell>
-
                         {{-- Actions --}}
                         <flux:table.cell class="text-right">
                             <div class="flex items-center justify-end gap-1">

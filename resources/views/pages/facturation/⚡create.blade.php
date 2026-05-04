@@ -185,6 +185,7 @@ new class extends Component
                 'remise'         => $this->remise,
                 'tax'            => $this->tax,
                 'state'          => $this->state,
+                'created_by'      => auth()->id(),
             ]);
 
             foreach ($this->lignes as $ligne) {
