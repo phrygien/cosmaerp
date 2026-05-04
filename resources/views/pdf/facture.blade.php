@@ -32,7 +32,7 @@
 
         body {
             font-family: 'Roboto Condensed', 'DejaVu Sans', sans-serif;
-            font-size: 9px;
+            font-size: 12px;
             color: #1a1a2e;
             background: #ffffff;
             line-height: 1.4;
