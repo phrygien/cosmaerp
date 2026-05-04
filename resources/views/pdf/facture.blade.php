@@ -5,6 +5,25 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Facture {{ $facture->numero ?? $facture->id }}</title>
     <style>
+        @font-face {
+            font-family: 'Roboto Condensed';
+            font-style: normal;
+            font-weight: 400;
+            src: url('{{ public_path('fonts/roboto-condensed/RobotoCondensed-Regular.ttf') }}') format('truetype');
+        }
+        @font-face {
+            font-family: 'Roboto Condensed';
+            font-style: normal;
+            font-weight: 700;
+            src: url('{{ public_path('fonts/roboto-condensed/RobotoCondensed-Bold.ttf') }}') format('truetype');
+        }
+        @font-face {
+            font-family: 'Roboto Condensed';
+            font-style: italic;
+            font-weight: 400;
+            src: url('{{ public_path('fonts/roboto-condensed/RobotoCondensed-Italic.ttf') }}') format('truetype');
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -12,7 +31,7 @@
         }
 
         body {
-            font-family: 'DejaVu Sans', sans-serif;
+            font-family: 'Roboto Condensed', 'DejaVu Sans', sans-serif;
             font-size: 9px;
             color: #1a1a2e;
             background: #ffffff;
@@ -550,11 +569,11 @@
             <td class="party-cell left">
                 <div class="party-label">Fournisseur</div>
                 <div class="party-name">
-                    {{ $fournisseur?->name ?? $fournisseur?->raison_sociale ?? '—' }}
+                    {{ $fournisseur?->nom ?? $fournisseur?->raison_sociale ?? '—' }}
                 </div>
                 <div class="party-info">
-                    @if($fournisseur?->adresse_siege)
-                        {{ $fournisseur->adresse_siege }}<br>
+                    @if($fournisseur?->adresse)
+                        {{ $fournisseur->adresse }}<br>
                     @endif
                     @if($fournisseur?->ville || $fournisseur?->code_postal)
                         {{ $fournisseur?->code_postal }} {{ $fournisseur?->ville }}<br>
@@ -578,11 +597,11 @@
             <td class="party-cell right">
                 <div class="party-label">Livraison</div>
                 <div class="party-name">
-                    {{ $magasin?->name ?? '—' }}
+                    {{ $magasin?->nom ?? '—' }}
                 </div>
                 <div class="party-info">
-                    @if($magasin?->adress)
-                        {{ $magasin->adress }}<br>
+                    @if($magasin?->adresse)
+                        {{ $magasin->adresse }}<br>
                     @endif
                     @if($magasin?->ville || $magasin?->code_postal)
                         {{ $magasin?->code_postal }} {{ $magasin?->ville }}<br>
@@ -590,8 +609,8 @@
                     @if($magasin?->telephone)
                         Tél : {{ $magasin->telephone }}<br>
                     @endif
-                    @if($magasin?->email)
-                        Contact : {{ $magasin->email }}
+                    @if($magasin?->responsable)
+                        Contact : {{ $magasin->responsable }}
                     @endif
                 </div>
             </td>
