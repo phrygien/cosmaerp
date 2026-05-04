@@ -13,6 +13,12 @@
             $truckB64 = 'data:image/png;base64,' . base64_encode(file_get_contents($truckPath));
         }
 
+        $logoB64  = null;
+        $logoPath = public_path('cosma.png');
+        if (file_exists($logoPath)) {
+            $logoB64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
+        }
+
         // ── Chemins absolus pour les polices ────────────────────────────
         $fontRegular = public_path('fonts/roboto-condensed/RobotoCondensed-Regular.ttf');
         $fontBold    = public_path('fonts/roboto-condensed/RobotoCondensed-Bold.ttf');
@@ -419,7 +425,12 @@
         <tr>
             <td width="75px">
                 <div class="logotype">
-                    {{ strtoupper(substr($magasinEmetteur?->nom ?? config('app.name', 'Cosma'), 0, 2)) }}
+                    @if($logoB64)
+                        <img src="{{ $logoB64 }}"
+                             style="width:55px; height:55px; object-fit:contain; vertical-align:middle;" />
+                    @else
+                        {{ strtoupper(substr($magasinEmetteur?->nom ?? config('app.name', 'Cosma'), 0, 2)) }}
+                    @endif
                 </div>
             </td>
             <td>
