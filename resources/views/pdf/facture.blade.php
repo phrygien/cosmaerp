@@ -26,7 +26,7 @@
     @endphp
 
     <style>
-        @page { size: A4 portrait; margin: 20px 0; }
+        @page { size: A4 portrait; margin: 20px 25px; }
 
         @font-face {
             font-family: 'OS';
@@ -51,6 +51,7 @@
             font-size: 11px;
             color: #333;
             background: #fff;
+            padding: 0 25px;
         }
 
         .h5  { height:5px;  font-size:0; line-height:0; }
