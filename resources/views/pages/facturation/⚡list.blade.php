@@ -84,7 +84,7 @@ new class extends Component
             }
 
             $facture->state = 1;
-            $facture->validated_by = auth()->id(),
+            $facture->validated_by = auth()->id();
             $facture->date_validation = now();
             $facture->save();
 
