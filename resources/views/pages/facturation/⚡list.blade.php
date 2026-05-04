@@ -428,6 +428,18 @@ new class extends Component
                                     </flux:button>
                                 @endif
 
+                                {{-- Télécharger PDF --}}
+                                <flux:button
+                                    size="sm"
+                                    variant="ghost"
+                                    inset="top bottom"
+                                    :href="route('facture.pdf', $facture->id)"
+                                    target="_blank"
+                                    title="Télécharger la facture PDF"
+                                >
+                                    <i class="hgi-stroke hgi-file-download text-emerald-400"></i>
+                                </flux:button>
+
                                 <flux:button
                                     size="sm"
                                     variant="ghost"
@@ -439,7 +451,6 @@ new class extends Component
                                 </flux:button>
                             </div>
                         </flux:table.cell>
-
                     </flux:table.row>
 
                 @empty
