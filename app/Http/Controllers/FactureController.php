@@ -79,10 +79,14 @@ class FactureController extends Controller
         $pdf = Pdf::loadView('pdf.facture', $data)
             ->setPaper('a4', 'portrait')
             ->setOptions([
-                'defaultFont'          => 'Roboto Condensed', // ← était 'DejaVu Sans'
+                'defaultFont'          => 'dejavu sans',
                 'isRemoteEnabled'      => false,
                 'isHtml5ParserEnabled' => true,
+                'isPhpEnabled'         => true,
                 'dpi'                  => 150,
+                'chroot'               => public_path(),   // ← accès aux fichiers locaux
+                'fontDir'              => storage_path('fonts/'),
+                'fontCache'            => storage_path('fonts/'),
             ]);
 
         $filename = 'facture-' . ($facture->numero ?? $facture->id) . '.pdf';

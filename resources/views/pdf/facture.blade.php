@@ -4,6 +4,21 @@
     <meta charset="UTF-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Facture {{ $facture->numero ?? $facture->id }}</title>
+
+    @php
+        // ── Conversion image en base64 pour DomPDF ──────────────────────
+        $truckB64  = null;
+        $truckPath = public_path('truck-delivery.png');
+        if (file_exists($truckPath)) {
+            $truckB64 = 'data:image/png;base64,' . base64_encode(file_get_contents($truckPath));
+        }
+
+        // ── Chemins absolus pour les polices ────────────────────────────
+        $fontRegular = public_path('fonts/roboto-condensed/RobotoCondensed-Regular.ttf');
+        $fontBold    = public_path('fonts/roboto-condensed/RobotoCondensed-Bold.ttf');
+        $fontItalic  = public_path('fonts/roboto-condensed/RobotoCondensed-Italic.ttf');
+    @endphp
+
     <style>
         @page {
             size: A4 portrait;
@@ -11,22 +26,22 @@
         }
 
         @font-face {
-            font-family: 'Roboto Condensed';
+            font-family: 'RobotoC';
             font-style: normal;
             font-weight: 400;
-            src: url('{{ public_path('fonts/roboto-condensed/RobotoCondensed-Regular.ttf') }}') format('truetype');
+            src: url('{{ $fontRegular }}') format('truetype');
         }
         @font-face {
-            font-family: 'Roboto Condensed';
+            font-family: 'RobotoC';
             font-style: normal;
             font-weight: 700;
-            src: url('{{ public_path('fonts/roboto-condensed/RobotoCondensed-Bold.ttf') }}') format('truetype');
+            src: url('{{ $fontBold }}') format('truetype');
         }
         @font-face {
-            font-family: 'Roboto Condensed';
+            font-family: 'RobotoC';
             font-style: italic;
             font-weight: 400;
-            src: url('{{ public_path('fonts/roboto-condensed/RobotoCondensed-Italic.ttf') }}') format('truetype');
+            src: url('{{ $fontItalic }}') format('truetype');
         }
 
         * {
@@ -36,7 +51,7 @@
         }
 
         body {
-            font-family: 'Roboto Condensed', Helvetica, Arial, sans-serif;
+            font-family: 'RobotoC', DejaVu Sans, sans-serif;
             font-size: 13px;
             color: #333;
             background: #ffffff;
@@ -159,7 +174,8 @@
             vertical-align: middle;
             text-align: center;
             line-height: 46px;
-            font-size: 20px;
+            font-size: 13px;
+            font-weight: 700;
             margin-right: 8px;
             color: #c0397a;
         }
@@ -416,15 +432,15 @@
          INTRO
     ══════════════════════════════════════════════ --}}
     <div class="spacer"></div>
-    <h3>Coordonnées</h3>
+    <h3>Coordonn&eacute;es</h3>
     <p>
         {{ $magasinEmetteur?->nom ?? config('app.name') }}
         @if($magasinEmetteur?->adresse)
-            — {{ $magasinEmetteur->adresse }},
-            {{ $magasinEmetteur?->code_postal }} {{ $magasinEmetteur?->ville }}
+            &mdash; {{ $magasinEmetteur->adresse }},
+        {{ $magasinEmetteur?->code_postal }} {{ $magasinEmetteur?->ville }}
         @endif
         @if($magasinEmetteur?->siret)
-            — SIRET : {{ $magasinEmetteur->siret }}
+            &mdash; SIRET : {{ $magasinEmetteur->siret }}
         @endif
     </p>
 
@@ -440,7 +456,7 @@
                     ? \Carbon\Carbon::parse($facture->date_facture)->format('d/m/Y')
                     : $date_impression }}<br>
                 @if($facture->date_echeance)
-                    <strong>Échéance :</strong>
+                    <strong>Ech&eacute;ance :</strong>
                     {{ \Carbon\Carbon::parse($facture->date_echeance)->format('d/m/Y') }}<br>
                 @endif
                 @if($facture->mode_paiement)
@@ -454,18 +470,18 @@
                 @endif
             </td>
             <td width="50%" class="detail-box">
-                <strong>N° Facture :</strong>
+                <strong>N&deg; Facture :</strong>
                 {{ $facture->numero ?? str_pad($facture->id, 7, '0', STR_PAD_LEFT) }}<br>
                 @if($commande?->numero_commande)
-                    <strong>Réf. commande :</strong> {{ $commande->numero_commande }}<br>
+                    <strong>R&eacute;f. commande :</strong> {{ $commande->numero_commande }}<br>
                 @endif
                 @if($fournisseur?->email)
                     <strong>E-mail :</strong> {{ $fournisseur->email }}<br>
                 @endif
                 @if($fournisseur?->telephone)
-                    <strong>Tél :</strong> {{ $fournisseur->telephone }}<br>
+                    <strong>T&eacute;l :</strong> {{ $fournisseur->telephone }}<br>
                 @endif
-                <strong>Imprimée le :</strong> {{ $date_impression }}
+                <strong>Imprim&eacute;e le :</strong> {{ $date_impression }}
             </td>
         </tr>
     </table>
@@ -482,12 +498,18 @@
                     <tr>
                         <td style="vertical-align:top; padding-right:10px;">
                             <div class="icon-block">
-                                <img src="{{ public_path('truck-delivery.png') }}"
-                                     style="width:24px; height:24px;" />
+                                @if($truckB64)
+                                    {{-- Image convertie en base64 : seule méthode fiable avec DomPDF --}}
+                                    <img src="{{ $truckB64 }}"
+                                         style="width:24px; height:24px; vertical-align:middle;" />
+                                @else
+                                    {{-- Fallback si le fichier est absent --}}
+                                    <span style="font-size:16px; font-weight:700;">&#9993;</span>
+                                @endif
                             </div>
                         </td>
                         <td>
-                            <div class="addr-label">Émetteur</div>
+                            <div class="addr-label">Emetteur</div>
                             <div class="addr-info">
                                 {{ $magasinEmetteur?->nom ?? config('app.name') }}<br>
                                 @if($magasinEmetteur?->adresse)
@@ -497,7 +519,7 @@
                                     {{ $magasinEmetteur?->code_postal }} {{ $magasinEmetteur?->ville }}<br>
                                 @endif
                                 @if($magasinEmetteur?->telephone)
-                                    Tél : {{ $magasinEmetteur->telephone }}<br>
+                                    T&eacute;l : {{ $magasinEmetteur->telephone }}<br>
                                 @endif
                                 @if($magasinEmetteur?->email)
                                     {{ $magasinEmetteur->email }}
@@ -512,12 +534,13 @@
                 <table>
                     <tr>
                         <td style="vertical-align:top; padding-right:10px;">
+                            {{-- &#10003; = ✓ supporté par DejaVu Sans --}}
                             <div class="icon-block">&#10003;</div>
                         </td>
                         <td>
                             <div class="addr-label">Fournisseur / Livraison</div>
                             <div class="addr-info">
-                                {{ $fournisseur?->name ?? $fournisseur?->raison_social ?? '—' }}<br>
+                                {{ $fournisseur?->name ?? $fournisseur?->raison_social ?? '&mdash;' }}<br>
                                 @if($fournisseur?->adresse_siege)
                                     {{ $fournisseur->adresse_siege }}<br>
                                 @endif
@@ -544,28 +567,35 @@
         <h3>Informations de facturation</h3>
         <p>
             Paiement par :
-            <strong>{{ $facture->mode_paiement ?? '—' }}</strong>
+            <strong>{{ $facture->mode_paiement ?? '&mdash;' }}</strong>
             @if($facture->conditions_paiement)
-                &nbsp;—&nbsp; {{ $facture->conditions_paiement }}
+                &nbsp;&mdash;&nbsp; {{ $facture->conditions_paiement }}
             @endif
         </p>
     </div>
 
     {{-- ══════════════════════════════════════════════
          LIGNES DE FACTURE
+         ⚠ &#128722; (🛒) non supporté par DomPDF → remplacé par texte
     ══════════════════════════════════════════════ --}}
     <div class="spacer"></div>
-    <div style="overflow:hidden; margin-bottom:6px;">
-        <div class="section-icon" style="float:left;">&#128722;</div>
-        <h3 style="line-height:46px; display:inline-block;">Lignes de facture</h3>
-    </div>
+    <table width="100%" style="margin-bottom:6px;">
+        <tr>
+            <td width="46px">
+                <div class="section-icon">ART.</div>
+            </td>
+            <td style="vertical-align:middle;">
+                <h3 style="margin:0;">Lignes de facture</h3>
+            </td>
+        </tr>
+    </table>
 
     <table width="100%" style="border-collapse:collapse; border-bottom:1px solid #eee;">
         <tr>
-            <td width="35%" class="column-header">Désignation</td>
-            <td width="15%" class="column-header">Réf.</td>
-            <td width="10%" class="column-header">Unité</td>
-            <td width="8%"  class="column-header">Qté</td>
+            <td width="35%" class="column-header">D&eacute;signation</td>
+            <td width="15%" class="column-header">R&eacute;f.</td>
+            <td width="10%" class="column-header">Unit&eacute;</td>
+            <td width="8%"  class="column-header">Qt&eacute;</td>
             <td width="12%" class="column-header">P.U. HT</td>
             <td width="8%"  class="column-header">TVA</td>
             <td width="12%" class="column-header">Total HT</td>
@@ -574,22 +604,22 @@
             <tr>
                 <td class="row">
                     <span class="row-ref">{{ $ligne['article'] ?? '' }}</span>
-                    @if($ligne['article'])<br>@endif
+                    @if(!empty($ligne['article']))<br>@endif
                     <strong style="font-size:12px; color:#1a1a1a;">{{ $ligne['designation'] }}</strong>
                 </td>
-                <td class="row" style="color:#777; font-size:11px;">{{ $ligne['article'] ?? '—' }}</td>
+                <td class="row" style="color:#777; font-size:11px;">{{ $ligne['article'] ?? '&mdash;' }}</td>
                 <td class="row" style="text-align:center;">{{ $ligne['unite'] ?? 'U' }}</td>
                 <td class="row" style="text-align:center;">{{ number_format($ligne['qte'], 0, ',', ' ') }}</td>
                 <td class="row" style="text-align:right;">
                     {{ number_format($ligne['qte'], 0) }}
-                    <span style="color:#777">×</span>
-                    {{ number_format($ligne['pu_ht'], 2, ',', ' ') }} €
+                    <span style="color:#777">&times;</span>
+                    {{ number_format($ligne['pu_ht'], 2, ',', ' ') }} &euro;
                 </td>
                 <td class="row" style="text-align:center;">{{ number_format($ligne['tva'], 0) }}%</td>
                 <td class="row" style="text-align:right; font-weight:600;">
-                    {{ number_format($ligne['montant_net_ht'], 2, ',', ' ') }} €
+                    {{ number_format($ligne['montant_net_ht'], 2, ',', ' ') }} &euro;
                     @if($ligne['taux_remise'] > 0)
-                        <br><span class="row-remise">−{{ number_format($ligne['taux_remise'], 1) }}%</span>
+                        <br><span class="row-remise">&minus;{{ number_format($ligne['taux_remise'], 1) }}%</span>
                     @endif
                 </td>
             </tr>
@@ -624,9 +654,9 @@
         @foreach($tvaGroupes as $recap)
             <tr>
                 <td>{{ number_format($recap['taux'], 0) }}%</td>
-                <td>{{ number_format($recap['base_ht'], 2, ',', ' ') }} €</td>
-                <td>{{ number_format($recap['montant_tva'], 2, ',', ' ') }} €</td>
-                <td>{{ number_format($recap['base_ht'] + $recap['montant_tva'], 2, ',', ' ') }} €</td>
+                <td>{{ number_format($recap['base_ht'], 2, ',', ' ') }} &euro;</td>
+                <td>{{ number_format($recap['montant_tva'], 2, ',', ' ') }} &euro;</td>
+                <td>{{ number_format($recap['base_ht'] + $recap['montant_tva'], 2, ',', ' ') }} &euro;</td>
             </tr>
         @endforeach
     </table>
@@ -638,31 +668,31 @@
         <table class="totaux-inner">
             <tr>
                 <td><strong>Sous-total HT :</strong></td>
-                <td>{{ number_format($total_ht, 2, ',', ' ') }} €</td>
+                <td>{{ number_format($total_ht, 2, ',', ' ') }} &euro;</td>
             </tr>
             @if($total_remise > 0)
                 <tr class="row-remise">
                     <td><strong>Remise :</strong></td>
-                    <td>– {{ number_format($total_remise, 2, ',', ' ') }} €</td>
+                    <td>&minus; {{ number_format($total_remise, 2, ',', ' ') }} &euro;</td>
                 </tr>
             @endif
             <tr>
                 <td><strong>Total net HT :</strong></td>
-                <td>{{ number_format($total_net_ht, 2, ',', ' ') }} €</td>
+                <td>{{ number_format($total_net_ht, 2, ',', ' ') }} &euro;</td>
             </tr>
             <tr class="row-tva">
                 <td>TVA :</td>
-                <td>{{ number_format($total_tva, 2, ',', ' ') }} €</td>
+                <td>{{ number_format($total_tva, 2, ',', ' ') }} &euro;</td>
             </tr>
             @if(isset($acompte) && $acompte > 0)
                 <tr class="row-tva">
-                    <td>Acompte versé :</td>
-                    <td>– {{ number_format($acompte, 2, ',', ' ') }} €</td>
+                    <td>Acompte vers&eacute; :</td>
+                    <td>&minus; {{ number_format($acompte, 2, ',', ' ') }} &euro;</td>
                 </tr>
             @endif
             <tr class="row-grand">
                 <td><strong>Total TTC :</strong></td>
-                <td>{{ number_format($total_ttc, 2, ',', ' ') }} €</td>
+                <td>{{ number_format($total_ttc, 2, ',', ' ') }} &euro;</td>
             </tr>
         </table>
     </div>
@@ -671,7 +701,7 @@
          ARRÊTÉ EN LETTRES
     ══════════════════════════════════════════════ --}}
     <div class="arrete">
-        <strong>Arrêtée la présente facture à la somme de</strong>
+        <strong>Arr&ecirc;t&eacute;e la pr&eacute;sente facture &agrave; la somme de</strong>
         {{ number_format($total_ttc, 2, ',', ' ') }} Euros TTC
     </div>
 
@@ -691,15 +721,15 @@
                     <th>Banque</th>
                     <th>Guichet</th>
                     <th>Compte</th>
-                    <th>Clé RIB</th>
+                    <th>Cl&eacute; RIB</th>
                 </tr>
                 <tr>
-                    <td>{{ $magasinEmetteur?->iban ?? '—' }}</td>
-                    <td>{{ $magasinEmetteur?->bic ?? '—' }}</td>
-                    <td>{{ $magasinEmetteur?->banque_code ?? '—' }}</td>
-                    <td>{{ $magasinEmetteur?->banque_guichet ?? '—' }}</td>
-                    <td>{{ $magasinEmetteur?->banque_compte ?? '—' }}</td>
-                    <td>{{ $magasinEmetteur?->banque_cle ?? '—' }}</td>
+                    <td>{{ $magasinEmetteur?->iban ?? '&mdash;' }}</td>
+                    <td>{{ $magasinEmetteur?->bic ?? '&mdash;' }}</td>
+                    <td>{{ $magasinEmetteur?->banque_code ?? '&mdash;' }}</td>
+                    <td>{{ $magasinEmetteur?->banque_guichet ?? '&mdash;' }}</td>
+                    <td>{{ $magasinEmetteur?->banque_compte ?? '&mdash;' }}</td>
+                    <td>{{ $magasinEmetteur?->banque_cle ?? '&mdash;' }}</td>
                 </tr>
             </table>
         </div>
@@ -720,7 +750,9 @@
         @if($facture->notes ?? false)
             {{ $facture->notes }}
         @else
-            En cas de retard de paiement, application d'une indemnité forfaitaire pour frais de recouvrement de 40 € selon l'article D. 441-5 du code du commerce. Taux des pénalités de retard : 4 %. Pas d'escompte pour règlement anticipé.
+            En cas de retard de paiement, application d'une indemnit&eacute; forfaitaire pour frais de recouvrement
+            de 40 &euro; selon l'article D. 441-5 du code du commerce. Taux des p&eacute;nalit&eacute;s de retard :
+            4 %. Pas d'escompte pour r&egrave;glement anticip&eacute;.
         @endif
     </div>
 
@@ -728,14 +760,15 @@
          FOOTER
     ══════════════════════════════════════════════ --}}
     <div class="socialmedia">
-        Document généré le {{ $date_impression }} — Facture N°&nbsp;{{ $facture->numero ?? $facture->id }}
+        Document g&eacute;n&eacute;r&eacute; le {{ $date_impression }}
+        &mdash; Facture N&deg;&nbsp;{{ $facture->numero ?? $facture->id }}
     </div>
     <div class="footer-note" style="margin-top:8px;">
         @if($magasinEmetteur?->siret)
             SIRET : {{ $magasinEmetteur->siret }}
         @endif
         @if($magasinEmetteur?->num_tva)
-            &nbsp;—&nbsp; TVA : {{ $magasinEmetteur->num_tva }}
+            &nbsp;&mdash;&nbsp; TVA : {{ $magasinEmetteur->num_tva }}
         @endif
     </div>
 
