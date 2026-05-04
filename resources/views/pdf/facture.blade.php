@@ -6,780 +6,517 @@
     <title>Facture {{ $facture->numero ?? $facture->id }}</title>
 
     @php
-        // ── Conversion image en base64 pour DomPDF ──────────────────────
-        $truckB64  = null;
-        $truckPath = public_path('store-svgrepo-com.png');
-        if (file_exists($truckPath)) {
-            $truckB64 = 'data:image/png;base64,' . base64_encode(file_get_contents($truckPath));
-        }
-
-        $logoB64  = null;
+        // ── Images en base64 (seule méthode fiable avec DomPDF) ─────────
+        $logoB64 = null;
         $logoPath = public_path('cosma.png');
         if (file_exists($logoPath)) {
             $logoB64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
         }
+
         // ── Chemins absolus pour les polices ────────────────────────────
-        $fontRegular = public_path('fonts/roboto-condensed/RobotoCondensed-Regular.ttf');
-        $fontBold    = public_path('fonts/roboto-condensed/RobotoCondensed-Bold.ttf');
-        $fontItalic  = public_path('fonts/roboto-condensed/RobotoCondensed-Italic.ttf');
+        $fontRegular = public_path('fonts/open-sans/OpenSans-Regular.ttf');
+        $fontBold    = public_path('fonts/open-sans/OpenSans-Bold.ttf');
+        $fontItalic  = public_path('fonts/open-sans/OpenSans-Italic.ttf');
     @endphp
 
     <style>
         @page {
             size: A4 portrait;
-            margin: 0;
+            margin: 30px 0;
         }
 
         @font-face {
-            font-family: 'RobotoC';
+            font-family: 'OpenSans';
             font-style: normal;
             font-weight: 400;
             src: url('{{ $fontRegular }}') format('truetype');
         }
         @font-face {
-            font-family: 'RobotoC';
+            font-family: 'OpenSans';
             font-style: normal;
             font-weight: 700;
             src: url('{{ $fontBold }}') format('truetype');
         }
         @font-face {
-            font-family: 'RobotoC';
+            font-family: 'OpenSans';
             font-style: italic;
             font-weight: 400;
             src: url('{{ $fontItalic }}') format('truetype');
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'RobotoC', DejaVu Sans, sans-serif;
-            font-size: 13px;
-            color: #333;
-            background: #ffffff;
+            font-family: 'OpenSans', DejaVu Sans, sans-serif;
+            font-size: 12px;
+            color: #5b5b5b;
+            background: #e1e1e1;
             line-height: 1.5;
         }
 
-        .container {
-            max-width: 680px;
-            margin: 0 auto;
-            padding: 28px 20px 28px 20px;
-        }
+        /* ── separateurs ── */
+        .sep       { height:1px; background:#bebebe; font-size:0; line-height:0; }
+        .sep-light { border-bottom:1px solid #e4e4e4; font-size:0; line-height:0; }
 
-        /* ══════════════════════════
-           LOGOTYPE + TITRE
-        ══════════════════════════ */
-        .logotype {
-            background: #ffffff;
-            width: 75px;
-            height: 75px;
-            text-align: center;
-            vertical-align: middle;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            padding: 0;
-        }
+        /* ── article cells ── */
+        .art-name  { font-size:12px; color:#ff0000; line-height:18px; vertical-align:top; padding:10px 0; }
+        .art-sku   { font-size:11px; color:#646a6e; line-height:18px; vertical-align:top; padding:10px 0; }
+        .art-qty   { font-size:12px; color:#646a6e; line-height:18px; vertical-align:top; padding:10px 0; text-align:center; }
+        .art-tva   { font-size:12px; color:#646a6e; line-height:18px; vertical-align:top; padding:10px 0; text-align:center; }
+        .art-price { font-size:12px; color:#1e2b33; line-height:18px; vertical-align:top; padding:10px 0; text-align:right; white-space:nowrap; }
 
-        .invoice-banner {
-            background: #ffd9e8;
-            padding-left: 30px;
-            font-size: 22px;
-            font-weight: bold;
-            letter-spacing: -1px;
-            height: 75px;
-            vertical-align: middle;
-            color: #1a1a1a;
-        }
+        /* ── totaux ── */
+        .tot-lbl      { font-size:12px; color:#646a6e; line-height:22px; vertical-align:top; text-align:right; }
+        .tot-val      { font-size:12px; color:#646a6e; line-height:22px; vertical-align:top; text-align:right; white-space:nowrap; width:100px; }
+        .tot-lbl-big  { font-size:12px; color:#000; font-weight:700; line-height:22px; vertical-align:top; text-align:right; }
+        .tot-val-big  { font-size:12px; color:#000; font-weight:700; line-height:22px; vertical-align:top; text-align:right; white-space:nowrap; width:100px; }
+        .tot-lbl-tva  { font-size:11px; color:#b0b0b0; line-height:22px; vertical-align:top; text-align:right; }
+        .tot-val-tva  { font-size:11px; color:#b0b0b0; line-height:22px; vertical-align:top; text-align:right; white-space:nowrap; }
+        .tot-lbl-rem  { font-size:12px; color:#ff0000; line-height:22px; vertical-align:top; text-align:right; }
+        .tot-val-rem  { font-size:12px; color:#ff0000; line-height:22px; vertical-align:top; text-align:right; white-space:nowrap; }
 
-        /* ══════════════════════════
-           SECTION TITLE
-        ══════════════════════════ */
-        h3 {
-            font-size: 14px;
-            color: #1a1a1a;
-            margin-bottom: 6px;
-        }
+        /* ── info blocks ── */
+        .info-lbl  { font-size:11px; color:#5b5b5b; line-height:1; vertical-align:top; font-weight:700; text-transform:uppercase; }
+        .info-val  { font-size:12px; color:#5b5b5b; line-height:20px; vertical-align:top; }
 
-        p {
-            font-size: 11px;
-            color: #555;
-            line-height: 1.6;
-        }
+        /* ── banque ── */
+        .bank-lbl  { font-size:10px; font-weight:700; color:#b0b0b0; text-transform:uppercase; padding:4px 8px 4px 0; vertical-align:top; text-align:left; }
+        .bank-val  { font-size:11px; font-weight:700; color:#1e2b33; padding:4px 8px 4px 0; vertical-align:top; }
 
-        /* ══════════════════════════
-           DETAIL BOXES (grey bg)
-        ══════════════════════════ */
-        .detail-box {
-            background: #eee;
-            padding: 16px 20px;
-            font-size: 12px;
-            line-height: 1.8;
-            color: #333;
-        }
+        /* ── note legale ── */
+        .alert-legal { background:#f9f9f9; border-left:4px solid #e4e4e4; padding:12px 16px; font-size:11px; color:#b0b0b0; line-height:18px; font-style:italic; }
 
-        .detail-box strong {
-            color: #1a1a1a;
-        }
+        /* ── arrêté ── */
+        .arrete      { border-left:4px solid #ff0000; padding:8px 14px; font-size:11px; color:#5b5b5b; }
+        .arrete strong { color:#1e2b33; font-size:10px; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:2px; }
 
-        /* ══════════════════════════
-           ADRESSE ICON BLOCKS
-        ══════════════════════════ */
-        .icon-block {
-            background: #ffd9e8;
-            width: 46px;
-            height: 46px;
-            margin-right: 10px;
-            display: inline-block;
-            vertical-align: top;
-            text-align: center;
-            line-height: 46px;
-            font-size: 18px;
-            color: #c0397a;
-            font-weight: 700;
-        }
+        /* ── signature ── */
+        .sig-box { border:1px solid #ccc; padding:10px 14px; height:55px; font-size:10px; color:#aaa; text-align:center; width:180px; }
 
-        .addr-label {
-            font-weight: 700;
-            font-size: 12px;
-            color: #1a1a1a;
-            margin-bottom: 2px;
-        }
+        /* ── footer ── */
+        .footer-text { font-size:12px; color:#5b5b5b; line-height:18px; vertical-align:top; }
+        .footer-note { font-size:10px; color:#b0b0b0; line-height:1.6; font-style:italic; }
 
-        .addr-info {
-            font-size: 11px;
-            color: #555;
-            line-height: 1.7;
-        }
-
-        /* ══════════════════════════
-           CHECKOUT BAR
-        ══════════════════════════ */
-        .checkout-bar {
-            border-top: 1px solid #eee;
-            border-bottom: 1px solid #eee;
-            padding: 10px 0;
-        }
-
-        .checkout-bar h3 { margin-bottom: 3px; }
-        .checkout-bar p  { font-size: 11px; color: #555; }
-
-        /* ══════════════════════════
-           ARTICLES SECTION
-        ══════════════════════════ */
-        .section-icon {
-            background: #ffd9e8;
-            width: 46px;
-            height: 46px;
-            display: inline-block;
-            vertical-align: middle;
-            text-align: center;
-            line-height: 46px;
-            font-size: 13px;
-            font-weight: 700;
-            margin-right: 8px;
-            color: #c0397a;
-        }
-
-        .column-header {
-            background: #eee;
-            text-transform: uppercase;
-            padding: 12px 14px;
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            border-right: 1px solid #ddd;
-            color: #444;
-        }
-
-        .row {
-            padding: 8px 14px;
-            border-left: 1px solid #eee;
-            border-right: 1px solid #eee;
-            border-bottom: 1px solid #eee;
-            font-size: 12px;
-            vertical-align: middle;
-        }
-
-        .row-ref {
-            color: #777;
-            font-size: 10px;
-        }
-
-        .row-remise {
-            color: #c0392b;
-            font-size: 11px;
-        }
-
-        /* ══════════════════════════
-           TOTAUX (grey bg)
-        ══════════════════════════ */
-        .totaux-bg {
-            background: #eee;
-            padding: 16px 20px;
-        }
-
-        .totaux-inner {
-            width: 280px;
-            float: right;
-            border-collapse: collapse;
-        }
-
-        .totaux-inner td {
-            padding: 4px 6px;
-            font-size: 12px;
-            color: #333;
-        }
-
-        .totaux-inner td:last-child {
-            text-align: right;
-            font-weight: 600;
-            color: #1a1a1a;
-        }
-
-        .totaux-inner .row-grand td {
-            font-size: 14px;
-            font-weight: 700;
-            color: #1a1a1a;
-            border-top: 2px solid #ccc;
-            padding-top: 8px;
-        }
-
-        .totaux-inner .row-tva td {
-            color: #777;
-            font-size: 11px;
-        }
-
-        .totaux-inner .row-remise td {
-            color: #c0392b;
-        }
-
-        .clearfix::after {
-            content: '';
-            display: table;
-            clear: both;
-        }
-
-        /* ══════════════════════════
-           TVA RECAP TABLE
-        ══════════════════════════ */
-        .tva-recap {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 11px;
-            margin-bottom: 16px;
-        }
-
-        .tva-recap th {
-            background: #eee;
-            padding: 10px 14px;
-            font-size: 10px;
-            text-transform: uppercase;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            border-right: 1px solid #ddd;
-            color: #444;
-            text-align: center;
-        }
-
-        .tva-recap td {
-            padding: 7px 14px;
-            border-left: 1px solid #eee;
-            border-right: 1px solid #eee;
-            border-bottom: 1px solid #eee;
-            text-align: center;
-            color: #333;
-        }
-
-        /* ══════════════════════════
-           BANQUE SECTION
-        ══════════════════════════ */
-        .bank-section {
-            background: #eee;
-            padding: 16px 20px;
-            font-size: 11px;
-            color: #444;
-            line-height: 1.8;
-            margin-top: 16px;
-        }
-
-        .bank-section strong {
-            color: #1a1a1a;
-        }
-
-        .bank-grid {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 8px;
-        }
-
-        .bank-grid th {
-            font-size: 10px;
-            font-weight: 700;
-            color: #777;
-            text-transform: uppercase;
-            padding: 4px 10px;
-            text-align: left;
-        }
-
-        .bank-grid td {
-            font-size: 11px;
-            font-weight: 600;
-            color: #1a1a1a;
-            padding: 3px 10px;
-        }
-
-        /* ══════════════════════════
-           ALERT (pink)
-        ══════════════════════════ */
-        .alert {
-            background: #ffd9e8;
-            padding: 16px 20px;
-            margin: 16px 0;
-            line-height: 22px;
-            color: #333;
-            font-size: 11px;
-        }
-
-        /* ══════════════════════════
-           ARRÊTÉ EN LETTRES
-        ══════════════════════════ */
-        .arrete {
-            border-left: 4px solid #ffd9e8;
-            padding: 8px 14px;
-            margin: 12px 0;
-            font-size: 11px;
-            color: #555;
-        }
-
-        .arrete strong {
-            color: #1a1a1a;
-            display: block;
-            margin-bottom: 2px;
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        /* ══════════════════════════
-           SIGNATURE
-        ══════════════════════════ */
-        .signature-box {
-            border: 1px solid #ccc;
-            padding: 10px 14px;
-            min-height: 55px;
-            font-size: 10px;
-            color: #aaa;
-            text-align: center;
-            width: 200px;
-            float: right;
-        }
-
-        .signature-label {
-            font-size: 10px;
-            font-weight: 700;
-            color: #888;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            margin-bottom: 4px;
-            text-align: right;
-        }
-
-        /* ══════════════════════════
-           SOCIAL FOOTER
-        ══════════════════════════ */
-        .socialmedia {
-            background: #eee;
-            padding: 14px 20px;
-            display: inline-block;
-            font-size: 11px;
-            color: #555;
-            margin-top: 14px;
-        }
-
-        .footer-note {
-            font-size: 10px;
-            color: #777;
-            line-height: 1.6;
-            font-style: italic;
-            margin-top: 10px;
-        }
-
-        /* ── spacer ── */
-        .spacer { margin-top: 16px; }
-        .spacer-sm { margin-top: 10px; }
+        /* ── spacers ── */
+        .h10 { height:10px; font-size:0; line-height:0; }
+        .h20 { height:20px; font-size:0; line-height:0; }
+        .h30 { height:30px; font-size:0; line-height:0; }
+        .h40 { height:40px; font-size:0; line-height:0; }
+        .h50 { height:50px; font-size:0; line-height:0; }
     </style>
 </head>
 <body>
-<div class="container">
 
-    {{-- ══════════════════════════════════════════════
-         EN-TÊTE : Logo + Titre
-    ══════════════════════════════════════════════ --}}
-    <table width="100%" style="border-collapse:collapse; height:75px;">
-        <tr>
-            {{-- Cellule logo : vertical-align middle sur le <td> (DomPDF ignore line-height sur div) --}}
-            <td width="75" height="75" style="width:75px; height:75px; background:#ffffff; text-align:center; vertical-align:middle; padding:0;">
-                @if(!empty($logoB64))
-                    <img src="{{ $logoB64 }}"
-                         style="width:65px; height:65px; display:block; margin:0 auto;" />
-                @else
-                    <span style="font-size:18px; font-weight:700; color:#333;">
-                        {{ strtoupper(substr($magasinEmetteur?->nom ?? config('app.name', 'Cosma'), 0, 2)) }}
-                    </span>
-                @endif
-            </td>
-            {{-- Cellule titre : vertical-align middle sur le <td> --}}
-            <td height="75" style="height:75px; background:#ffd9e8; vertical-align:middle; padding-left:30px;">
-                <span style="font-size:22px; font-weight:bold; letter-spacing:-1px; color:#1a1a1a;">Facture</span>
-            </td>
-        </tr>
-    </table>
-
-    {{-- ══════════════════════════════════════════════
-         INTRO
-    ══════════════════════════════════════════════ --}}
-    <div class="spacer"></div>
-    <h3>Coordonn&eacute;es</h3>
-    <p>
-        {{ $magasinEmetteur?->nom ?? config('app.name') }}
-        @if($magasinEmetteur?->adresse)
-            &mdash; {{ $magasinEmetteur->adresse }},
-        {{ $magasinEmetteur?->code_postal }} {{ $magasinEmetteur?->ville }}
-        @endif
-        @if($magasinEmetteur?->siret)
-            &mdash; SIRET : {{ $magasinEmetteur->siret }}
-        @endif
-    </p>
-
-    {{-- ══════════════════════════════════════════════
-         DÉTAILS FACTURE (2 colonnes grises)
-    ══════════════════════════════════════════════ --}}
-    <div class="spacer"></div>
-    <table width="100%" style="border-collapse:collapse;">
-        <tr>
-            <td width="50%" class="detail-box" style="border-right:3px solid #fff;">
-                <strong>Date :</strong>
-                {{ $facture->date_facture
-                    ? \Carbon\Carbon::parse($facture->date_facture)->format('d/m/Y')
-                    : $date_impression }}<br>
-                @if($facture->date_echeance)
-                    <strong>Ech&eacute;ance :</strong>
-                    {{ \Carbon\Carbon::parse($facture->date_echeance)->format('d/m/Y') }}<br>
-                @endif
-                @if($facture->mode_paiement)
-                    <strong>Mode de paiement :</strong> {{ $facture->mode_paiement }}<br>
-                @endif
-                @if($facture->conditions_paiement)
-                    <strong>Conditions :</strong> {{ $facture->conditions_paiement }}<br>
-                @endif
-                @if($facture->statut)
-                    <strong>Statut :</strong> {{ ucfirst($facture->statut) }}
-                @endif
-            </td>
-            <td width="50%" class="detail-box">
-                <strong>N&deg; Facture :</strong>
-                {{ $facture->numero ?? str_pad($facture->id, 7, '0', STR_PAD_LEFT) }}<br>
-                @if($commande?->numero_commande)
-                    <strong>R&eacute;f. commande :</strong> {{ $commande->numero_commande }}<br>
-                @endif
-                @if($fournisseur?->email)
-                    <strong>E-mail :</strong> {{ $fournisseur->email }}<br>
-                @endif
-                @if($fournisseur?->telephone)
-                    <strong>T&eacute;l :</strong> {{ $fournisseur->telephone }}<br>
-                @endif
-                <strong>Imprim&eacute;e le :</strong> {{ $date_impression }}
-            </td>
-        </tr>
-    </table>
-
-    {{-- ══════════════════════════════════════════════
-         ADRESSES : Émetteur + Client
-    ══════════════════════════════════════════════ --}}
-    <div class="spacer"></div>
-    <table width="100%">
-        <tr>
-            {{-- Émetteur --}}
-            <td width="50%">
-                <table>
-                    <tr>
-                        <td style="vertical-align:top; padding-right:10px;">
-                            <div class="icon-block">
-                                @if($truckB64)
-                                    {{-- Image convertie en base64 : seule méthode fiable avec DomPDF --}}
-                                    <img src="{{ $truckB64 }}"
-                                         style="width:24px; height:24px; vertical-align:middle;" />
-                                @else
-                                    {{-- Fallback si le fichier est absent --}}
-                                    <span style="font-size:16px; font-weight:700;">&#9993;</span>
-                                @endif
-                            </div>
-                        </td>
-                        <td>
-                            <div class="addr-label">Emetteur</div>
-                            <div class="addr-info">
-                                {{ $magasinEmetteur?->nom ?? config('app.name') }}<br>
-                                @if($magasinEmetteur?->adresse)
-                                    {{ $magasinEmetteur->adresse }}<br>
-                                @endif
-                                @if($magasinEmetteur?->code_postal || $magasinEmetteur?->ville)
-                                    {{ $magasinEmetteur?->code_postal }} {{ $magasinEmetteur?->ville }}<br>
-                                @endif
-                                @if($magasinEmetteur?->telephone)
-                                    T&eacute;l : {{ $magasinEmetteur->telephone }}<br>
-                                @endif
-                                @if($magasinEmetteur?->email)
-                                    {{ $magasinEmetteur->email }}
-                                @endif
-                            </div>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-            {{-- Client / Livraison --}}
-            <td width="50%">
-                <table>
-                    <tr>
-                        <td style="vertical-align:top; padding-right:10px;">
-                            {{-- &#10003; = ✓ supporté par DejaVu Sans --}}
-                            <div class="icon-block">&#10003;</div>
-                        </td>
-                        <td>
-                            <div class="addr-label">Fournisseur / Livraison</div>
-                            <div class="addr-info">
-                                {{ $fournisseur?->name ?? $fournisseur?->raison_social ?? '&mdash;' }}<br>
-                                @if($fournisseur?->adresse_siege)
-                                    {{ $fournisseur->adresse_siege }}<br>
-                                @endif
-                                @if($fournisseur?->code_postal || $fournisseur?->ville)
-                                    {{ $fournisseur?->code_postal }} {{ $fournisseur?->ville }}<br>
-                                @endif
-                                @if($magasin?->adress)
-                                    Livraison : {{ $magasin->adress }},
-                                    {{ $magasin?->code_postal }} {{ $magasin?->ville }}
-                                @endif
-                            </div>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
-
-    {{-- ══════════════════════════════════════════════
-         CHECKOUT INFO
-    ══════════════════════════════════════════════ --}}
-    <div class="spacer"></div>
-    <div class="checkout-bar">
-        <h3>Informations de facturation</h3>
-        <p>
-            Paiement par :
-            <strong>{{ $facture->mode_paiement ?? '&mdash;' }}</strong>
-            @if($facture->conditions_paiement)
-                &nbsp;&mdash;&nbsp; {{ $facture->conditions_paiement }}
-            @endif
-        </p>
-    </div>
-
-    {{-- ══════════════════════════════════════════════
-         LIGNES DE FACTURE
-         ⚠ &#128722; (🛒) non supporté par DomPDF → remplacé par texte
-    ══════════════════════════════════════════════ --}}
-    <div class="spacer"></div>
-    <table width="100%" style="margin-bottom:6px;">
-        <tr>
-            <td style="vertical-align:middle;">
-                <h3 style="margin:0;">Lignes de facture</h3>
-            </td>
-        </tr>
-    </table>
-
-    <table width="100%" style="border-collapse:collapse; border-bottom:1px solid #eee;">
-        <tr>
-            <td width="35%" class="column-header">D&eacute;signation</td>
-            <td width="15%" class="column-header">R&eacute;f.</td>
-            <td width="10%" class="column-header">Unit&eacute;</td>
-            <td width="8%"  class="column-header">Qt&eacute;</td>
-            <td width="12%" class="column-header">P.U. HT</td>
-            <td width="8%"  class="column-header">TVA</td>
-            <td width="12%" class="column-header">Total HT</td>
-        </tr>
-        @forelse($lignes as $ligne)
-            <tr>
-                <td class="row">
-                    <span class="row-ref">{{ $ligne['article'] ?? '' }}</span>
-                    @if(!empty($ligne['article']))<br>@endif
-                    <strong style="font-size:12px; color:#1a1a1a;">{{ $ligne['designation'] }}</strong>
-                </td>
-                <td class="row" style="color:#777; font-size:11px;">{{ $ligne['article'] ?? '&mdash;' }}</td>
-                <td class="row" style="text-align:center;">{{ $ligne['unite'] ?? 'U' }}</td>
-                <td class="row" style="text-align:center;">{{ number_format($ligne['qte'], 0, ',', ' ') }}</td>
-                <td class="row" style="text-align:right;">
-                    {{ number_format($ligne['qte'], 0) }}
-                    <span style="color:#777">&times;</span>
-                    {{ number_format($ligne['pu_ht'], 2, ',', ' ') }} &euro;
-                </td>
-                <td class="row" style="text-align:center;">{{ number_format($ligne['tva'], 0) }}%</td>
-                <td class="row" style="text-align:right; font-weight:600;">
-                    {{ number_format($ligne['montant_net_ht'], 2, ',', ' ') }} &euro;
-                    @if($ligne['taux_remise'] > 0)
-                        <br><span class="row-remise">&minus;{{ number_format($ligne['taux_remise'], 1) }}%</span>
-                    @endif
-                </td>
-            </tr>
-        @empty
-            <tr>
-                <td colspan="7" class="row" style="text-align:center; color:#aaa; font-style:italic; padding:20px;">
-                    Aucune ligne de facture.
-                </td>
-            </tr>
-        @endforelse
-    </table>
-
-    {{-- ══════════════════════════════════════════════
-         RÉCAP TVA
-    ══════════════════════════════════════════════ --}}
-    <div class="spacer-sm"></div>
-    @php
-        $tvaGroupes = $lignes->groupBy('tva')->map(function($group) {
-            $baseHT     = $group->sum('montant_net_ht');
-            $tva        = $group->first()['tva'];
-            $montantTVA = $baseHT * ($tva / 100);
-            return ['taux' => $tva, 'base_ht' => $baseHT, 'montant_tva' => $montantTVA];
-        });
-    @endphp
-    <table class="tva-recap">
-        <tr>
-            <th>Taux TVA</th>
-            <th>Base HT</th>
-            <th>Montant TVA</th>
-            <th>Total TTC</th>
-        </tr>
-        @foreach($tvaGroupes as $recap)
-            <tr>
-                <td>{{ number_format($recap['taux'], 0) }}%</td>
-                <td>{{ number_format($recap['base_ht'], 2, ',', ' ') }} &euro;</td>
-                <td>{{ number_format($recap['montant_tva'], 2, ',', ' ') }} &euro;</td>
-                <td>{{ number_format($recap['base_ht'] + $recap['montant_tva'], 2, ',', ' ') }} &euro;</td>
-            </tr>
-        @endforeach
-    </table>
-
-    {{-- ══════════════════════════════════════════════
-         BLOC TOTAUX (fond gris, aligné à droite)
-    ══════════════════════════════════════════════ --}}
-    <div class="totaux-bg clearfix">
-        <table class="totaux-inner">
-            <tr>
-                <td><strong>Sous-total HT :</strong></td>
-                <td>{{ number_format($total_ht, 2, ',', ' ') }} &euro;</td>
-            </tr>
-            @if($total_remise > 0)
-                <tr class="row-remise">
-                    <td><strong>Remise :</strong></td>
-                    <td>&minus; {{ number_format($total_remise, 2, ',', ' ') }} &euro;</td>
-                </tr>
-            @endif
-            <tr>
-                <td><strong>Total net HT :</strong></td>
-                <td>{{ number_format($total_net_ht, 2, ',', ' ') }} &euro;</td>
-            </tr>
-            <tr class="row-tva">
-                <td>TVA :</td>
-                <td>{{ number_format($total_tva, 2, ',', ' ') }} &euro;</td>
-            </tr>
-            @if(isset($acompte) && $acompte > 0)
-                <tr class="row-tva">
-                    <td>Acompte vers&eacute; :</td>
-                    <td>&minus; {{ number_format($acompte, 2, ',', ' ') }} &euro;</td>
-                </tr>
-            @endif
-            <tr class="row-grand">
-                <td><strong>Total TTC :</strong></td>
-                <td>{{ number_format($total_ttc, 2, ',', ' ') }} &euro;</td>
-            </tr>
-        </table>
-    </div>
-
-    {{-- ══════════════════════════════════════════════
-         ARRÊTÉ EN LETTRES
-    ══════════════════════════════════════════════ --}}
-    <div class="arrete">
-        <strong>Arr&ecirc;t&eacute;e la pr&eacute;sente facture &agrave; la somme de</strong>
-        {{ number_format($total_ttc, 2, ',', ' ') }} Euros TTC
-    </div>
-
-    {{-- ══════════════════════════════════════════════
-         COORDONNÉES BANCAIRES
-    ══════════════════════════════════════════════ --}}
-    @if($magasinEmetteur?->iban)
-        <div class="bank-section">
-            <strong>Virement bancaire :</strong>
-            @if($magasinEmetteur?->banque_domiciliation)
-                Domiciliation : {{ $magasinEmetteur->banque_domiciliation }}<br>
-            @endif
-            <table class="bank-grid">
+{{-- ════════════════════════════════════
+     EN-TÊTE
+════════════════════════════════════ --}}
+<table width="560" border="0" cellpadding="0" cellspacing="0" align="center" bgcolor="#ffffff">
+    <tr><td class="h40"></td></tr>
+    <tr>
+        <td>
+            <table width="460" border="0" cellpadding="0" cellspacing="0" align="center">
                 <tr>
-                    <th>IBAN</th>
-                    <th>BIC</th>
-                    <th>Banque</th>
-                    <th>Guichet</th>
-                    <th>Compte</th>
-                    <th>Cl&eacute; RIB</th>
-                </tr>
-                <tr>
-                    <td>{{ $magasinEmetteur?->iban ?? '&mdash;' }}</td>
-                    <td>{{ $magasinEmetteur?->bic ?? '&mdash;' }}</td>
-                    <td>{{ $magasinEmetteur?->banque_code ?? '&mdash;' }}</td>
-                    <td>{{ $magasinEmetteur?->banque_guichet ?? '&mdash;' }}</td>
-                    <td>{{ $magasinEmetteur?->banque_compte ?? '&mdash;' }}</td>
-                    <td>{{ $magasinEmetteur?->banque_cle ?? '&mdash;' }}</td>
+                    {{-- Gauche : logo + coordonnées émetteur --}}
+                    <td width="220" style="vertical-align:top;">
+                        <table border="0" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td>
+                                    @if(!empty($logoB64))
+                                        <img src="{{ $logoB64 }}" width="36" height="36" alt="logo" border="0" style="display:block;" />
+                                    @else
+                                        <span style="font-size:20px; font-weight:700; color:#ff0000;">
+                                            {{ strtoupper(substr($magasinEmetteur?->nom ?? config('app.name', 'CO'), 0, 2)) }}
+                                        </span>
+                                    @endif
+                                </td>
+                            </tr>
+                            <tr><td class="h40"></td></tr>
+                            <tr>
+                                <td style="font-size:12px; color:#5b5b5b; line-height:18px; vertical-align:top; text-align:left;">
+                                    {{ $magasinEmetteur?->nom ?? config('app.name') }}<br>
+                                    @if($magasinEmetteur?->adresse)
+                                        {{ $magasinEmetteur->adresse }}<br>
+                                        {{ $magasinEmetteur?->code_postal }} {{ $magasinEmetteur?->ville }}<br>
+                                    @endif
+                                    @if($magasinEmetteur?->siret)
+                                        SIRET : {{ $magasinEmetteur->siret }}
+                                    @endif
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+
+                    {{-- Droite : "Facture" + numéro + date --}}
+                    <td width="220" style="vertical-align:top; text-align:right;">
+                        <table border="0" cellpadding="0" cellspacing="0" align="right">
+                            <tr><td class="h10"></td></tr>
+                            <tr>
+                                <td style="font-size:21px; color:#ff0000; letter-spacing:-1px; line-height:1; vertical-align:top; text-align:right;">
+                                    Facture
+                                </td>
+                            </tr>
+                            <tr><td class="h50"></td></tr>
+                            <tr>
+                                <td style="font-size:12px; color:#5b5b5b; line-height:18px; vertical-align:top; text-align:right;">
+                                    <small>FACTURE</small>
+                                    N&deg; {{ $facture->numero ?? str_pad($facture->id, 7, '0', STR_PAD_LEFT) }}<br>
+                                    @if($commande?->numero_commande)
+                                        <small>COMMANDE</small> {{ $commande->numero_commande }}<br>
+                                    @endif
+                                    <small>{{ strtoupper($date_impression) }}</small>
+                                    @if($facture->date_echeance)
+                                        <br><small>ECH&Eacute;ANCE :</small>
+                                        {{ \Carbon\Carbon::parse($facture->date_echeance)->format('d/m/Y') }}
+                                    @endif
+                                    @if($facture->statut)
+                                        <br><small>STATUT :</small> {{ strtoupper($facture->statut) }}
+                                    @endif
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
                 </tr>
             </table>
-        </div>
-    @endif
+        </td>
+    </tr>
+    <tr><td class="h40"></td></tr>
+</table>
 
-    {{-- ══════════════════════════════════════════════
-         SIGNATURE
-    ══════════════════════════════════════════════ --}}
-    <div class="spacer clearfix">
-        <div class="signature-label">Signature &amp; Cachet</div>
-        <div class="signature-box">&nbsp;<br>&nbsp;<br>&nbsp;</div>
-    </div>
+{{-- ════════════════════════════════════
+     ADRESSES
+════════════════════════════════════ --}}
+<table width="560" border="0" cellpadding="0" cellspacing="0" align="center" bgcolor="#ffffff">
+    <tr>
+        <td>
+            <table width="460" border="0" cellpadding="0" cellspacing="0" align="center">
+                <tr>
+                    <td width="220" style="vertical-align:top;">
+                        <table border="0" cellpadding="0" cellspacing="0">
+                            <tr><td class="info-lbl"><strong>INFORMATIONS &Eacute;METTEUR</strong></td></tr>
+                            <tr><td class="h10"></td></tr>
+                            <tr>
+                                <td class="info-val">
+                                    {{ $magasinEmetteur?->nom ?? config('app.name') }}<br>
+                                    @if($magasinEmetteur?->adresse)
+                                        {{ $magasinEmetteur->adresse }}<br>
+                                    @endif
+                                    @if($magasinEmetteur?->code_postal || $magasinEmetteur?->ville)
+                                        {{ $magasinEmetteur?->code_postal }} {{ $magasinEmetteur?->ville }}<br>
+                                    @endif
+                                    @if($magasinEmetteur?->telephone)
+                                        T : {{ $magasinEmetteur->telephone }}<br>
+                                    @endif
+                                    @if($magasinEmetteur?->email)
+                                        {{ $magasinEmetteur->email }}
+                                    @endif
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td width="220" style="vertical-align:top; text-align:right;">
+                        <table border="0" cellpadding="0" cellspacing="0" align="right">
+                            <tr><td class="info-lbl" style="text-align:right;"><strong>FOURNISSEUR / LIVRAISON</strong></td></tr>
+                            <tr><td class="h10"></td></tr>
+                            <tr>
+                                <td class="info-val" style="text-align:right;">
+                                    {{ $fournisseur?->name ?? $fournisseur?->raison_social ?? '&mdash;' }}<br>
+                                    @if($fournisseur?->adresse_siege)
+                                        {{ $fournisseur->adresse_siege }}<br>
+                                    @endif
+                                    @if($fournisseur?->code_postal || $fournisseur?->ville)
+                                        {{ $fournisseur?->code_postal }} {{ $fournisseur?->ville }}<br>
+                                    @endif
+                                    @if($fournisseur?->telephone)
+                                        T : {{ $fournisseur->telephone }}<br>
+                                    @endif
+                                    @if($magasin?->adress)
+                                        Livraison : {{ $magasin->adress }},
+                                        {{ $magasin?->code_postal }} {{ $magasin?->ville }}
+                                    @endif
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+    <tr><td class="h40"></td></tr>
+</table>
 
-    {{-- ══════════════════════════════════════════════
-         NOTE LÉGALE (alert rose)
-    ══════════════════════════════════════════════ --}}
-    <div class="alert">
-        @if($facture->notes ?? false)
-            {{ $facture->notes }}
-        @else
-            En cas de retard de paiement, application d'une indemnit&eacute; forfaitaire pour frais de recouvrement
-            de 40 &euro; selon l'article D. 441-5 du code du commerce. Taux des p&eacute;nalit&eacute;s de retard :
-            4 %. Pas d'escompte pour r&egrave;glement anticip&eacute;.
-        @endif
-    </div>
+{{-- ════════════════════════════════════
+     LIGNES DE FACTURE
+════════════════════════════════════ --}}
+<table width="560" border="0" cellpadding="0" cellspacing="0" align="center" bgcolor="#ffffff">
+    <tr>
+        <td>
+            <table width="460" border="0" cellpadding="0" cellspacing="0" align="center">
+                {{-- En-têtes --}}
+                <tr>
+                    <th width="34%" style="font-size:12px; color:#5b5b5b; font-weight:normal; line-height:1; vertical-align:top; padding:0 10px 7px 0; text-align:left;">D&eacute;signation</th>
+                    <th width="13%" style="font-size:12px; color:#5b5b5b; font-weight:normal; line-height:1; vertical-align:top; padding:0 0 7px; text-align:left;"><small>R&eacute;f.</small></th>
+                    <th width="8%"  style="font-size:12px; color:#5b5b5b; font-weight:normal; line-height:1; vertical-align:top; padding:0 0 7px; text-align:center;">Qt&eacute;</th>
+                    <th width="8%"  style="font-size:12px; color:#5b5b5b; font-weight:normal; line-height:1; vertical-align:top; padding:0 0 7px; text-align:center;">TVA</th>
+                    <th width="18%" style="font-size:12px; color:#5b5b5b; font-weight:normal; line-height:1; vertical-align:top; padding:0 0 7px; text-align:right;">P.U. HT</th>
+                    <th width="19%" style="font-size:12px; color:#1e2b33; font-weight:normal; line-height:1; vertical-align:top; padding:0 0 7px; text-align:right;">Total HT</th>
+                </tr>
+                <tr><td class="sep" colspan="6"></td></tr>
+                <tr><td class="h10" colspan="6"></td></tr>
 
-    {{-- ══════════════════════════════════════════════
-         FOOTER
-    ══════════════════════════════════════════════ --}}
-    <div class="socialmedia">
-        Document g&eacute;n&eacute;r&eacute; le {{ $date_impression }}
-        &mdash; Facture N&deg;&nbsp;{{ $facture->numero ?? $facture->id }}
-    </div>
-    <div class="footer-note" style="margin-top:8px;">
-        @if($magasinEmetteur?->siret)
-            SIRET : {{ $magasinEmetteur->siret }}
-        @endif
-        @if($magasinEmetteur?->num_tva)
-            &nbsp;&mdash;&nbsp; TVA : {{ $magasinEmetteur->num_tva }}
-        @endif
-    </div>
+                {{-- Lignes --}}
+                @forelse($lignes as $ligne)
+                    <tr>
+                        <td class="art-name"><strong>{{ $ligne['designation'] }}</strong></td>
+                        <td class="art-sku"><small>{{ $ligne['article'] ?? '&mdash;' }}</small></td>
+                        <td class="art-qty">{{ number_format($ligne['qte'], 0, ',', ' ') }}</td>
+                        <td class="art-tva">{{ number_format($ligne['tva'], 0) }}%</td>
+                        <td class="art-price">{{ number_format($ligne['pu_ht'], 2, ',', ' ') }} &euro;</td>
+                        <td class="art-price">
+                            {{ number_format($ligne['montant_net_ht'], 2, ',', ' ') }} &euro;
+                            @if($ligne['taux_remise'] > 0)
+                                <br><span style="color:#ff0000; font-size:10px;">&minus;{{ number_format($ligne['taux_remise'], 1) }}%</span>
+                            @endif
+                        </td>
+                    </tr>
+                    <tr><td class="sep-light" colspan="6"></td></tr>
+                @empty
+                    <tr>
+                        <td colspan="6" style="padding:20px 0; text-align:center; color:#aaa; font-style:italic; font-size:12px;">
+                            Aucune ligne de facture.
+                        </td>
+                    </tr>
+                @endforelse
+            </table>
+        </td>
+    </tr>
+    <tr><td class="h20"></td></tr>
+</table>
 
-</div>
+{{-- ════════════════════════════════════
+     RECAP TVA
+════════════════════════════════════ --}}
+@php
+    $tvaGroupes = $lignes->groupBy('tva')->map(function($group) {
+        $baseHT     = $group->sum('montant_net_ht');
+        $tva        = $group->first()['tva'];
+        $montantTVA = $baseHT * ($tva / 100);
+        return ['taux' => $tva, 'base_ht' => $baseHT, 'montant_tva' => $montantTVA];
+    });
+@endphp
+<table width="560" border="0" cellpadding="0" cellspacing="0" align="center" bgcolor="#ffffff">
+    <tr>
+        <td>
+            <table width="460" border="0" cellpadding="0" cellspacing="0" align="center">
+                <tr>
+                    <th style="font-size:10px; color:#b0b0b0; font-weight:700; text-transform:uppercase; padding:4px 10px 4px 0; text-align:left; vertical-align:top;">Taux TVA</th>
+                    <th style="font-size:10px; color:#b0b0b0; font-weight:700; text-transform:uppercase; padding:4px 10px 4px 0; text-align:right; vertical-align:top;">Base HT</th>
+                    <th style="font-size:10px; color:#b0b0b0; font-weight:700; text-transform:uppercase; padding:4px 10px 4px 0; text-align:right; vertical-align:top;">TVA</th>
+                    <th style="font-size:10px; color:#b0b0b0; font-weight:700; text-transform:uppercase; padding:4px 0; text-align:right; vertical-align:top;">Total TTC</th>
+                </tr>
+                @foreach($tvaGroupes as $recap)
+                    <tr>
+                        <td style="font-size:12px; color:#5b5b5b; padding:3px 10px 3px 0; vertical-align:top;">{{ number_format($recap['taux'], 0) }}%</td>
+                        <td style="font-size:12px; color:#5b5b5b; padding:3px 10px 3px 0; text-align:right; vertical-align:top;">{{ number_format($recap['base_ht'], 2, ',', ' ') }} &euro;</td>
+                        <td style="font-size:12px; color:#5b5b5b; padding:3px 10px 3px 0; text-align:right; vertical-align:top;">{{ number_format($recap['montant_tva'], 2, ',', ' ') }} &euro;</td>
+                        <td style="font-size:12px; color:#1e2b33; font-weight:700; padding:3px 0; text-align:right; vertical-align:top;">{{ number_format($recap['base_ht'] + $recap['montant_tva'], 2, ',', ' ') }} &euro;</td>
+                    </tr>
+                @endforeach
+            </table>
+        </td>
+    </tr>
+    <tr><td class="h20"></td></tr>
+</table>
+
+{{-- ════════════════════════════════════
+     TOTAUX
+════════════════════════════════════ --}}
+<table width="560" border="0" cellpadding="0" cellspacing="0" align="center" bgcolor="#ffffff">
+    <tr>
+        <td>
+            <table width="460" border="0" cellpadding="0" cellspacing="0" align="center">
+                <tr>
+                    <td class="tot-lbl">Sous-total HT</td>
+                    <td class="tot-val">{{ number_format($total_ht, 2, ',', ' ') }} &euro;</td>
+                </tr>
+                @if($total_remise > 0)
+                    <tr>
+                        <td class="tot-lbl-rem">Remise</td>
+                        <td class="tot-val-rem">&minus; {{ number_format($total_remise, 2, ',', ' ') }} &euro;</td>
+                    </tr>
+                @endif
+                <tr>
+                    <td class="tot-lbl">Total net HT</td>
+                    <td class="tot-val">{{ number_format($total_net_ht, 2, ',', ' ') }} &euro;</td>
+                </tr>
+                <tr>
+                    <td class="tot-lbl-big"><strong>Total TTC (TVA incl.)</strong></td>
+                    <td class="tot-val-big"><strong>{{ number_format($total_ttc, 2, ',', ' ') }} &euro;</strong></td>
+                </tr>
+                <tr>
+                    <td class="tot-lbl-tva"><small>TVA</small></td>
+                    <td class="tot-val-tva"><small>{{ number_format($total_tva, 2, ',', ' ') }} &euro;</small></td>
+                </tr>
+                @if(isset($acompte) && $acompte > 0)
+                    <tr>
+                        <td class="tot-lbl-tva"><small>Acompte vers&eacute;</small></td>
+                        <td class="tot-val-tva"><small>&minus; {{ number_format($acompte, 2, ',', ' ') }} &euro;</small></td>
+                    </tr>
+                @endif
+            </table>
+        </td>
+    </tr>
+    <tr><td class="h30"></td></tr>
+</table>
+
+{{-- ════════════════════════════════════
+     ARRÊTÉ + PAIEMENT + SIGNATURE
+════════════════════════════════════ --}}
+<table width="560" border="0" cellpadding="0" cellspacing="0" align="center" bgcolor="#ffffff">
+    <tr>
+        <td>
+            <table width="460" border="0" cellpadding="0" cellspacing="0" align="center">
+                <tr>
+                    <td class="arrete">
+                        <strong>Arr&ecirc;t&eacute;e la pr&eacute;sente facture &agrave; la somme de</strong>
+                        {{ number_format($total_ttc, 2, ',', ' ') }} Euros TTC
+                    </td>
+                </tr>
+                <tr><td class="h20"></td></tr>
+                <tr>
+                    <td>
+                        <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td width="220" style="vertical-align:top;">
+                                    <table border="0" cellpadding="0" cellspacing="0">
+                                        <tr><td class="info-lbl"><strong>MODE DE PAIEMENT</strong></td></tr>
+                                        <tr><td class="h10"></td></tr>
+                                        <tr>
+                                            <td class="info-val">
+                                                {{ $facture->mode_paiement ?? '&mdash;' }}<br>
+                                                @if($facture->conditions_paiement)
+                                                    {{ $facture->conditions_paiement }}<br>
+                                                @endif
+                                                @if($facture->date_echeance)
+                                                    Ech&eacute;ance :
+                                                    {{ \Carbon\Carbon::parse($facture->date_echeance)->format('d/m/Y') }}
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                                <td width="220" style="vertical-align:top; text-align:right;">
+                                    <table border="0" cellpadding="0" cellspacing="0" align="right">
+                                        <tr><td class="info-lbl" style="text-align:right;"><strong>SIGNATURE &amp; CACHET</strong></td></tr>
+                                        <tr><td class="h10"></td></tr>
+                                        <tr><td class="sig-box">&nbsp;</td></tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+    <tr><td class="h30"></td></tr>
+</table>
+
+{{-- ════════════════════════════════════
+     COORDONNÉES BANCAIRES
+════════════════════════════════════ --}}
+@if($magasinEmetteur?->iban)
+    <table width="560" border="0" cellpadding="0" cellspacing="0" align="center" bgcolor="#ffffff">
+        <tr>
+            <td>
+                <table width="460" border="0" cellpadding="0" cellspacing="0" align="center">
+                    <tr><td class="info-lbl"><strong>VIREMENT BANCAIRE</strong></td></tr>
+                    @if($magasinEmetteur?->banque_domiciliation)
+                        <tr><td class="h10"></td></tr>
+                        <tr><td class="info-val">Domiciliation : {{ $magasinEmetteur->banque_domiciliation }}</td></tr>
+                    @endif
+                    <tr><td class="h10"></td></tr>
+                    <tr>
+                        <td>
+                            <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td class="bank-lbl">IBAN</td>
+                                    <td class="bank-lbl">BIC</td>
+                                    <td class="bank-lbl">Banque</td>
+                                    <td class="bank-lbl">Guichet</td>
+                                    <td class="bank-lbl">Compte</td>
+                                    <td class="bank-lbl">Cl&eacute; RIB</td>
+                                </tr>
+                                <tr>
+                                    <td class="bank-val">{{ $magasinEmetteur?->iban ?? '&mdash;' }}</td>
+                                    <td class="bank-val">{{ $magasinEmetteur?->bic ?? '&mdash;' }}</td>
+                                    <td class="bank-val">{{ $magasinEmetteur?->banque_code ?? '&mdash;' }}</td>
+                                    <td class="bank-val">{{ $magasinEmetteur?->banque_guichet ?? '&mdash;' }}</td>
+                                    <td class="bank-val">{{ $magasinEmetteur?->banque_compte ?? '&mdash;' }}</td>
+                                    <td class="bank-val">{{ $magasinEmetteur?->banque_cle ?? '&mdash;' }}</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr><td class="h30"></td></tr>
+    </table>
+@endif
+
+{{-- ════════════════════════════════════
+     NOTE LÉGALE
+════════════════════════════════════ --}}
+<table width="560" border="0" cellpadding="0" cellspacing="0" align="center" bgcolor="#ffffff">
+    <tr>
+        <td>
+            <table width="460" border="0" cellpadding="0" cellspacing="0" align="center">
+                <tr>
+                    <td class="alert-legal">
+                        @if($facture->notes ?? false)
+                            {{ $facture->notes }}
+                        @else
+                            En cas de retard de paiement, application d'une indemnit&eacute; forfaitaire pour frais
+                            de recouvrement de 40 &euro; selon l'article D. 441-5 du code du commerce.
+                            Taux des p&eacute;nalit&eacute;s de retard : 4 %. Pas d'escompte pour r&egrave;glement anticip&eacute;.
+                        @endif
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+    <tr><td class="h30"></td></tr>
+</table>
+
+{{-- ════════════════════════════════════
+     FOOTER
+════════════════════════════════════ --}}
+<table width="560" border="0" cellpadding="0" cellspacing="0" align="center" bgcolor="#ffffff">
+    <tr>
+        <td>
+            <table width="460" border="0" cellpadding="0" cellspacing="0" align="center">
+                <tr>
+                    <td class="footer-text">
+                        Document g&eacute;n&eacute;r&eacute; le {{ $date_impression }}
+                        &mdash; Facture N&deg;&nbsp;{{ $facture->numero ?? $facture->id }}
+                    </td>
+                </tr>
+                <tr><td class="h10"></td></tr>
+                <tr>
+                    <td class="footer-note">
+                        @if($magasinEmetteur?->siret)
+                            SIRET : {{ $magasinEmetteur->siret }}
+                        @endif
+                        @if($magasinEmetteur?->num_tva)
+                            &nbsp;&mdash;&nbsp; TVA : {{ $magasinEmetteur->num_tva }}
+                        @endif
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+    <tr><td class="h50"></td></tr>
+</table>
+
 </body>
 </html>
