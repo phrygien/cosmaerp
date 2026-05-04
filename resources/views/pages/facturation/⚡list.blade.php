@@ -6,6 +6,7 @@ use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
 use App\Models\Facture;
 use Flux\Flux;
+use Illuminate\Support\Facades\DB;
 
 new class extends Component
 {
@@ -30,6 +31,7 @@ new class extends Component
     public int    $perPage       = 10;
 
     public bool $showFilters = false;
+    public array $updatingStates = [];
 
     public function sort(string $column): void
     {
@@ -61,6 +63,54 @@ new class extends Component
             text: 'Tous les filtres ont été réinitialisés avec succès',
             variant: 'info'
         );
+    }
+
+    public function toggleValidate(int $id): void
+    {
+        $this->updatingStates[$id] = true;
+
+        try {
+            DB::beginTransaction();
+
+            $facture = Facture::findOrFail($id);
+
+            if ($facture->state == 1) {
+                Flux::toast(
+                    heading: 'Information',
+                    text: 'Cette facture est déjà validée.',
+                    variant: 'info'
+                );
+                return;
+            }
+
+            $facture->state = 1;
+            $facture->date_validation = now();
+            $facture->save();
+
+            DB::commit();
+
+            unset($this->factures);
+            unset($this->stats);
+
+            $this->dispatch('facture-updated');
+
+            Flux::toast(
+                heading: 'Facture validée',
+                text: "La facture N°{$facture->numero} a été validée avec succès",
+                variant: 'success'
+            );
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Flux::toast(
+                heading: 'Erreur',
+                text: "Impossible de valider la facture : " . $e->getMessage(),
+                variant: 'danger'
+            );
+        } finally {
+            unset($this->updatingStates[$id]);
+        }
     }
 
     #[On('facture-created')]
@@ -312,14 +362,39 @@ new class extends Component
                             </flux:badge>
                         </flux:table.cell>
 
+                        {{-- État avec Toggle --}}
                         <flux:table.cell class="text-center">
-                            @if($facture->state == 1)
-                                <flux:badge size="sm" color="green" inset="top bottom">Validée</flux:badge>
-                            @else
-                                <flux:badge size="sm" color="zinc" inset="top bottom">En cours</flux:badge>
-                            @endif
+                            <div class="flex items-center justify-center">
+                                @if(isset($updatingStates[$facture->id]))
+                                    <div class="flex items-center justify-center">
+                                        <svg class="animate-spin h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                                        </svg>
+                                    </div>
+                                @elseif($facture->state == 0)
+                                    <button
+                                        wire:click="toggleValidate({{ $facture->id }})"
+                                        type="button"
+                                        role="switch"
+                                        aria-checked="false"
+                                        class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 hover:opacity-80"
+                                        style="background-color: #d1d5db"
+                                    >
+                                        <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-1" />
+                                        <span class="sr-only">Valider la facture</span>
+                                    </button>
+                                    <span class="text-xs text-zinc-400 ml-2">Valider</span>
+                                @else
+                                    <flux:badge size="sm" color="green" class="gap-1">
+                                        <flux:icon name="check-circle" class="size-3" />
+                                        Validée
+                                    </flux:badge>
+                                @endif
+                            </div>
                         </flux:table.cell>
 
+                        {{-- Actions --}}
                         <flux:table.cell class="text-right">
                             <div class="flex items-center justify-end gap-1">
                                 @if($facture->state == 0)
