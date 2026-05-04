@@ -79,7 +79,7 @@ class FactureController extends Controller
         $pdf = Pdf::loadView('pdf.facture', $data)
             ->setPaper('a4', 'portrait')
             ->setOptions([
-                'defaultFont'          => 'DejaVu Sans',
+                'defaultFont'          => 'Roboto Condensed', // ← était 'DejaVu Sans'
                 'isRemoteEnabled'      => false,
                 'isHtml5ParserEnabled' => true,
                 'dpi'                  => 150,
