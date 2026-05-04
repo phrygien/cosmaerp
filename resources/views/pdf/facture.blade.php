@@ -574,11 +574,11 @@
             <td class="party-cell left">
                 <div class="party-label">Fournisseur</div>
                 <div class="party-name">
-                    {{ $fournisseur?->nom ?? $fournisseur?->raison_sociale ?? '—' }}
+                    {{ $fournisseur?->name ?? $fournisseur?->raison_social ?? '—' }}
                 </div>
                 <div class="party-info">
-                    @if($fournisseur?->adresse)
-                        {{ $fournisseur->adresse }}<br>
+                    @if($fournisseur?->adresse_siege)
+                        {{ $fournisseur->adresse_siege }}<br>
                     @endif
                     @if($fournisseur?->ville || $fournisseur?->code_postal)
                         {{ $fournisseur?->code_postal }} {{ $fournisseur?->ville }}<br>
@@ -602,11 +602,11 @@
             <td class="party-cell right">
                 <div class="party-label">Livraison</div>
                 <div class="party-name">
-                    {{ $magasin?->nom ?? '—' }}
+                    {{ $magasin?->name ?? '—' }}
                 </div>
                 <div class="party-info">
-                    @if($magasin?->adresse)
-                        {{ $magasin->adresse }}<br>
+                    @if($magasin?->adress)
+                        {{ $magasin->adress }}<br>
                     @endif
                     @if($magasin?->ville || $magasin?->code_postal)
                         {{ $magasin?->code_postal }} {{ $magasin?->ville }}<br>
