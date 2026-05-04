@@ -13,12 +13,6 @@
             $truckB64 = 'data:image/png;base64,' . base64_encode(file_get_contents($truckPath));
         }
 
-        $logoB64  = null;
-        $logoPath = public_path('cosma.png');
-        if (file_exists($logoPath)) {
-            $logoB64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
-        }
-
         // ── Chemins absolus pour les polices ────────────────────────────
         $fontRegular = public_path('fonts/roboto-condensed/RobotoCondensed-Regular.ttf');
         $fontBold    = public_path('fonts/roboto-condensed/RobotoCondensed-Bold.ttf');
@@ -74,15 +68,15 @@
            LOGOTYPE + TITRE
         ══════════════════════════ */
         .logotype {
-            background: white;
-            color: #fff;
+            background: #ffffff;
             width: 75px;
             height: 75px;
-            line-height: 75px;
             text-align: center;
+            vertical-align: middle;
             font-size: 11px;
             font-weight: 700;
             letter-spacing: 0.5px;
+            padding: 0;
         }
 
         .invoice-banner {
@@ -92,7 +86,7 @@
             font-weight: bold;
             letter-spacing: -1px;
             height: 75px;
-            line-height: 75px;
+            vertical-align: middle;
             color: #1a1a1a;
         }
 
@@ -420,20 +414,22 @@
     {{-- ══════════════════════════════════════════════
          EN-TÊTE : Logo + Titre
     ══════════════════════════════════════════════ --}}
-    <table width="100%">
+    <table width="100%" style="border-collapse:collapse; height:75px;">
         <tr>
-            <td width="75px">
-                <div class="logotype">
-                    @if($logoB64)
-                        <img src="{{ $logoB64 }}"
-                             style="width:55px; height:55px; object-fit:contain; vertical-align:middle;" />
-                    @else
+            {{-- Cellule logo : vertical-align middle sur le <td> (DomPDF ignore line-height sur div) --}}
+            <td width="75" height="75" style="width:75px; height:75px; background:#ffffff; text-align:center; vertical-align:middle; padding:0;">
+                @if(!empty($logoB64))
+                    <img src="{{ $logoB64 }}"
+                         style="width:65px; height:65px; display:block; margin:0 auto;" />
+                @else
+                    <span style="font-size:18px; font-weight:700; color:#333;">
                         {{ strtoupper(substr($magasinEmetteur?->nom ?? config('app.name', 'Cosma'), 0, 2)) }}
-                    @endif
-                </div>
+                    </span>
+                @endif
             </td>
-            <td>
-                <div class="invoice-banner">Facture</div>
+            {{-- Cellule titre : vertical-align middle sur le <td> --}}
+            <td height="75" style="height:75px; background:#ffd9e8; vertical-align:middle; padding-left:30px;">
+                <span style="font-size:22px; font-weight:bold; letter-spacing:-1px; color:#1a1a1a;">Facture</span>
             </td>
         </tr>
     </table>
