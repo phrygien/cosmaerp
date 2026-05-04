@@ -86,31 +86,29 @@ new class extends Component
             Flux::modal('delete-facture')->close();
         }
     }
-
-    public function render(): mixed
-    {
-        return <<<'HTML'
-        <flux:modal name="delete-facture" class="min-w-[22rem]">
-            <div class="space-y-6">
-                <div>
-                    <flux:heading size="lg">Supprimer la facture ?</flux:heading>
-                    <flux:text class="mt-2">
-                        Vous êtes sur le point de supprimer la facture
-                        <strong>{{ $factureNumero }}</strong>.<br>
-                        Cette action est irréversible et supprimera également toutes les lignes associées.
-                    </flux:text>
-                </div>
-                <div class="flex gap-2">
-                    <flux:spacer />
-                    <flux:modal.close>
-                        <flux:button variant="ghost">Annuler</flux:button>
-                    </flux:modal.close>
-                    <flux:button wire:click="delete" variant="danger">
-                        Supprimer
-                    </flux:button>
-                </div>
-            </div>
-        </flux:modal>
-        HTML;
-    }
 };
+?>
+
+<div>
+    <flux:modal name="delete-facture" class="min-w-[22rem]">
+        <div class="space-y-6">
+            <div>
+                <flux:heading size="lg">Supprimer la facture ?</flux:heading>
+                <flux:text class="mt-2">
+                    Vous êtes sur le point de supprimer la facture
+                    <strong>{{ $factureNumero }}</strong>.<br>
+                    Cette action est irréversible et supprimera également toutes les lignes associées.
+                </flux:text>
+            </div>
+            <div class="flex gap-2">
+                <flux:spacer />
+                <flux:modal.close>
+                    <flux:button variant="ghost">Annuler</flux:button>
+                </flux:modal.close>
+                <flux:button wire:click="delete" variant="danger">
+                    Supprimer
+                </flux:button>
+            </div>
+        </div>
+    </flux:modal>
+</div>
