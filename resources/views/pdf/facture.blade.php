@@ -16,8 +16,8 @@
         $fontBold    = public_path('fonts/open-sans/OpenSans-Bold.ttf');
         $fontItalic  = public_path('fonts/open-sans/OpenSans-Italic.ttf');
 
-        $blue   = '#1565C0';
-        $lblue  = '#1E88E5';
+        $blue   = '#a53860';
+        $lblue  = '#c4567a';
         $yellow = '#F9A825';
         $white  = '#ffffff';
         $dgrey  = '#333333';
@@ -371,7 +371,7 @@
                 @forelse($lignes as $i => $ligne)
                     <tr bgcolor="{{ $i % 2 === 0 ? '#ffffff' : '#f7f7f7' }}">
                         <td class="td-data">
-                            <strong style="color:#1565C0;">{{ $ligne['designation'] }}</strong>
+                            <strong style="color:#a53860;">{{ $ligne['designation'] }}</strong>
                         </td>
                         <td class="td-data-center" style="font-size:10px; color:#666;">
                             {{ $ligne['article'] ?? '—' }}
