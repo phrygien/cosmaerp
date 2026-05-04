@@ -37,7 +37,7 @@
 
         body {
             font-family: 'Roboto Condensed', Helvetica, Arial, sans-serif;
-            font-size: 13px;
+            font-size: 10px;
             color: #333;
             background: #ffffff;
             line-height: 1.5;
