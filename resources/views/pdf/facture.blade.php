@@ -87,7 +87,6 @@
 
         .invoice-banner {
             background: #ffd9e8;
-            border-left: 15px solid #fff;
             padding-left: 30px;
             font-size: 22px;
             font-weight: bold;
