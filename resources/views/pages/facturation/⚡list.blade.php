@@ -326,7 +326,7 @@ new class extends Component
                                     size="sm"
                                     variant="ghost"
                                     inset="top bottom"
-                                    wire:click="edit({{ $facture->id }})"
+                                    :href="route('facturation.edit', $facture->id)"
                                     title="Modifier"
                                 >
                                     <i class="hgi-stroke hgi-pencil-edit-01 text-indigo-400"></i>
