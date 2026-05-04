@@ -409,6 +409,7 @@ new class extends Component
                                     <flux:button
                                         size="sm"
                                         variant="ghost"
+                                        wire:navigate
                                         inset="top bottom"
                                         :href="route('facturation.edit', $facture->id)"
                                         title="Modifier"
