@@ -592,9 +592,6 @@
     <div class="spacer"></div>
     <table width="100%" style="margin-bottom:6px;">
         <tr>
-            <td width="46px">
-                <div class="section-icon">ART.</div>
-            </td>
             <td style="vertical-align:middle;">
                 <h3 style="margin:0;">Lignes de facture</h3>
             </td>
