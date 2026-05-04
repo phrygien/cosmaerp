@@ -372,6 +372,5 @@ new class extends Component
 
     </flux:card>
 
-    <livewire:pages::facturation.edit />
     <livewire:pages::facturation.delete />
 </div>
