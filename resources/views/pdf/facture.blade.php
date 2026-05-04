@@ -74,7 +74,7 @@
            LOGOTYPE + TITRE
         ══════════════════════════ */
         .logotype {
-            background: #000;
+            background: white;
             color: #fff;
             width: 75px;
             height: 75px;
