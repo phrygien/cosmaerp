@@ -322,15 +322,27 @@ new class extends Component
 
                         <flux:table.cell class="text-right">
                             <div class="flex items-center justify-end gap-1">
-                                <flux:button
-                                    size="sm"
-                                    variant="ghost"
-                                    inset="top bottom"
-                                    :href="route('facturation.edit', $facture->id)"
-                                    title="Modifier"
-                                >
-                                    <i class="hgi-stroke hgi-pencil-edit-01 text-indigo-400"></i>
-                                </flux:button>
+                                @if($facture->state == 0)
+                                    <flux:button
+                                        size="sm"
+                                        variant="ghost"
+                                        inset="top bottom"
+                                        :href="route('facturation.edit', $facture->id)"
+                                        title="Modifier"
+                                    >
+                                        <i class="hgi-stroke hgi-pencil-edit-01 text-indigo-400"></i>
+                                    </flux:button>
+                                @else
+                                    <flux:button
+                                        size="sm"
+                                        variant="ghost"
+                                        inset="top bottom"
+                                        disabled
+                                        title="Facture validée — modification impossible"
+                                    >
+                                        <i class="hgi-stroke hgi-pencil-edit-01 text-zinc-300 dark:text-zinc-600"></i>
+                                    </flux:button>
+                                @endif
 
                                 <flux:button
                                     size="sm"
