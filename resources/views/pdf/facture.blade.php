@@ -16,10 +16,9 @@
         $fontBold    = public_path('fonts/open-sans/OpenSans-Bold.ttf');
         $fontItalic  = public_path('fonts/open-sans/OpenSans-Italic.ttf');
 
-        // Couleurs du modèle
-        $blue   = '#1565C0';   // bleu foncé entêtes
-        $lblue  = '#1E88E5';   // bleu moyen liens/texte émetteur
-        $yellow = '#F9A825';   // jaune logo accent
+        $blue   = '#1565C0';
+        $lblue  = '#1E88E5';
+        $yellow = '#F9A825';
         $white  = '#ffffff';
         $dgrey  = '#333333';
         $lgrey  = '#f2f2f2';
@@ -54,7 +53,6 @@
             background: #fff;
         }
 
-        /* ── utilitaires ── */
         .h5  { height:5px;  font-size:0; line-height:0; }
         .h8  { height:8px;  font-size:0; line-height:0; }
         .h12 { height:12px; font-size:0; line-height:0; }
@@ -62,7 +60,6 @@
         .h20 { height:20px; font-size:0; line-height:0; }
         .h30 { height:30px; font-size:0; line-height:0; }
 
-        /* ── en-tête bleu ── */
         .th-blue {
             background: {{ $blue }};
             color: #fff;
@@ -87,7 +84,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* ── cellule donnée (lignes claires alternées) ── */
         .td-data {
             font-size: 11px;
             color: #333;
@@ -117,7 +113,6 @@
             border-right: 1px solid {{ $border }};
         }
 
-        /* ── texte émetteur bleu ── */
         .emit-txt {
             font-size: 11px;
             color: {{ $lblue }};
@@ -125,7 +120,6 @@
             vertical-align: top;
         }
 
-        /* ── totaux ── */
         .tot-lbl {
             background: {{ $blue }};
             color: #fff;
@@ -159,7 +153,6 @@
             white-space: nowrap;
         }
 
-        /* ── note footer ── */
         .footer-italic {
             font-size: 10px;
             color: {{ $lblue }};
@@ -186,7 +179,6 @@
         <td>
             <table width="520" border="0" cellpadding="0" cellspacing="0" align="center">
                 <tr>
-                    {{-- Logo gauche --}}
                     <td width="260" style="vertical-align:middle;">
                         @if(!empty($logoB64))
                             <img src="{{ $logoB64 }}" height="55" alt="logo" border="0"
@@ -198,7 +190,6 @@
                             </span>
                         @endif
                     </td>
-                    {{-- FACTURE droite --}}
                     <td width="260" style="vertical-align:middle; text-align:right;">
                         <span style="font-size:28px; font-weight:700; color:{{ $blue }};
                                      letter-spacing:1px; font-family:'OS',DejaVu Sans,sans-serif;">
@@ -220,7 +211,6 @@
         <td>
             <table width="520" border="0" cellpadding="0" cellspacing="0" align="center">
                 <tr>
-                    {{-- Colonne gauche : coordonnées émetteur --}}
                     <td width="255" style="vertical-align:top;">
                         <table border="0" cellpadding="0" cellspacing="0">
                             <tr>
@@ -243,16 +233,13 @@
                         </table>
                     </td>
 
-                    {{-- Colonne droite : grille N° facture / date / client / modalités --}}
                     <td width="255" style="vertical-align:top;">
                         <table width="255" border="0" cellpadding="0" cellspacing="0"
                                style="border-collapse:collapse; border:1px solid {{ $border }};">
-                            {{-- Entêtes --}}
                             <tr>
                                 <td width="128" class="th-blue">N&deg; DE FACTURE</td>
                                 <td width="127" class="th-blue">DATE</td>
                             </tr>
-                            {{-- Valeurs --}}
                             <tr>
                                 <td class="td-data-center">
                                     {{ $facture->numero ?? str_pad($facture->id, 6, '0', STR_PAD_LEFT) }}
@@ -263,15 +250,13 @@
                                         : $date_impression }}
                                 </td>
                             </tr>
-                            {{-- Entêtes ligne 2 --}}
                             <tr>
                                 <td class="th-blue">ID CLIENT</td>
                                 <td class="th-blue">MODALIT&Eacute;S</td>
                             </tr>
-                            {{-- Valeurs --}}
                             <tr>
                                 <td class="td-data-center">
-                                    {{ $fournisseur?->code ?? $fournisseur?->id ?? '&mdash;' }}
+                                    {{ $fournisseur?->code ?? $fournisseur?->id ?? '—' }}
                                 </td>
                                 <td class="td-data-center">
                                     {{ $facture->conditions_paiement ?? 'Net 30 jours' }}
@@ -295,7 +280,6 @@
             <table width="520" border="0" cellpadding="0" cellspacing="0" align="center"
                    style="border-collapse:collapse;">
                 <tr>
-                    {{-- Facture pour --}}
                     <td width="255" style="vertical-align:top; padding-right:10px;">
                         <table width="255" border="0" cellpadding="0" cellspacing="0"
                                style="border-collapse:collapse; border:1px solid {{ $border }};">
@@ -307,7 +291,7 @@
                                     @if($fournisseur?->contact)
                                         ATTN : {{ $fournisseur->contact }}<br>
                                     @endif
-                                    {{ $fournisseur?->name ?? $fournisseur?->raison_social ?? '&mdash;' }}<br>
+                                    {{ $fournisseur?->name ?? $fournisseur?->raison_social ?? '—' }}<br>
                                     @if($fournisseur?->adresse_siege)
                                         {{ $fournisseur->adresse_siege }}<br>
                                     @endif
@@ -325,7 +309,6 @@
                         </table>
                     </td>
 
-                    {{-- Expédition à --}}
                     <td width="255" style="vertical-align:top;">
                         <table width="255" border="0" cellpadding="0" cellspacing="0"
                                style="border-collapse:collapse; border:1px solid {{ $border }};">
@@ -347,8 +330,7 @@
                                         {{ $magasin->telephone }}
                                     @endif
                                     @if(!$magasin)
-                                        {{-- fallback : même adresse que fournisseur --}}
-                                        {{ $fournisseur?->name ?? '&mdash;' }}<br>
+                                        {{ $fournisseur?->name ?? '—' }}<br>
                                         @if($fournisseur?->adresse_siege)
                                             {{ $fournisseur->adresse_siege }}<br>
                                         @endif
@@ -375,7 +357,6 @@
         <td>
             <table width="520" border="0" cellpadding="0" cellspacing="0" align="center"
                    style="border-collapse:collapse; border:1px solid {{ $border }};">
-                {{-- Entête --}}
                 <tr>
                     <td width="34%" class="th-blue-left">DESCRIPTION</td>
                     <td width="12%" class="th-blue">R&Eacute;F.</td>
@@ -386,14 +367,13 @@
                     <td width="14%" class="th-blue">MONTANT</td>
                 </tr>
 
-                {{-- Lignes articles --}}
                 @forelse($lignes as $i => $ligne)
                     <tr bgcolor="{{ $i % 2 === 0 ? '#ffffff' : '#f7f7f7' }}">
                         <td class="td-data">
                             <strong style="color:#1565C0;">{{ $ligne['designation'] }}</strong>
                         </td>
                         <td class="td-data-center" style="font-size:10px; color:#666;">
-                            {{ $ligne['article'] ?? '&mdash;' }}
+                            {{ $ligne['article'] ?? '—' }}
                         </td>
                         <td class="td-data-center">
                             {{ number_format($ligne['qte'], 0, ',', ' ') }}
@@ -407,8 +387,8 @@
                         <td class="td-data-center" style="color:#cc0000;">
                             @if($ligne['taux_remise'] > 0)
                                 {{ number_format($ligne['taux_remise'], 1) }}%
-                                @else
-                                    &mdash;
+                            @else
+                                —
                             @endif
                         </td>
                         <td class="td-data-right" style="font-weight:600;">
@@ -416,7 +396,6 @@
                         </td>
                     </tr>
                 @empty
-                    {{-- Lignes vides comme sur le modèle --}}
                     @for($i = 0; $i < 6; $i++)
                         <tr>
                             <td class="td-data">&nbsp;</td>
@@ -430,7 +409,6 @@
                     @endfor
                 @endforelse
 
-                {{-- Lignes vides padding (au moins 3 lignes vides sous les articles) --}}
                 @for($i = 0; $i < 3; $i++)
                     <tr>
                         <td class="td-data">&nbsp;</td>
@@ -465,7 +443,6 @@
             <table width="520" border="0" cellpadding="0" cellspacing="0" align="center">
                 <tr style="vertical-align:top;">
 
-                    {{-- Gauche : remarques + MERCI --}}
                     <td width="245" style="vertical-align:top; padding-right:10px;">
                         <table border="0" cellpadding="0" cellspacing="0">
                             <tr>
@@ -484,7 +461,6 @@
                                 </td>
                             </tr>
                             <tr><td class="h30"></td></tr>
-                            {{-- MERCI --}}
                             <tr>
                                 <td style="font-size:20px; font-weight:700; color:{{ $blue }};
                                            text-align:center; letter-spacing:1px;">
@@ -494,12 +470,10 @@
                         </table>
                     </td>
 
-                    {{-- Droite : tableau totaux --}}
                     <td width="265" style="vertical-align:top;">
                         <table width="265" border="0" cellpadding="0" cellspacing="0"
                                style="border-collapse:collapse;">
 
-                            {{-- Sous-total HT --}}
                             <tr>
                                 <td width="170" class="tot-lbl">SOUS-TOTAL HT</td>
                                 <td width="95"  class="tot-val">
@@ -507,7 +481,6 @@
                                 </td>
                             </tr>
 
-                            {{-- Remise globale --}}
                             @if($total_remise > 0)
                                 <tr>
                                     <td class="tot-lbl">REMISE</td>
@@ -517,7 +490,6 @@
                                 </tr>
                             @endif
 
-                            {{-- TVA par taux --}}
                             @foreach($tvaGroupes as $recap)
                                 <tr>
                                     <td class="tot-lbl">
@@ -529,7 +501,6 @@
                                 </tr>
                             @endforeach
 
-                            {{-- Acompte --}}
                             @if(isset($acompte) && $acompte > 0)
                                 <tr>
                                     <td class="tot-lbl">ACOMPTE VERS&Eacute;</td>
@@ -539,15 +510,14 @@
                                 </tr>
                             @endif
 
-                            {{-- Mode paiement --}}
+                            {{-- ✅ CORRECTION : utilisation du caractère — directement au lieu de &mdash; --}}
                             <tr>
                                 <td class="tot-lbl">MODE DE PAIEMENT</td>
                                 <td class="tot-val" style="font-size:10px;">
-                                    {{ $facture->mode_paiement ?? '&mdash;' }}
+                                    {{ $facture->mode_paiement ?: '—' }}
                                 </td>
                             </tr>
 
-                            {{-- TOTAL TTC --}}
                             <tr>
                                 <td class="tot-lbl" style="font-size:13px; padding:8px 10px;">TOTAL TTC</td>
                                 <td class="tot-val-big">
@@ -584,12 +554,12 @@
                         <td style="font-size:10px; font-weight:700; color:#666; text-transform:uppercase; padding:4px 8px; vertical-align:top;">Cl&eacute; RIB</td>
                     </tr>
                     <tr>
-                        <td style="font-size:11px; font-weight:700; color:#333; padding:4px 8px; border-top:1px solid {{ $border }};">{{ $magasinEmetteur?->iban ?? '&mdash;' }}</td>
-                        <td style="font-size:11px; font-weight:700; color:#333; padding:4px 8px; border-top:1px solid {{ $border }};">{{ $magasinEmetteur?->bic ?? '&mdash;' }}</td>
-                        <td style="font-size:11px; font-weight:700; color:#333; padding:4px 8px; border-top:1px solid {{ $border }};">{{ $magasinEmetteur?->banque_code ?? '&mdash;' }}</td>
-                        <td style="font-size:11px; font-weight:700; color:#333; padding:4px 8px; border-top:1px solid {{ $border }};">{{ $magasinEmetteur?->banque_guichet ?? '&mdash;' }}</td>
-                        <td style="font-size:11px; font-weight:700; color:#333; padding:4px 8px; border-top:1px solid {{ $border }};">{{ $magasinEmetteur?->banque_compte ?? '&mdash;' }}</td>
-                        <td style="font-size:11px; font-weight:700; color:#333; padding:4px 8px; border-top:1px solid {{ $border }};">{{ $magasinEmetteur?->banque_cle ?? '&mdash;' }}</td>
+                        <td style="font-size:11px; font-weight:700; color:#333; padding:4px 8px; border-top:1px solid {{ $border }};">{{ $magasinEmetteur?->iban ?? '—' }}</td>
+                        <td style="font-size:11px; font-weight:700; color:#333; padding:4px 8px; border-top:1px solid {{ $border }};">{{ $magasinEmetteur?->bic ?? '—' }}</td>
+                        <td style="font-size:11px; font-weight:700; color:#333; padding:4px 8px; border-top:1px solid {{ $border }};">{{ $magasinEmetteur?->banque_code ?? '—' }}</td>
+                        <td style="font-size:11px; font-weight:700; color:#333; padding:4px 8px; border-top:1px solid {{ $border }};">{{ $magasinEmetteur?->banque_guichet ?? '—' }}</td>
+                        <td style="font-size:11px; font-weight:700; color:#333; padding:4px 8px; border-top:1px solid {{ $border }};">{{ $magasinEmetteur?->banque_compte ?? '—' }}</td>
+                        <td style="font-size:11px; font-weight:700; color:#333; padding:4px 8px; border-top:1px solid {{ $border }};">{{ $magasinEmetteur?->banque_cle ?? '—' }}</td>
                     </tr>
                 </table>
             </td>
