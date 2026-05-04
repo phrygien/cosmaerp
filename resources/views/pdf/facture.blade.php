@@ -5,6 +5,11 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Facture {{ $facture->numero ?? $facture->id }}</title>
     <style>
+        @page {
+            size: A4 portrait;
+            margin: 0;
+        }
+
         @font-face {
             font-family: 'Roboto Condensed';
             font-style: normal;
@@ -32,7 +37,7 @@
 
         body {
             font-family: 'Roboto Condensed', 'DejaVu Sans', sans-serif;
-            font-size: 12px;
+            font-size: 9px;
             color: #1a1a2e;
             background: #ffffff;
             line-height: 1.4;
