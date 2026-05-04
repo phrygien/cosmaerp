@@ -13,6 +13,11 @@
             $truckB64 = 'data:image/png;base64,' . base64_encode(file_get_contents($truckPath));
         }
 
+        $logoB64  = null;
+        $logoPath = public_path('cosma.png');
+        if (file_exists($logoPath)) {
+            $logoB64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
+        }
         // ── Chemins absolus pour les polices ────────────────────────────
         $fontRegular = public_path('fonts/roboto-condensed/RobotoCondensed-Regular.ttf');
         $fontBold    = public_path('fonts/roboto-condensed/RobotoCondensed-Bold.ttf');
