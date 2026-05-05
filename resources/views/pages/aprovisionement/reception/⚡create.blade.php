@@ -8,6 +8,7 @@ use App\Models\ReceptionCommande;
 use App\Models\Commande;
 use App\Models\BonCommande;
 use App\Models\StockMagasin;
+use App\Models\Product;
 use App\Enums\CommandeStatus;
 use Flux\Flux;
 
@@ -144,7 +145,7 @@ new class extends Component
         }
 
         try {
-            DB::transaction(function () use ($details) {
+            // DB::transaction(function () use ($details) {
                 // Mise à jour du stock magasin via les destinations
                 $details->load('destinations');
 
@@ -165,6 +166,10 @@ new class extends Component
                                 'deposite_date'      => now(),
                             ]
                         );
+                        $product = Product::where('id',  $detail->product_id)->first();
+
+                        //Synchronisation avec les autre boutique
+                        \App\Services\KafkaProducerService::publish($product->EAN, $destination->quantite, 'erp');
                     }
                 }
 
@@ -174,7 +179,7 @@ new class extends Component
                     'date_reception' => now(),
                 ]);
 
-            });
+            // });
 
             Flux::toast(
                 heading: 'Réception confirmée',

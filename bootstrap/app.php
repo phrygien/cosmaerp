@@ -18,6 +18,11 @@ return Application::configure(basePath: dirname(__DIR__))
             "permission" => CheckPermission::class,
         ]);
     })
+    ->withMiddleware(function (Middleware $middleware) {
+        $middleware->alias([
+            'webhook.verify' => \App\Http\Middleware\VerifyWebhookSignature::class,
+        ]);
+    })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })
