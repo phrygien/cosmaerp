@@ -73,6 +73,8 @@ class KafkaConsumeStock extends Command
             'source'   => $data['source'],
         ]);
 
+        $this->info('Message recu : ' . $data['event_id'] . $data['sku'] . $data['delta'] . $data['source']);
+
         $magasinId = (int) env('STOCK_MAGASIN_ID');
 
         if ($data['source'] !== 'erp') {
