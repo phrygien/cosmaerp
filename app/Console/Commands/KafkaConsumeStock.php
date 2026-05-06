@@ -24,14 +24,13 @@ class KafkaConsumeStock extends Command
         $conf->set('auto.offset.reset', 'earliest');
         $conf->set('enable.auto.commit', 'true');
 
-        // Timeouts adaptés à un cluster multi-brokers
         $conf->set('socket.timeout.ms', '10000');
         $conf->set('session.timeout.ms', '30000');
         $conf->set('heartbeat.interval.ms', '3000');
         $conf->set('max.poll.interval.ms', '300000');
 
         $consumer = new KafkaConsumer($conf);
-        $consumer->subscribe([env('KAFKA_TOPIC', 'stock-topic')]);  // ← corrigé
+        $consumer->subscribe([env('KAFKA_TOPIC', 'stock-events')]);
 
         $this->info('Consumer démarré — en attente de messages...');
 
@@ -45,7 +44,6 @@ class KafkaConsumeStock extends Command
 
                 case RD_KAFKA_RESP_ERR__PARTITION_EOF:
                 case RD_KAFKA_RESP_ERR__TIMED_OUT:
-                    // Normal — pas de nouveaux messages
                     break;
 
                 default:
