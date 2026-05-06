@@ -11,7 +11,7 @@ class VerifyWebhookSignature
     {
         $signature = $request->header('X-Webhook-Secret');
 
-        if (!$signature || !hash_equals(env('WEBHOOK_SECRET'), $signature)) {
+        if (!$signature || env('WEBHOOK_SECRET') == $signature) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
