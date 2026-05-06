@@ -12,7 +12,7 @@ class StockController extends Controller
         $data = $request->validate([
             'sku'   => 'required|string',
             'delta' => 'required|integer',
-            'source' => 'required|integer', // exemple 'prestashop', 'magento', 'erp'
+            'source' => 'required|string', // exemple 'prestashop', 'magento', 'erp'
         ]);
 
         $kafka->publish($data['sku'], $data['delta'], $data['source']);
