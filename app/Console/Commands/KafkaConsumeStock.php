@@ -16,7 +16,7 @@ class KafkaConsumeStock extends Command
 
     public function handle(StockMagasinService $stockService, PrestashopService $prestashop)
     {
-        $conf = new \RdKafka\Conf();
+        $conf = new RdKafka\Conf();
         $conf->set('metadata.broker.list', env('KAFKA_BROKERS', '127.0.0.1:19092,127.0.0.1:19094,127.0.0.1:19096'));
         $conf->set('group.id', 'erp-stock-consumer');
         $conf->set('auto.offset.reset', 'earliest');
@@ -27,7 +27,7 @@ class KafkaConsumeStock extends Command
         $conf->set('heartbeat.interval.ms', '3000');
         $conf->set('max.poll.interval.ms', '300000');
 
-        $consumer = new \RdKafka\KafkaConsumer($conf);
+        $consumer = new RdKafka\KafkaConsumer($conf);
         $consumer->subscribe([env('KAFKA_TOPIC', 'stock-events')]);
 
         $this->info('Consumer démarré — en attente de messages...');

@@ -10,11 +10,11 @@ class KafkaProducerService
 
     public function __construct()
     {
-        $conf = new \RdKafka\Conf();
+        $conf = new RdKafka\Conf();
         $conf->set('metadata.broker.list', env('KAFKA_BROKERS', '127.0.0.1:9092'));
         $conf->set('socket.timeout.ms', '5000');
 
-        $this->producer = new \RdKafka\Producer($conf);
+        $this->producer = new RdKafka\Producer($conf);
     }
 
     public function publish(string $sku, int $delta, string $source): void
