@@ -6,7 +6,7 @@ use Illuminate\Support\Str;
 
 class KafkaProducerService
 {
-    private Producer $producer;
+    private \RdKafka\Producer $producer;
 
     public function __construct()
     {
@@ -31,7 +31,6 @@ class KafkaProducerService
 
         $topic->produce(RD_KAFKA_PARTITION_UA, 0, $payload);
 
-        // Flush — attend confirmation du broker (timeout 5s)
         $this->producer->flush(5000);
     }
 }
