@@ -25,7 +25,7 @@ class StockController extends Controller
             ->where('magasin_id', $magasinId)
             ->sum('nb_item');
 
-        if($nombre_stock >= $data['delta']){
+        if($nombre_stock >= ($data['delta'] * -1)){
             $kafka->publish($data['sku'], $data['delta'], $data['source']);
             return response()->json(['ok' => true, 'stock_actuel' => $nombre_stock]);
         }else{
