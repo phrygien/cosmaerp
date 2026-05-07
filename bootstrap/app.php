@@ -18,6 +18,10 @@ return Application::configure(basePath: dirname(__DIR__))
             "role" => CheckRole::class,
             "permission" => CheckPermission::class,
         ]);
+
+        $middleware->web(append: [
+            \App\Http\Middleware\TrackLastSee::class,
+        ]);
     })
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([

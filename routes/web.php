@@ -7,7 +7,7 @@ use App\Http\Controllers\BonCommandePdfController;
 Route::view("/", "welcome")->name("home");
 
 // Middleware partagé — évite la répétition et permet le cache de route
-Route::middleware(["auth", "verified"])->group(function () {
+Route::middleware(["auth", "verified", \App\Http\Middleware\TrackLastSee::class])->group(function () {
 
     // Dashboard
     Route::view("dashboard", "dashboard")->name("dashboard");

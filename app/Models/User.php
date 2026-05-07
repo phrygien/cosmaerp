@@ -14,7 +14,7 @@ use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-#[Fillable(["name", "email", "password", "status"])]
+#[Fillable(["name", "email", "password", "status", "last_seen_at"])]
 #[
     Hidden([
         "password",
@@ -38,6 +38,7 @@ class User extends Authenticatable
         return [
             "email_verified_at" => "datetime",
             "password" => "hashed",
+            "last_seen_at" => "datetime",
         ];
     }
 
@@ -117,5 +118,10 @@ class User extends Authenticatable
         $ids = Role::whereIn("slug", $slugs)->pluck("id");
 
         $this->roles()->sync($ids);
+    }
+
+    public function getIsOnlineAttribute(): bool
+    {
+        return $this->last_seen_at && $this->last_seen_at->gt(now()->subMinutes(5));
     }
 }

@@ -156,7 +156,7 @@ new class extends Component
         @endif
     </div>
 
-    <!-- Stat Cards -->
+    {{-- Stat Cards --}}
     <div class="grid grid-cols-4 gap-4 mb-6">
         <flux:card class="p-5">
             <div class="flex items-center justify-between">
@@ -191,7 +191,7 @@ new class extends Component
         </flux:card>
     </div>
 
-    <!-- Bandeau trashed -->
+    {{-- Bandeau trashed --}}
     @if ($showTrashed)
         <div class="flex items-start gap-2 mb-4 px-4 py-2.5 rounded-lg bg-red-500/10 border border-red-500/20">
             <i class="hgi-stroke hgi-alert-02 text-red-400 shrink-0 mt-0.5"></i>
@@ -286,11 +286,28 @@ new class extends Component
                 @forelse ($this->users as $user)
                     <flux:table.row :key="$user->id" wire:key="user-{{ $user->id }}" class="{{ $showTrashed ? 'opacity-60' : '' }}">
 
+                        {{-- Utilisateur + indicateur en ligne --}}
                         <flux:table.cell>
                             <div class="flex items-center gap-3">
-                                <flux:avatar size="sm" name="{{ $user->name }}" />
+                                <div class="relative shrink-0">
+                                    <flux:avatar size="sm" name="{{ $user->name }}" />
+                                    <span
+                                        title="{{ $user->is_online
+                                            ? 'En ligne'
+                                            : ($user->last_seen_at
+                                                ? 'Vu ' . $user->last_seen_at->diffForHumans()
+                                                : 'Jamais connecté') }}"
+                                        class="absolute -bottom-0.5 -right-0.5 block w-2.5 h-2.5 rounded-full ring-2 ring-white dark:ring-zinc-900
+                                               {{ $user->is_online ? 'bg-green-400' : 'bg-zinc-400' }}"
+                                    ></span>
+                                </div>
                                 <div class="min-w-0">
-                                    <p class="text-sm font-medium truncate">{{ $user->name }}</p>
+                                    <div class="flex items-center gap-1.5">
+                                        <p class="text-sm font-medium truncate">{{ $user->name }}</p>
+                                        <span class="text-[10px] font-medium {{ $user->is_online ? 'text-green-500' : 'text-zinc-400' }} hidden sm:inline">
+                                            {{ $user->is_online ? 'En ligne' : 'Hors ligne' }}
+                                        </span>
+                                    </div>
                                     <p class="text-xs text-zinc-400 truncate md:hidden">{{ $user->email }}</p>
                                     <p class="text-xs text-zinc-400 sm:hidden">{{ $user->created_at->translatedFormat('d F Y') }}</p>
                                 </div>
@@ -329,11 +346,10 @@ new class extends Component
                             </flux:table.cell>
                         @endif
 
-                        {{-- Actions directes --}}
+                        {{-- Actions --}}
                         <flux:table.cell class="text-right">
                             <div class="flex items-center justify-end gap-1">
                                 @if ($showTrashed)
-                                    {{-- Restaurer --}}
                                     <flux:button
                                         size="sm"
                                         variant="ghost"
@@ -344,7 +360,6 @@ new class extends Component
                                         <i class="hgi-stroke hgi-arrow-turn-backward text-green-400"></i>
                                     </flux:button>
 
-                                    {{-- Supprimer définitivement --}}
                                     <flux:button
                                         size="sm"
                                         variant="ghost"
@@ -355,7 +370,6 @@ new class extends Component
                                         <i class="hgi-stroke hgi-delete-02 text-red-400"></i>
                                     </flux:button>
                                 @else
-                                    {{-- Modifier --}}
                                     <flux:button
                                         size="sm"
                                         variant="ghost"
@@ -366,7 +380,6 @@ new class extends Component
                                         <i class="hgi-stroke hgi-pencil-edit-01 text-indigo-400"></i>
                                     </flux:button>
 
-                                    {{-- Supprimer --}}
                                     <flux:button
                                         size="sm"
                                         variant="ghost"
