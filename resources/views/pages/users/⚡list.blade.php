@@ -23,6 +23,9 @@ new class extends Component
     #[Url(as: 'statut', except: '')]
     public string $filterStatus  = '';
 
+    #[Url(as: 'enligne', except: '')]
+    public string $filterOnline  = '';
+
     #[Url(as: 'par_page', except: 10)]
     public int    $perPage       = 10;
 
@@ -41,10 +44,11 @@ new class extends Component
         }
     }
 
-    public function updatedSearch(): void       { $this->resetPage(); }
-    public function updatedPerPage(): void      { $this->resetPage(); }
-    public function updatedShowTrashed(): void  { $this->resetPage(); }
-    public function updatedFilterStatus(): void { $this->resetPage(); }
+    public function updatedSearch(): void        { $this->resetPage(); }
+    public function updatedPerPage(): void       { $this->resetPage(); }
+    public function updatedShowTrashed(): void   { $this->resetPage(); }
+    public function updatedFilterStatus(): void  { $this->resetPage(); }
+    public function updatedFilterOnline(): void  { $this->resetPage(); }
 
     public function toggleFilters(): void
     {
@@ -53,7 +57,7 @@ new class extends Component
 
     public function resetFilters(): void
     {
-        $this->reset(['search', 'filterStatus', 'perPage', 'showTrashed']);
+        $this->reset(['search', 'filterStatus', 'filterOnline', 'perPage', 'showTrashed']);
         $this->resetPage();
 
         Flux::toast(
@@ -112,7 +116,7 @@ new class extends Component
     #[Computed]
     public function activeFiltersCount(): int
     {
-        return collect([$this->filterStatus])
+        return collect([$this->filterStatus, $this->filterOnline])
                 ->filter(fn($v) => $v !== '')
                 ->count()
             + ($this->showTrashed ? 1 : 0);
@@ -131,6 +135,15 @@ new class extends Component
             )
             ->when($this->filterStatus !== '', fn($query) =>
             $query->where('status', $this->filterStatus)
+            )
+            ->when($this->filterOnline === 'online', fn($q) =>
+            $q->where('last_seen_at', '>=', now()->subMinutes(5))
+            )
+            ->when($this->filterOnline === 'offline', fn($q) =>
+            $q->where(fn($q) =>
+            $q->whereNull('last_seen_at')
+                ->orWhere('last_seen_at', '<', now()->subMinutes(5))
+            )
             )
             ->orderBy($this->sortBy, $this->sortDirection)
             ->paginate($this->perPage);
@@ -249,12 +262,22 @@ new class extends Component
                 </div>
 
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
+
+                    {{-- Filtre statut compte --}}
                     <flux:radio.group wire:model.live="filterStatus" variant="segmented">
                         <flux:radio label="Tous"     value=""        />
                         <flux:radio label="Actifs"   value="enable"  />
                         <flux:radio label="Inactifs" value="disable" />
                     </flux:radio.group>
 
+                    {{-- Filtre présence en ligne --}}
+                    <flux:radio.group wire:model.live="filterOnline" variant="segmented">
+                        <flux:radio label="Tous"       value=""        />
+                        <flux:radio label="En ligne"   value="online"  />
+                        <flux:radio label="Hors ligne" value="offline" />
+                    </flux:radio.group>
+
+                    {{-- Voir supprimés --}}
                     <flux:tooltip :content="$showTrashed ? 'Masquer les supprimés' : 'Voir les supprimés'">
                         <flux:button
                             :variant="$showTrashed ? 'danger' : 'ghost'"
@@ -265,6 +288,7 @@ new class extends Component
                             {{ $showTrashed ? 'Masquer les supprimés' : 'Voir les supprimés' }}
                         </flux:button>
                     </flux:tooltip>
+
                 </div>
             </div>
         @endif
@@ -410,13 +434,13 @@ new class extends Component
                                     <i class="hgi-stroke hgi-user-group text-5xl text-zinc-400 mb-3"></i>
                                 @endif
                                 <p class="text-zinc-400 font-medium text-sm">
-                                    @if ($search || $filterStatus !== '' || $showTrashed)
+                                    @if ($search || $filterStatus !== '' || $filterOnline !== '' || $showTrashed)
                                         Aucun utilisateur trouvé pour ces filtres
                                     @else
                                         Aucun utilisateur enregistré
                                     @endif
                                 </p>
-                                @if ($search || $filterStatus !== '')
+                                @if ($search || $filterStatus !== '' || $filterOnline !== '')
                                     <flux:button variant="ghost" size="sm" wire:click="resetFilters" class="mt-3">
                                         Réinitialiser les filtres
                                     </flux:button>
