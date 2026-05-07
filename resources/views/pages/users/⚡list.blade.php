@@ -317,7 +317,7 @@ new class extends Component
                                     <flux:avatar
                                         size="sm"
                                         name="{{ $user->name }}"
-                                        color="{{ $user->is_online ? 'teal' : 'auto' }}"
+                                        color="{{ $user->is_online ? 'teal' : ($user->last_seen_at ? 'yellow' : 'rose') }}"
                                     />
                                     <span
                                         title="{{ $user->is_online
@@ -326,13 +326,13 @@ new class extends Component
                                                 ? 'Vu ' . $user->last_seen_at->diffForHumans()
                                                 : 'Jamais connecté') }}"
                                         class="absolute -bottom-0.5 -right-0.5 block w-2.5 h-2.5 rounded-full ring-2 ring-white dark:ring-zinc-900
-                                               {{ $user->is_online ? 'bg-green-400' : 'bg-zinc-400' }}"
+                                               {{ $user->is_online ? 'bg-green-400' : ($user->last_seen_at ? 'bg-yellow-400' : 'bg-rose-400') }}"
                                     ></span>
                                 </div>
                                 <div class="min-w-0">
                                     <p class="text-sm font-medium truncate">{{ $user->name }}</p>
                                     <p class="text-[10px] font-medium hidden sm:block
-                                        {{ $user->is_online ? 'text-green-500' : 'text-zinc-400' }}">
+                                        {{ $user->is_online ? 'text-green-500' : ($user->last_seen_at ? 'text-yellow-500' : 'text-rose-400') }}">
                                         @if ($user->is_online)
                                             En ligne
                                         @elseif ($user->last_seen_at)
