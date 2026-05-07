@@ -314,7 +314,11 @@ new class extends Component
                         <flux:table.cell>
                             <div class="flex items-center gap-3">
                                 <div class="relative shrink-0">
-                                    <flux:avatar size="sm" name="{{ $user->name }}" />
+                                    <flux:avatar
+                                        size="sm"
+                                        name="{{ $user->name }}"
+                                        color="{{ $user->is_online ? 'teal' : 'auto' }}"
+                                    />
                                     <span
                                         title="{{ $user->is_online
                                             ? 'En ligne'
