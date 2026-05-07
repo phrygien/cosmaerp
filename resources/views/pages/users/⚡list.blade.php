@@ -302,12 +302,17 @@ new class extends Component
                                     ></span>
                                 </div>
                                 <div class="min-w-0">
-                                    <div class="flex items-center gap-1.5">
-                                        <p class="text-sm font-medium truncate">{{ $user->name }}</p>
-                                        <span class="text-[10px] font-medium {{ $user->is_online ? 'text-green-500' : 'text-zinc-400' }} hidden sm:inline">
-                                            {{ $user->is_online ? 'En ligne' : 'Hors ligne' }}
-                                        </span>
-                                    </div>
+                                    <p class="text-sm font-medium truncate">{{ $user->name }}</p>
+                                    <p class="text-[10px] font-medium hidden sm:block
+                                        {{ $user->is_online ? 'text-green-500' : 'text-zinc-400' }}">
+                                        @if ($user->is_online)
+                                            En ligne
+                                        @elseif ($user->last_seen_at)
+                                            Vu {{ $user->last_seen_at->diffForHumans() }}
+                                        @else
+                                            Jamais connecté
+                                        @endif
+                                    </p>
                                     <p class="text-xs text-zinc-400 truncate md:hidden">{{ $user->email }}</p>
                                     <p class="text-xs text-zinc-400 sm:hidden">{{ $user->created_at->translatedFormat('d F Y') }}</p>
                                 </div>
