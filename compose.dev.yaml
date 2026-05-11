@@ -1,0 +1,103 @@
+services:
+  web:
+    image: nginx:latest
+    volumes:
+      - ./:/var/www
+      - ./docker/development/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:80"
+    environment:
+      - NGINX_HOST=localhost
+    networks:
+      - laravel-development
+    depends_on:
+      php-fpm:
+        condition: service_started
+
+  php-fpm:
+    build:
+      context: .
+      dockerfile: ./docker/common/php-fpm/Dockerfile
+      target: development
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+        XDEBUG_ENABLED: ${XDEBUG_ENABLED:-true}
+        XDEBUG_MODE: develop,coverage,debug,profile
+        XDEBUG_HOST: ${XDEBUG_HOST:-host.docker.internal}
+        XDEBUG_IDE_KEY: ${XDEBUG_IDE_KEY:-DOCKER}
+        XDEBUG_LOG: /dev/stdout
+        XDEBUG_LOG_LEVEL: 0
+    env_file:
+      - .env
+    user: "${UID:-1000}:${GID:-1000}"
+    volumes:
+      - ./:/var/www
+    networks:
+      - laravel-development
+    depends_on:
+      mysql:
+        condition: service_started
+
+  workspace:
+    build:
+      context: .
+      dockerfile: ./docker/development/workspace/Dockerfile
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+        XDEBUG_ENABLED: ${XDEBUG_ENABLED:-true}
+        XDEBUG_MODE: develop,coverage,debug,profile
+        XDEBUG_HOST: ${XDEBUG_HOST:-host.docker.internal}
+        XDEBUG_IDE_KEY: ${XDEBUG_IDE_KEY:-DOCKER}
+        XDEBUG_LOG: /dev/stdout
+        XDEBUG_LOG_LEVEL: 0
+    ports:
+      - '${VITE_PORT:-5173}:5173'
+    tty: true
+    stdin_open: true
+    env_file:
+      - .env
+    volumes:
+      - ./:/var/www
+    networks:
+      - laravel-development
+
+  mysql:
+    image: mysql:8.0
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    environment:
+      MYSQL_DATABASE: erp_db
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: root
+    volumes:
+      - mysql-data-development:/var/lib/mysql
+    networks:
+      - laravel-development
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: root
+      PMA_PASSWORD: root
+    networks:
+      - laravel-development
+    depends_on:
+      mysql:
+        condition: service_started
+
+  redis:
+    image: redis:alpine
+    networks:
+      - laravel-development
+
+networks:
+  laravel-development:
+
+volumes:
+  mysql-data-development:
