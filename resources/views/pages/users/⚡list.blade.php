@@ -170,7 +170,7 @@ new class extends Component
     </div>
 
     {{-- Stat Cards --}}
-    <div class="grid grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
         <flux:card class="p-5">
             <div class="flex items-center justify-between">
                 <p class="text-sm text-zinc-500">Total Utilisateurs</p>
@@ -214,33 +214,39 @@ new class extends Component
         </div>
     @endif
 
-    <flux:card class="p-5">
+    {{-- Barre de recherche / filtres --}}
+    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
+        <div class="flex items-center gap-2">
+            <flux:input
+                wire:model.live.debounce="search"
+                placeholder="Rechercher un utilisateur..."
+                icon="magnifying-glass"
+                class="w-full sm:w-80"
+            />
 
-        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
-            <div class="flex items-center gap-2">
-                <flux:input
-                    wire:model.live.debounce="search"
-                    placeholder="Rechercher un utilisateur..."
-                    icon="magnifying-glass"
-                    class="w-full sm:w-80"
-                />
-
-                <div class="relative">
-                    <flux:button
-                        wire:click="toggleFilters"
-                        :variant="$showFilters ? 'primary' : 'ghost'"
-                        size="sm"
-                    >
-                        <i class="hgi-stroke hgi-filter-01"></i>
-                        Filtres
-                    </flux:button>
-                    @if($this->activeFiltersCount > 0)
-                        <span class="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center w-4 h-4 text-[10px] font-bold leading-none text-white bg-red-500 rounded-full">
-                            {{ $this->activeFiltersCount }}
-                        </span>
-                    @endif
-                </div>
+            <div class="relative">
+                <flux:button
+                    wire:click="toggleFilters"
+                    :variant="$showFilters ? 'primary' : 'ghost'"
+                    size="sm"
+                >
+                    <i class="hgi-stroke hgi-filter-01"></i>
+                    Filtres
+                </flux:button>
+                @if($this->activeFiltersCount > 0)
+                    <span class="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center w-4 h-4 text-[10px] font-bold leading-none text-white bg-red-500 rounded-full">
+                        {{ $this->activeFiltersCount }}
+                    </span>
+                @endif
             </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <flux:select wire:model.live="sortBy" class="w-full sm:w-40">
+                <flux:select.option value="name">Trier par nom</flux:select.option>
+                <flux:select.option value="email">Trier par email</flux:select.option>
+                <flux:select.option value="created_at">Trier par date</flux:select.option>
+            </flux:select>
 
             <flux:select wire:model.live="perPage" class="w-full sm:w-20">
                 <flux:select.option value="5">5</flux:select.option>
@@ -249,214 +255,179 @@ new class extends Component
                 <flux:select.option value="50">50</flux:select.option>
             </flux:select>
         </div>
+    </div>
 
-        @if($showFilters)
-            <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 mb-4 bg-zinc-50 dark:bg-zinc-800/50">
-                <div class="flex items-center justify-between mb-3">
-                    <p class="text-sm font-medium text-zinc-700 dark:text-zinc-300">Filtres</p>
-                    @if($this->activeFiltersCount > 0)
-                        <flux:button wire:click="resetFilters" variant="ghost" size="xs" class="text-red-500 hover:text-red-600">
-                            Réinitialiser
+    @if($showFilters)
+        <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 mb-4 bg-zinc-50 dark:bg-zinc-800/50">
+            <div class="flex items-center justify-between mb-3">
+                <p class="text-sm font-medium text-zinc-700 dark:text-zinc-300">Filtres</p>
+                @if($this->activeFiltersCount > 0)
+                    <flux:button wire:click="resetFilters" variant="ghost" size="xs" class="text-red-500 hover:text-red-600">
+                        Réinitialiser
+                    </flux:button>
+                @endif
+            </div>
+
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
+
+                {{-- Filtre statut compte --}}
+                <flux:radio.group wire:model.live="filterStatus" variant="segmented">
+                    <flux:radio label="Tous"     value=""        />
+                    <flux:radio label="Actifs"   value="enable"  />
+                    <flux:radio label="Inactifs" value="disable" />
+                </flux:radio.group>
+
+                {{-- Filtre présence en ligne --}}
+                <flux:radio.group wire:model.live="filterOnline" variant="segmented">
+                    <flux:radio label="Tous"       value=""        />
+                    <flux:radio label="En ligne"   value="online"  />
+                    <flux:radio label="Hors ligne" value="offline" />
+                </flux:radio.group>
+
+                {{-- Voir supprimés --}}
+                <flux:tooltip :content="$showTrashed ? 'Masquer les supprimés' : 'Voir les supprimés'">
+                    <flux:button
+                        :variant="$showTrashed ? 'danger' : 'ghost'"
+                        size="sm"
+                        wire:click="$toggle('showTrashed')"
+                    >
+                        <i class="hgi-stroke hgi-delete-02"></i>
+                        {{ $showTrashed ? 'Masquer les supprimés' : 'Voir les supprimés' }}
+                    </flux:button>
+                </flux:tooltip>
+
+            </div>
+        </div>
+    @endif
+
+    {{-- Grille des utilisateurs --}}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        @forelse ($this->users as $user)
+            <flux:card class="p-5 flex flex-col {{ $showTrashed ? 'opacity-60' : '' }}" wire:key="user-{{ $user->id }}">
+
+                <div class="flex items-start justify-between">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="relative shrink-0">
+                            <flux:avatar
+                                size="lg"
+                                src="https://unavatar.io/{{ $user->email }}"
+                                name="{{ $user->name }}"
+                                color="{{ $user->is_online ? 'teal' : ($user->last_seen_at ? 'yellow' : 'rose') }}"
+                            />
+                            <span
+                                title="{{ $user->is_online
+                                    ? 'En ligne'
+                                    : ($user->last_seen_at
+                                        ? 'Vu ' . $user->last_seen_at->diffForHumans()
+                                        : 'Jamais connecté') }}"
+                                class="absolute -bottom-0.5 -right-0.5 block w-3 h-3 rounded-full ring-2 ring-white dark:ring-zinc-900
+                                       {{ $user->is_online ? 'bg-green-400' : ($user->last_seen_at ? 'bg-yellow-400' : 'bg-rose-400') }}"
+                            ></span>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="font-medium text-sm truncate">{{ $user->name }}</p>
+                            <p class="text-xs text-zinc-400 truncate">{{ $user->email }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="text-[11px] font-medium mt-2
+                    {{ $user->is_online ? 'text-green-500' : ($user->last_seen_at ? 'text-yellow-500' : 'text-rose-400') }}">
+                    @if ($user->is_online)
+                        En ligne
+                    @elseif ($user->last_seen_at)
+                        Vu {{ $user->last_seen_at->diffForHumans() }}
+                    @else
+                        Jamais connecté
+                    @endif
+                </p>
+
+                <div class="flex items-center gap-2 mt-3">
+                    @if ($user->status === 'enable')
+                        <flux:badge size="sm" color="green" inset="top bottom">Activé</flux:badge>
+                    @else
+                        <flux:badge size="sm" color="red" inset="top bottom">Désactivé</flux:badge>
+                    @endif
+
+                    <span class="text-xs text-zinc-400">
+                        Créé le {{ $user->created_at->translatedFormat('d F Y') }}
+                    </span>
+                </div>
+
+                @if ($showTrashed)
+                    <p class="text-xs text-red-400 mt-1">
+                        Supprimé le {{ $user->deleted_at->translatedFormat('d F Y') }}
+                    </p>
+                @endif
+
+                <div class="mt-3 flex-1">
+                    <p class="text-xs text-zinc-500 mb-1.5">Rôles</p>
+                    <div class="flex flex-wrap gap-1">
+                        @forelse ($user->roles as $role)
+                            <flux:badge size="sm" color="purple" inset="top bottom">{{ $role->name }}</flux:badge>
+                        @empty
+                            <span class="text-zinc-400 text-sm">Aucun rôle</span>
+                        @endforelse
+                    </div>
+                </div>
+
+                <div class="flex gap-2 mt-5 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                    @if ($showTrashed)
+                        <flux:button variant="ghost" size="sm" wire:click="restore({{ $user->id }})" class="flex-1">
+                            <i class="hgi-stroke hgi-arrow-turn-backward text-green-400"></i>
+                            Restaurer
+                        </flux:button>
+
+                        <flux:button variant="ghost" size="sm" wire:click="forceDelete({{ $user->id }})" class="flex-1">
+                            <i class="hgi-stroke hgi-delete-02 text-red-400"></i>
+                            Supprimer
+                        </flux:button>
+                    @else
+                        <flux:button variant="ghost" size="sm" wire:click="edit({{ $user->id }})" class="flex-1">
+                            Modifier
+                        </flux:button>
+                        <flux:button
+                            size="sm"
+                            variant="ghost"
+                            inset="top bottom right"
+                            wire:click="confirmDelete({{ $user->id }})"
+                            title="Supprimer"
+                        >
+                            <i class="hgi-stroke hgi-delete-02 text-red-400"></i>
                         </flux:button>
                     @endif
                 </div>
-
-                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
-
-                    {{-- Filtre statut compte --}}
-                    <flux:radio.group wire:model.live="filterStatus" variant="segmented">
-                        <flux:radio label="Tous"     value=""        />
-                        <flux:radio label="Actifs"   value="enable"  />
-                        <flux:radio label="Inactifs" value="disable" />
-                    </flux:radio.group>
-
-                    {{-- Filtre présence en ligne --}}
-                    <flux:radio.group wire:model.live="filterOnline" variant="segmented">
-                        <flux:radio label="Tous"       value=""        />
-                        <flux:radio label="En ligne"   value="online"  />
-                        <flux:radio label="Hors ligne" value="offline" />
-                    </flux:radio.group>
-
-                    {{-- Voir supprimés --}}
-                    <flux:tooltip :content="$showTrashed ? 'Masquer les supprimés' : 'Voir les supprimés'">
-                        <flux:button
-                            :variant="$showTrashed ? 'danger' : 'ghost'"
-                            size="sm"
-                            wire:click="$toggle('showTrashed')"
-                        >
-                            <i class="hgi-stroke hgi-delete-02"></i>
-                            {{ $showTrashed ? 'Masquer les supprimés' : 'Voir les supprimés' }}
-                        </flux:button>
-                    </flux:tooltip>
-
-                </div>
-            </div>
-        @endif
-
-        <flux:table :paginate="$this->users" variant="bordered">
-            <flux:table.columns>
-                <flux:table.column sortable :sorted="$sortBy === 'name'" :direction="$sortDirection" wire:click="sort('name')">Utilisateur</flux:table.column>
-                <flux:table.column sortable :sorted="$sortBy === 'email'" :direction="$sortDirection" wire:click="sort('email')" class="hidden md:table-cell">Email</flux:table.column>
-                <flux:table.column sortable :sorted="$sortBy === 'status'" :direction="$sortDirection" wire:click="sort('status')">Statut</flux:table.column>
-                <flux:table.column class="hidden lg:table-cell">Rôles</flux:table.column>
-                <flux:table.column sortable :sorted="$sortBy === 'created_at'" :direction="$sortDirection" wire:click="sort('created_at')" class="hidden sm:table-cell">Créé le</flux:table.column>
-                @if ($showTrashed)
-                    <flux:table.column class="hidden sm:table-cell">Supprimé le</flux:table.column>
-                @endif
-                <flux:table.column class="text-right">Actions</flux:table.column>
-            </flux:table.columns>
-
-            <flux:table.rows>
-                @forelse ($this->users as $user)
-                    <flux:table.row :key="$user->id" wire:key="user-{{ $user->id }}" class="{{ $showTrashed ? 'opacity-60' : '' }}">
-
-                        {{-- Utilisateur + indicateur en ligne --}}
-                        <flux:table.cell>
-                            <div class="flex items-center gap-3">
-                                <div class="relative shrink-0">
-                                    <flux:avatar
-                                        size="sm"
-                                        name="{{ $user->name }}"
-                                        color="{{ $user->is_online ? 'teal' : ($user->last_seen_at ? 'yellow' : 'rose') }}"
-                                    />
-                                    <span
-                                        title="{{ $user->is_online
-                                            ? 'En ligne'
-                                            : ($user->last_seen_at
-                                                ? 'Vu ' . $user->last_seen_at->diffForHumans()
-                                                : 'Jamais connecté') }}"
-                                        class="absolute -bottom-0.5 -right-0.5 block w-2.5 h-2.5 rounded-full ring-2 ring-white dark:ring-zinc-900
-                                               {{ $user->is_online ? 'bg-green-400' : ($user->last_seen_at ? 'bg-yellow-400' : 'bg-rose-400') }}"
-                                    ></span>
-                                </div>
-                                <div class="min-w-0">
-                                    <p class="text-sm font-medium truncate">{{ $user->name }}</p>
-                                    <p class="text-[10px] font-medium hidden sm:block
-                                        {{ $user->is_online ? 'text-green-500' : ($user->last_seen_at ? 'text-yellow-500' : 'text-rose-400') }}">
-                                        @if ($user->is_online)
-                                            En ligne
-                                        @elseif ($user->last_seen_at)
-                                            Vu {{ $user->last_seen_at->diffForHumans() }}
-                                        @else
-                                            Jamais connecté
-                                        @endif
-                                    </p>
-                                    <p class="text-xs text-zinc-400 truncate md:hidden">{{ $user->email }}</p>
-                                    <p class="text-xs text-zinc-400 sm:hidden">{{ $user->created_at->translatedFormat('d F Y') }}</p>
-                                </div>
-                            </div>
-                        </flux:table.cell>
-
-                        <flux:table.cell class="hidden md:table-cell text-zinc-400 text-sm">
-                            {{ $user->email }}
-                        </flux:table.cell>
-
-                        <flux:table.cell>
-                            @if ($user->status === 'enable')
-                                <flux:badge size="sm" color="green" inset="top bottom">Activé</flux:badge>
-                            @else
-                                <flux:badge size="sm" color="red" inset="top bottom">Désactivé</flux:badge>
-                            @endif
-                        </flux:table.cell>
-
-                        <flux:table.cell class="hidden lg:table-cell">
-                            <div class="flex flex-wrap gap-1">
-                                @forelse ($user->roles as $role)
-                                    <flux:badge size="sm" color="purple" inset="top bottom">{{ $role->name }}</flux:badge>
-                                @empty
-                                    <span class="text-zinc-400 text-sm">Aucun rôle</span>
-                                @endforelse
-                            </div>
-                        </flux:table.cell>
-
-                        <flux:table.cell class="hidden sm:table-cell text-zinc-400 text-sm whitespace-nowrap">
-                            {{ $user->created_at->translatedFormat('d F Y') }}
-                        </flux:table.cell>
-
+            </flux:card>
+        @empty
+            <div class="col-span-full">
+                <flux:card class="p-5">
+                    <div class="flex flex-col items-center justify-center py-12 text-center">
                         @if ($showTrashed)
-                            <flux:table.cell class="hidden sm:table-cell text-red-400 text-sm whitespace-nowrap">
-                                {{ $user->deleted_at->translatedFormat('d F Y') }}
-                            </flux:table.cell>
+                            <i class="hgi-stroke hgi-delete-02 text-5xl text-zinc-400 mb-3"></i>
+                        @else
+                            <i class="hgi-stroke hgi-user-group text-5xl text-zinc-400 mb-3"></i>
                         @endif
+                        <p class="text-zinc-400 font-medium text-sm">
+                            @if ($search || $filterStatus !== '' || $filterOnline !== '' || $showTrashed)
+                                Aucun utilisateur trouvé pour ces filtres
+                            @else
+                                Aucun utilisateur enregistré
+                            @endif
+                        </p>
+                        @if ($search || $filterStatus !== '' || $filterOnline !== '')
+                            <flux:button variant="ghost" size="sm" wire:click="resetFilters" class="mt-3">
+                                Réinitialiser les filtres
+                            </flux:button>
+                        @endif
+                    </div>
+                </flux:card>
+            </div>
+        @endforelse
+    </div>
 
-                        {{-- Actions --}}
-                        <flux:table.cell class="text-right">
-                            <div class="flex items-center justify-end gap-1">
-                                @if ($showTrashed)
-                                    <flux:button
-                                        size="sm"
-                                        variant="ghost"
-                                        inset="top bottom"
-                                        wire:click="restore({{ $user->id }})"
-                                        title="Restaurer"
-                                    >
-                                        <i class="hgi-stroke hgi-arrow-turn-backward text-green-400"></i>
-                                    </flux:button>
-
-                                    <flux:button
-                                        size="sm"
-                                        variant="ghost"
-                                        inset="top bottom"
-                                        wire:click="forceDelete({{ $user->id }})"
-                                        title="Supprimer définitivement"
-                                    >
-                                        <i class="hgi-stroke hgi-delete-02 text-red-400"></i>
-                                    </flux:button>
-                                @else
-                                    <flux:button
-                                        size="sm"
-                                        variant="ghost"
-                                        inset="top bottom"
-                                        wire:click="edit({{ $user->id }})"
-                                        title="Modifier"
-                                    >
-                                        <i class="hgi-stroke hgi-pencil-edit-01 text-indigo-400"></i>
-                                    </flux:button>
-
-                                    <flux:button
-                                        size="sm"
-                                        variant="ghost"
-                                        inset="top bottom"
-                                        wire:click="confirmDelete({{ $user->id }})"
-                                        title="Supprimer"
-                                    >
-                                        <i class="hgi-stroke hgi-delete-02 text-red-400"></i>
-                                    </flux:button>
-                                @endif
-                            </div>
-                        </flux:table.cell>
-
-                    </flux:table.row>
-
-                @empty
-                    <flux:table.row>
-                        <flux:table.cell :colspan="$showTrashed ? 7 : 6">
-                            <div class="flex flex-col items-center justify-center py-12 text-center">
-                                @if ($showTrashed)
-                                    <i class="hgi-stroke hgi-delete-02 text-5xl text-zinc-400 mb-3"></i>
-                                @else
-                                    <i class="hgi-stroke hgi-user-group text-5xl text-zinc-400 mb-3"></i>
-                                @endif
-                                <p class="text-zinc-400 font-medium text-sm">
-                                    @if ($search || $filterStatus !== '' || $filterOnline !== '' || $showTrashed)
-                                        Aucun utilisateur trouvé pour ces filtres
-                                    @else
-                                        Aucun utilisateur enregistré
-                                    @endif
-                                </p>
-                                @if ($search || $filterStatus !== '' || $filterOnline !== '')
-                                    <flux:button variant="ghost" size="sm" wire:click="resetFilters" class="mt-3">
-                                        Réinitialiser les filtres
-                                    </flux:button>
-                                @endif
-                            </div>
-                        </flux:table.cell>
-                    </flux:table.row>
-                @endforelse
-            </flux:table.rows>
-        </flux:table>
-
-    </flux:card>
+    <div class="mt-6">
+        <flux:pagination :paginator="$this->users" />
+    </div>
 
     <livewire:pages::users.create />
     <livewire:pages::users.edit />
