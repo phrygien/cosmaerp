@@ -302,6 +302,14 @@ new class extends Component
 
     {{-- Grille des utilisateurs --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        @if (!$showTrashed)
+            <flux:modal.trigger name="create-user">
+                <flux:card class="p-5 flex flex-col items-center justify-center text-center cursor-pointer border-2 border-dashed border-zinc-200 dark:border-zinc-700 hover:border-primary-400 transition min-h-[260px]">
+                    <i class="hgi-stroke hgi-add-square text-4xl text-zinc-400 mb-3"></i>
+                    <p class="text-zinc-500 font-medium">Ajouter un utilisateur</p>
+                </flux:card>
+            </flux:modal.trigger>
+        @endif
 
         @forelse ($this->users as $user)
             <flux:card class="p-5 flex flex-col {{ $showTrashed ? 'opacity-60' : '' }}" wire:key="user-{{ $user->id }}">
