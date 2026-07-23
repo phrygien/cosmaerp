@@ -11,8 +11,7 @@ services:
     networks:
       - laravel-development
     depends_on:
-      php-fpm:
-        condition: service_started
+      - php-fpm
 
   php-fpm:
     build:
@@ -37,6 +36,8 @@ services:
       - laravel-development
     depends_on:
       mysql:
+        condition: service_started
+      typesense:
         condition: service_started
 
   workspace:
@@ -68,10 +69,10 @@ services:
     ports:
       - "${MYSQL_PORT:-3306}:3306"
     environment:
-      MYSQL_DATABASE: erp_db
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_USER: laravel
-      MYSQL_PASSWORD: root
+      MYSQL_DATABASE: ${DB_DATABASE:-app}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+      MYSQL_USER: ${DB_USERNAME:-laravel}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
     volumes:
       - mysql-data-development:/var/lib/mysql
     networks:
@@ -80,19 +81,44 @@ services:
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     ports:
-      - "8080:80"
+      - "${PHPMYADMIN_PORT:-8080}:80"
     environment:
       PMA_HOST: mysql
       PMA_USER: root
-      PMA_PASSWORD: root
+      PMA_PASSWORD: ${DB_ROOT_PASSWORD:-root}
     networks:
       - laravel-development
     depends_on:
       mysql:
         condition: service_started
 
+  postgres:
+    image: postgres:16
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-app}
+      POSTGRES_USER: ${DB_USERNAME:-laravel}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
+    volumes:
+      - postgres-data-development:/var/lib/postgresql/data
+    networks:
+      - laravel-development
+
   redis:
     image: redis:alpine
+    networks:
+      - laravel-development
+
+  typesense:
+    image: typesense/typesense:27.1
+    ports:
+      - "${TYPESENSE_PORT:-8108}:8108"
+    environment:
+      TYPESENSE_API_KEY: ${TYPESENSE_API_KEY:-typesense_api_key}
+      TYPESENSE_DATA_DIR: /data
+    volumes:
+      - typesense-data-development:/data
     networks:
       - laravel-development
 
@@ -100,4 +126,6 @@ networks:
   laravel-development:
 
 volumes:
+  postgres-data-development:
   mysql-data-development:
+  typesense-data-development:
