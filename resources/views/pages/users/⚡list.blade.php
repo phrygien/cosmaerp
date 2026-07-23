@@ -302,6 +302,7 @@ new class extends Component
 
     {{-- Grille des utilisateurs --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
         @forelse ($this->users as $user)
             <flux:card class="p-5 flex flex-col {{ $showTrashed ? 'opacity-60' : '' }}" wire:key="user-{{ $user->id }}">
 
