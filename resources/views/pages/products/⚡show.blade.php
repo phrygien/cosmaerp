@@ -132,50 +132,117 @@ new class extends Component
         <!-- Colonne gauche : visuel + code-barres + état -->
         <div class="lg:col-span-1 space-y-6">
 
-            <!-- Visuel produit (placeholder) -->
+            <!-- Visuel produit (placeholder selon le type) -->
+            @php
+                $typeName = strtoupper(trim($product->type?->name ?? ''));
+            @endphp
             <flux:card class="p-0 overflow-hidden">
                 <div class="aspect-square w-full bg-zinc-100 dark:bg-zinc-800/60 flex items-center justify-center p-8">
-                    <svg viewBox="0 0 200 300" class="w-full h-full max-w-[220px]" xmlns="http://www.w3.org/2000/svg">
-                        <!-- Ombre portée -->
-                        <ellipse cx="100" cy="270" rx="55" ry="10" fill="#000000" opacity="0.06" />
 
-                        <!-- Bouchon -->
-                        <rect x="78" y="8" width="44" height="20" rx="4" fill="#a1a1aa" />
-                        <rect x="78" y="8" width="44" height="7" rx="3.5" fill="#d4d4d8" />
+                    @if($typeName === 'FRAGRANCE')
+                        {{-- Flacon de parfum --}}
+                        <svg viewBox="0 0 200 300" class="w-full h-full max-w-[220px]" xmlns="http://www.w3.org/2000/svg">
+                            <ellipse cx="100" cy="270" rx="55" ry="10" fill="#000000" opacity="0.06" />
+                            <rect x="78" y="8" width="44" height="20" rx="4" fill="#a1a1aa" />
+                            <rect x="78" y="8" width="44" height="7" rx="3.5" fill="#d4d4d8" />
+                            <rect x="90" y="26" width="20" height="18" fill="#a1a1aa" />
+                            <path d="M90 44 C90 44 70 52 60 66 L140 66 C130 52 110 44 110 44 Z" fill="#c4c4c9" />
+                            <rect x="45" y="66" width="110" height="190" rx="16" fill="#d4d4d8" />
+                            <rect x="45" y="66" width="110" height="190" rx="16" fill="url(#gradFragrance)" />
+                            <rect x="58" y="80" width="12" height="160" rx="6" fill="#f4f4f5" opacity="0.55" />
+                            <rect x="62" y="130" width="76" height="66" rx="4" fill="#f4f4f5" stroke="#a1a1aa" stroke-width="1.5" />
+                            <line x1="72" y1="148" x2="128" y2="148" stroke="#a1a1aa" stroke-width="2" stroke-linecap="round" />
+                            <line x1="72" y1="158" x2="118" y2="158" stroke="#c4c4c9" stroke-width="2" stroke-linecap="round" />
+                            <line x1="72" y1="168" x2="122" y2="168" stroke="#c4c4c9" stroke-width="2" stroke-linecap="round" />
+                            <line x1="72" y1="180" x2="100" y2="180" stroke="#c4c4c9" stroke-width="2" stroke-linecap="round" />
+                            <rect x="45" y="240" width="110" height="16" rx="8" fill="#a1a1aa" />
+                            <defs>
+                                <linearGradient id="gradFragrance" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#e4e4e7" stop-opacity="0.6" />
+                                    <stop offset="100%" stop-color="#a1a1aa" stop-opacity="0.35" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
 
-                        <!-- Col du flacon -->
-                        <rect x="90" y="26" width="20" height="18" fill="#a1a1aa" />
+                    @elseif($typeName === 'BEAUTY')
+                        {{-- Pot de crème / soin --}}
+                        <svg viewBox="0 0 200 300" class="w-full h-full max-w-[220px]" xmlns="http://www.w3.org/2000/svg">
+                            <ellipse cx="100" cy="270" rx="60" ry="10" fill="#000000" opacity="0.06" />
+                            <!-- Couvercle -->
+                            <rect x="40" y="40" width="120" height="46" rx="14" fill="#a1a1aa" />
+                            <rect x="40" y="40" width="120" height="16" rx="8" fill="#c4c4c9" />
+                            <!-- Corps du pot -->
+                            <rect x="48" y="84" width="104" height="166" rx="24" fill="#d4d4d8" />
+                            <rect x="48" y="84" width="104" height="166" rx="24" fill="url(#gradBeauty)" />
+                            <!-- Reflet -->
+                            <rect x="60" y="100" width="10" height="130" rx="5" fill="#f4f4f5" opacity="0.5" />
+                            <!-- Étiquette -->
+                            <rect x="66" y="150" width="68" height="54" rx="4" fill="#f4f4f5" stroke="#a1a1aa" stroke-width="1.5" />
+                            <circle cx="100" cy="167" r="6" fill="none" stroke="#a1a1aa" stroke-width="2" />
+                            <line x1="76" y1="185" x2="124" y2="185" stroke="#c4c4c9" stroke-width="2" stroke-linecap="round" />
+                            <line x1="82" y1="194" x2="118" y2="194" stroke="#c4c4c9" stroke-width="2" stroke-linecap="round" />
+                            <!-- Base -->
+                            <rect x="48" y="236" width="104" height="14" rx="7" fill="#a1a1aa" />
+                            <defs>
+                                <linearGradient id="gradBeauty" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#e4e4e7" stop-opacity="0.6" />
+                                    <stop offset="100%" stop-color="#a1a1aa" stop-opacity="0.35" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
 
-                        <!-- Épaules -->
-                        <path d="M90 44 C90 44 70 52 60 66 L140 66 C130 52 110 44 110 44 Z" fill="#c4c4c9" />
+                    @elseif($typeName === 'MAKE UP' || $typeName === 'MAKEUP')
+                        {{-- Rouge à lèvres --}}
+                        <svg viewBox="0 0 200 300" class="w-full h-full max-w-[220px]" xmlns="http://www.w3.org/2000/svg">
+                            <ellipse cx="100" cy="270" rx="45" ry="9" fill="#000000" opacity="0.06" />
+                            <!-- Capuchon (posé à côté, légèrement incliné) -->
+                            <g transform="rotate(-8 40 210)">
+                                <rect x="20" y="150" width="40" height="120" rx="10" fill="#c4c4c9" />
+                                <rect x="20" y="150" width="40" height="18" rx="9" fill="#a1a1aa" />
+                            </g>
+                            <!-- Tube -->
+                            <rect x="82" y="150" width="46" height="108" rx="8" fill="#a1a1aa" />
+                            <rect x="82" y="150" width="46" height="14" fill="#c4c4c9" />
+                            <line x1="90" y1="180" x2="120" y2="180" stroke="#71717a" stroke-width="1.5" opacity="0.5" />
+                            <line x1="90" y1="200" x2="120" y2="200" stroke="#71717a" stroke-width="1.5" opacity="0.5" />
+                            <line x1="90" y1="220" x2="120" y2="220" stroke="#71717a" stroke-width="1.5" opacity="0.5" />
+                            <!-- Base élevatrice -->
+                            <rect x="88" y="130" width="34" height="24" fill="#d4d4d8" />
+                            <!-- Bâton (pointe biseautée) -->
+                            <path d="M88 130 L122 130 L122 78 C122 78 108 58 105 40 C102 58 88 78 88 78 Z" fill="#e4e4e7" stroke="#a1a1aa" stroke-width="1.5" />
+                            <path d="M105 40 C108 58 122 78 122 78 L112 78 C106 66 104 52 105 40 Z" fill="#c4c4c9" opacity="0.6" />
+                        </svg>
 
-                        <!-- Corps du flacon -->
-                        <rect x="45" y="66" width="110" height="190" rx="16" fill="#d4d4d8" />
-                        <rect x="45" y="66" width="110" height="190" rx="16" fill="url(#glassGradient)" />
+                    @else
+                        {{-- Générique (type non défini) --}}
+                        <svg viewBox="0 0 200 300" class="w-full h-full max-w-[220px]" xmlns="http://www.w3.org/2000/svg">
+                            <ellipse cx="100" cy="270" rx="55" ry="10" fill="#000000" opacity="0.06" />
+                            <!-- Boîte produit générique -->
+                            <rect x="45" y="70" width="110" height="180" rx="10" fill="#d4d4d8" />
+                            <rect x="45" y="70" width="110" height="180" rx="10" fill="url(#gradGeneric)" />
+                            <rect x="45" y="70" width="110" height="34" rx="10" fill="#c4c4c9" />
+                            <!-- Ruban / repère -->
+                            <rect x="92" y="70" width="16" height="180" fill="#a1a1aa" opacity="0.4" />
+                            <!-- Icône point d'interrogation -->
+                            <circle cx="100" cy="175" r="30" fill="#f4f4f5" stroke="#a1a1aa" stroke-width="2" />
+                            <text x="100" y="187" font-family="sans-serif" font-size="34" font-weight="600" text-anchor="middle" fill="#a1a1aa">?</text>
+                            <defs>
+                                <linearGradient id="gradGeneric" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#e4e4e7" stop-opacity="0.6" />
+                                    <stop offset="100%" stop-color="#a1a1aa" stop-opacity="0.35" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    @endif
 
-                        <!-- Reflet -->
-                        <rect x="58" y="80" width="12" height="160" rx="6" fill="#f4f4f5" opacity="0.55" />
-
-                        <!-- Étiquette -->
-                        <rect x="62" y="130" width="76" height="66" rx="4" fill="#f4f4f5" stroke="#a1a1aa" stroke-width="1.5" />
-                        <line x1="72" y1="148" x2="128" y2="148" stroke="#a1a1aa" stroke-width="2" stroke-linecap="round" />
-                        <line x1="72" y1="158" x2="118" y2="158" stroke="#c4c4c9" stroke-width="2" stroke-linecap="round" />
-                        <line x1="72" y1="168" x2="122" y2="168" stroke="#c4c4c9" stroke-width="2" stroke-linecap="round" />
-                        <line x1="72" y1="180" x2="100" y2="180" stroke="#c4c4c9" stroke-width="2" stroke-linecap="round" />
-
-                        <!-- Base -->
-                        <rect x="45" y="240" width="110" height="16" rx="8" fill="#a1a1aa" />
-
-                        <defs>
-                            <linearGradient id="glassGradient" x1="0" y1="0" x2="1" y2="1">
-                                <stop offset="0%" stop-color="#e4e4e7" stop-opacity="0.6" />
-                                <stop offset="100%" stop-color="#a1a1aa" stop-opacity="0.35" />
-                            </linearGradient>
-                        </defs>
-                    </svg>
                 </div>
                 <div class="px-4 py-3 border-t border-zinc-200 dark:border-zinc-700">
-                    <p class="text-xs text-center text-zinc-400">Visuel non contractuel</p>
+                    <p class="text-xs text-center text-zinc-400">
+                        Visuel non contractuel
+                        @if($product->type?->name)
+                            &middot; {{ $product->type->name }}
+                        @endif
+                    </p>
                 </div>
             </flux:card>
 
