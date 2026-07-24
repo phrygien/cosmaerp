@@ -134,6 +134,49 @@
 
     <x-desktop-user-menu class="sm:hidden sm:block" :name="auth()->user()->name" />
 </flux:sidebar>
+<!-- Desktop Header -->
+<flux:header class="hidden lg:flex items-center gap-4 mx-6 mt-4 mb-2 bg-transparent">
+    <flux:breadcrumbs>
+        <flux:breadcrumbs.item href="{{ route('dashboard') }}" wire:navigate>
+            {{ __('Accueil') }}
+        </flux:breadcrumbs.item>
+
+        @hasSection('breadcrumb')
+            @yield('breadcrumb')
+        @elseif(isset($header))
+            <flux:breadcrumbs.item>{{ $header }}</flux:breadcrumbs.item>
+        @endif
+    </flux:breadcrumbs>
+
+    <flux:spacer />
+
+    <!-- Theme toggle -->
+    <div
+        x-data="{ dark: document.documentElement.classList.contains('dark') }"
+        x-init="$watch('dark', v => { document.documentElement.classList.toggle('dark', v); localStorage.setItem('theme', v ? 'dark' : 'light'); })"
+    >
+        <flux:button
+            variant="ghost"
+            size="sm"
+            x-on:click="dark = !dark"
+            aria-label="{{ __('Changer de thème') }}"
+        >
+            <flux:icon x-show="!dark" name="moon" variant="mini" />
+            <flux:icon x-show="dark" name="sun" variant="mini" />
+        </flux:button>
+    </div>
+
+    <!-- POS button -->
+    <flux:button
+        variant="primary"
+        icon="shopping-cart"
+        href="{{ route('pos') }}"
+        wire:navigate
+    >
+        {{ __('POS') }}
+    </flux:button>
+</flux:header>
+
 <!-- Mobile User Menu -->
 <flux:header class="lg:hidden">
     <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
