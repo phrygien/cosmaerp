@@ -33,6 +33,7 @@ Route::middleware(["auth", "verified", \App\Http\Middleware\TrackLastSee::class]
         Route::livewire("/products", "pages::products.page")->name("products");
         // Details produit
         Route::livewire("/products/{product}/show", "pages::products.show")->name("products.show");
+        Route::livewire("/products/{product}/edit", "pages::products.edit")->name("products.edit");
     });
 
     // Commandes

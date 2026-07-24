@@ -183,10 +183,11 @@ new class extends Component
                             <!-- Épaules -->
                             <path d="M90 96 C90 96 66 106 58 122 L142 122 C134 106 110 96 110 96 Z" fill="#27272a" />
 
-                            <!-- Corps globe -->
-                            <ellipse cx="100" cy="196" rx="72" ry="82" fill="#18181b" />
+                            <!-- Corps globe (liquide rose) -->
+                            <ellipse cx="100" cy="196" rx="72" ry="82" fill="#be185d" />
                             <ellipse cx="100" cy="196" rx="72" ry="82" fill="url(#gradBodyFragrance)" />
-                            <ellipse cx="76" cy="160" rx="10" ry="46" fill="#fce7f3" opacity="0.18" />
+                            <ellipse cx="100" cy="196" rx="72" ry="82" fill="none" stroke="#18181b" stroke-width="2" opacity="0.15" />
+                            <ellipse cx="76" cy="160" rx="10" ry="46" fill="#fce7f3" opacity="0.35" />
 
                             <!-- Médaillon central avec motif floral rose -->
                             <circle cx="100" cy="200" r="46" fill="#fdf2f8" stroke="#db2777" stroke-width="1.5" />
@@ -207,8 +208,8 @@ new class extends Component
                                     <stop offset="100%" stop-color="#18181b" stop-opacity="0.3" />
                                 </linearGradient>
                                 <linearGradient id="gradBodyFragrance" x1="0" y1="0" x2="1" y2="1">
-                                    <stop offset="0%" stop-color="#3f3f46" stop-opacity="0.65" />
-                                    <stop offset="100%" stop-color="#18181b" stop-opacity="0.35" />
+                                    <stop offset="0%" stop-color="#f472b6" stop-opacity="0.65" />
+                                    <stop offset="100%" stop-color="#831843" stop-opacity="0.45" />
                                 </linearGradient>
                             </defs>
                         </svg>
