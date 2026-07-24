@@ -12,6 +12,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Table(name: 'marque', incrementing: false, key: 'code')]
 class Marque extends Model
 {
+    public function products(): HasMany
+    {
+        return $this->hasMany(Product::class, 'marque_code');
+    }
     public function categories(): HasMany
     {
         return $this->hasMany(Category::class);
