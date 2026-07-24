@@ -483,5 +483,5 @@ new class extends Component
 
         </div>
     </div>
-
+    <livewire:pages::products.edit />
 </div>
