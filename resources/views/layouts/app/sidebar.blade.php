@@ -128,6 +128,15 @@
             >{{ __('Nouvelle facture') }}</flux:sidebar.item>
         </flux:sidebar.group>
 
+        <flux:sidebar.item
+            :href="route('pos')"
+            :current="request()->routeIs('pos')"
+            wire:navigate
+        >
+            <x-slot name="icon"><i class="hgi-stroke hgi-rounded hgi-bar-code-01 text-2xl"></i></x-slot>
+            {{ __('POS') }}
+        </flux:sidebar.item>
+
     </flux:sidebar.nav>
 
     <flux:sidebar.spacer />

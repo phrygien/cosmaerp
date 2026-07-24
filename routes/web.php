@@ -69,6 +69,9 @@ Route::middleware(["auth", "verified", \App\Http\Middleware\TrackLastSee::class]
 
     Route::get('/facture/pdf/{facture}', \App\Http\Controllers\FactureController::class)
         ->name('facture.pdf');
+
+    // POS System
+    Route::livewire("/pos", "pages::pos.page")->name("pos");
 });
 
 require __DIR__ . "/settings.php";
