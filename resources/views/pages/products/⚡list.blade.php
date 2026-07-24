@@ -115,7 +115,7 @@ new class extends Component
      */
     public function viewProduct($id): void
     {
-        $this->redirect(route('products.show', $id), navigate: true);
+        $this->redirect(route('catalogue.products.show', $id), navigate: true);
     }
 
     public function resetFilters(): void
