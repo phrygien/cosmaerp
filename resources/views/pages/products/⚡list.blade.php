@@ -110,6 +110,14 @@ new class extends Component
         $this->dispatch('delete-product', id: $id);
     }
 
+    /**
+     * Redirige vers la page de détail du produit (SPA-navigate).
+     */
+    public function viewProduct($id): void
+    {
+        $this->redirect(route('products.show', $id), navigate: true);
+    }
+
     public function resetFilters(): void
     {
         $this->reset([
@@ -448,8 +456,6 @@ new class extends Component
                     Article
                 </flux:table.column>
 
-                <flux:table.column class="hidden sm:table-cell">Code Bar</flux:table.column>
-
                 <flux:table.column
                     sortable
                     :sorted="$sortBy === 'designation'"
@@ -478,7 +484,12 @@ new class extends Component
 
             <flux:table.rows>
                 @forelse ($this->products as $product)
-                    <flux:table.row :key="$product->id" wire:key="product-{{ $product->id }}">
+                    <flux:table.row
+                        :key="$product->id"
+                        wire:key="product-{{ $product->id }}"
+                        wire:click="viewProduct({{ $product->id }})"
+                        class="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors"
+                    >
 
                         <flux:table.cell>
                             <flux:badge size="sm" color="zinc" inset="top bottom">
@@ -486,28 +497,6 @@ new class extends Component
                             </flux:badge>
                             @if($product->EAN)
                                 <p class="text-xs text-zinc-400 mt-0.5">EAN: {{ $product->EAN }}</p>
-                            @endif
-                        </flux:table.cell>
-
-                        <flux:table.cell class="hidden lg:table-cell text-center">
-                            @if($product->EAN)
-                                <div class="flex flex-col items-center gap-1">
-                                    <div class="barcode-wrapper" style="line-height:0">
-                                        {!! DNS1D::getBarcodeSVG(
-                                            $product->EAN,
-                                            strlen($product->EAN) === 8 ? 'EAN8' : 'EAN13',
-                                            1.3,
-                                            40,
-                                            'auto',
-                                            false
-                                        ) !!}
-                                    </div>
-                                    <span class="text-[10px] text-zinc-400 font-mono tracking-widest select-all">
-                                        {{ $product->EAN }}
-                                    </span>
-                                </div>
-                            @else
-                                <span class="text-xs text-zinc-300 dark:text-zinc-600">—</span>
                             @endif
                         </flux:table.cell>
 
@@ -541,7 +530,7 @@ new class extends Component
                             <span class="text-sm">{{ $product->type?->name ?? '-' }}</span>
                         </flux:table.cell>
 
-                        <flux:table.cell class="text-center">
+                        <flux:table.cell class="text-center" wire:click.stop>
                             <div class="flex items-center justify-center">
                                 @if($updatingProductId === $product->id)
                                     <svg class="animate-spin h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -550,7 +539,7 @@ new class extends Component
                                     </svg>
                                 @else
                                     <button
-                                        wire:click="toggleState({{ $product->id }})"
+                                        wire:click.stop="toggleState({{ $product->id }})"
                                         type="button"
                                         role="switch"
                                         aria-checked="{{ $product->state == 1 ? 'true' : 'false' }}"
@@ -565,6 +554,10 @@ new class extends Component
                                 @endif
                             </div>
                             <span class="sr-only">{{ $product->state == 1 ? 'Actif' : 'Inactif' }}</span>
+                        </flux:table.cell>
+
+                        <flux:table.cell class="text-right" wire:click.stop>
+                            <flux:icon name="chevron-right" class="text-zinc-400" style="width: 18px; height: 18px;" />
                         </flux:table.cell>
 
                     </flux:table.row>

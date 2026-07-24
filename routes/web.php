@@ -31,6 +31,8 @@ Route::middleware(["auth", "verified", \App\Http\Middleware\TrackLastSee::class]
         Route::livewire("/categories", "pages::categories.page")->name("categories");
         Route::livewire("/parkod", "pages::parkod.page")->name("parkod");
         Route::livewire("/products", "pages::products.page")->name("products");
+        // Details produit
+        Route::livewire("/products/{product}/show", "pages::products.show")->name("products.show");
     });
 
     // Commandes
