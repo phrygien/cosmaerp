@@ -19,7 +19,7 @@ new class extends Component
         </flux:card>
 
         <flux:card>
-            <livewire:pages.pos.items />
+            <livewire:pages::pos.items />
         </flux:card>
     </div>
 </div>
