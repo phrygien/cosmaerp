@@ -5,11 +5,16 @@ use Livewire\Component;
 
 new class extends Component
 {
-    public $products;
+    public string $search = '';
 
-    public function mount(): void
+    public function getProductsProperty()
     {
-        $this->products = Product::with(['marque', 'categorie'])
+        return Product::with(['marque', 'categorie'])
+            ->when($this->search, function ($query) {
+                $query->where('EAN', 'like', "%{$this->search}%")
+                    ->orWhere('designation', 'like', "%{$this->search}%")
+                    ->orWhere('article', 'like', "%{$this->search}%");
+            })
             ->take(5)
             ->get();
     }
@@ -18,23 +23,27 @@ new class extends Component
 
 <div class="max-w-7xl mx-auto px-3 sm:px-4">
     <div class="mb-2 mt-2">
-        <flux:input icon="magnifying-glass" placeholder="Search orders" />
+        <flux:input
+            wire:model.live.debounce.300ms="search"
+            icon="magnifying-glass"
+            placeholder="Search by EAN code, name or reference"
+        />
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
 
         <!-- Liste produits : une card par produit -->
         <div class="space-y-3 order-2 md:order-1">
-            @forelse ($products as $product)
+            @forelse ($this->products as $product)
                 <flux:card>
-                    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+                    <div class="flex items-center gap-4">
 
                         <!-- Image / illustration produit -->
-                        <div class="w-full h-40 sm:w-24 sm:h-24 shrink-0 bg-zinc-50 dark:bg-zinc-800 rounded-lg overflow-hidden flex items-center justify-center">
+                        <div class="w-24 h-24 shrink-0 bg-zinc-50 dark:bg-zinc-800 rounded-lg overflow-hidden flex items-center justify-center">
                             @if($product->image ?? false)
                                 <img src="{{ $product->image }}" class="object-cover w-full h-full" />
                             @else
-                                <svg viewBox="0 0 200 300" class="w-full h-full max-w-[160px] sm:max-w-[220px]" xmlns="http://www.w3.org/2000/svg">
+                                <svg viewBox="0 0 200 300" class="w-full h-full max-w-[160px]" xmlns="http://www.w3.org/2000/svg">
                                     <ellipse cx="100" cy="278" rx="60" ry="9" fill="#000000" opacity="0.10" />
                                     <path d="M78 18 c-3-4-9-2-9 2 c0 4 9 10 9 10 s9-6 9-10 c0-4-6-6-9-2 Z" fill="#db2777" opacity="0.9" />
                                     <path d="M120 10 c-2-3-6-1-6 1 c0 3 6 7 6 7 s6-4 6-7 c0-2-4-4-6-1 Z" fill="#f472b6" opacity="0.85" />
@@ -87,7 +96,7 @@ new class extends Component
                         </div>
 
                         <!-- Infos -->
-                        <div class="flex-1 min-w-0 w-full">
+                        <div class="flex-1 min-w-0">
                             <div class="font-semibold text-zinc-900 dark:text-white truncate">
                                 {{ $product->designation }}
                             </div>
@@ -96,20 +105,13 @@ new class extends Component
                                 @if($product->categorie?->name)
                                     · {{ $product->categorie->name }}
                                 @endif
+                                @if($product->EAN)
+                                    <span class="ml-1 text-zinc-400 dark:text-zinc-500">· EAN {{ $product->EAN }}</span>
+                                @endif
                             </div>
                             <div class="mt-1 font-semibold text-zinc-900 dark:text-zinc-100">
                                 {{ number_format($product->pght_parkod, 2) }} {{ $product->devise }}
                             </div>
-                        </div>
-
-                        <!-- Actions -->
-                        <div class="flex flex-row sm:flex-col gap-2 shrink-0 w-full sm:w-40">
-                            <flux:button variant="primary" class="flex-1 sm:flex-none" wire:click="addToCart({{ $product->id }})">
-                                Add to order
-                            </flux:button>
-                            <flux:button variant="outline" class="flex-1 sm:flex-none">
-                                Details
-                            </flux:button>
                         </div>
                     </div>
                 </flux:card>
