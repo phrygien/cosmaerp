@@ -103,7 +103,7 @@ class FactureController extends Controller
             ->date($facture->date_facture ?? $facture->created_at)
             ->dateFormat('d/m/Y')
             ->payUntilDays(0)
-            ->currencySymbol('CFA') // adapter selon votre devise (ex: '€', '$', 'MRU')
+            ->currencySymbol('EUR') // adapter selon votre devise (ex: '€', '$', 'MRU')
             ->currencyCode($facture->devise ?? 'XOF')
             ->currencyFormat('{VALUE} {SYMBOL}')
             ->currencyThousandsSeparator(' ')
