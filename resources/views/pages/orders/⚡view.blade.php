@@ -110,16 +110,16 @@ new class extends Component
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
-            <flux:button variant="danger" wire:click="delete" wire:confirm="Êtes-vous sûr de vouloir supprimer cette commande ?" :disabled="!$this->isEditable" title="Supprimer">
+            <flux:button size="sm" variant="danger" wire:click="delete" wire:confirm="Êtes-vous sûr de vouloir supprimer cette commande ?" :disabled="!$this->isEditable" title="Supprimer">
                 <i class="hgi-stroke hgi-delete-02"></i>
             </flux:button>
 
             @if($this->isEditable)
-                <flux:button variant="primary" href="{{ route('orders.edit', ['commande_id' => $this->commandeId]) }}" wire:navigate title="Modifier">
+                <flux:button size="sm" variant="primary" href="{{ route('orders.edit', ['commande_id' => $this->commandeId]) }}" wire:navigate title="Modifier">
                     <i class="hgi-stroke hgi-pencil-edit-01"></i>
                 </flux:button>
             @else
-                <flux:button variant="primary" disabled title="Modifier">
+                <flux:button size="sm" variant="primary" disabled title="Modifier">
                     <i class="hgi-stroke hgi-pencil-edit-01"></i>
                 </flux:button>
             @endif
@@ -135,22 +135,24 @@ new class extends Component
 
             @if($nextStatus)
                 <flux:button
+                    size="sm"
                     variant="primary"
                     color="violet"
                     wire:click="updateStatus"
                     wire:confirm="Passer le statut à « {{ $nextStatus->label() }} » ?"
-                    title="{{ $nextStatus->label() }}"
                 >
                     <i class="hgi-stroke hgi-arrow-right-02"></i>
+                    {{ $nextStatus->label() }}
                 </flux:button>
             @endif
 
-            <flux:button href="{{ route('bon-commande.pdf', $commandeId) }}" target="_blank" title="Bon de commande">
+            <flux:button size="sm" href="{{ route('bon-commande.pdf', $commandeId) }}" target="_blank" title="Bon de commande">
                 <i class="hgi-stroke hgi-pdf-01"></i>
             </flux:button>
 
             @if($this->commande->status === \App\Enums\CommandeStatus::Cloturee)
                 <flux:button
+                    size="sm"
                     variant="primary"
                     color="lime"
                     href="{{ route('reception_commande.create', ['commande' => $this->commandeId]) }}"
