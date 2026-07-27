@@ -522,14 +522,12 @@ new class extends Component
                     Libellé
                 </flux:table.column>
                 <flux:table.column class="hidden sm:table-cell">Fournisseur</flux:table.column>
-                <flux:table.column class="hidden md:table-cell">Magasin livraison</flux:table.column>
                 <flux:table.column sortable :sorted="$sortBy === 'montant_total'" :direction="$sortDirection" wire:click="sort('montant_total')" class="hidden lg:table-cell">
                     Montant
                 </flux:table.column>
                 <flux:table.column sortable :sorted="$sortBy === 'status'" :direction="$sortDirection" wire:click="sort('status')">
                     Statut
                 </flux:table.column>
-                <flux:table.column class="hidden md:table-cell">Action</flux:table.column>
                 <flux:table.column sortable :sorted="$sortBy === 'created_at'" :direction="$sortDirection" wire:click="sort('created_at')" class="hidden sm:table-cell">
                     Date
                 </flux:table.column>
@@ -554,14 +552,6 @@ new class extends Component
                             @endif
                         </flux:table.cell>
 
-                        <flux:table.cell class="hidden md:table-cell">
-                            @if ($commande->magasinLivraison)
-                                <span class="text-sm font-medium uppercase">{{ $commande->magasinLivraison->name }}</span>
-                            @else
-                                <span class="text-zinc-400 text-sm">—</span>
-                            @endif
-                        </flux:table.cell>
-
                         <flux:table.cell class="hidden lg:table-cell text-sm font-medium whitespace-nowrap">
                             {{ $this->formatCurrency($commande->montant_total) }}
                         </flux:table.cell>
@@ -577,48 +567,6 @@ new class extends Component
                                     </flux:badge>
                                 @endif
                             </div>
-                        </flux:table.cell>
-
-                        {{-- Cellule Action --}}
-                        <flux:table.cell class="hidden md:table-cell">
-                            @if(isset($updatingStatus[$commande->id]))
-                                <flux:button variant="ghost" size="sm" disabled>
-                                    <svg class="animate-spin h-3 w-3 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                                    </svg>
-                                    Mise à jour...
-                                </flux:button>
-
-                            @elseif($commande->status === CommandeStatus::Cree)
-                                <flux:button
-                                    variant="primary"
-                                    color="blue"
-                                    size="sm"
-                                    wire:click="updateStatus({{ $commande->id }}, {{ CommandeStatus::Facturee->value }})"
-                                >
-                                    <i class="hgi-stroke hgi-invoice-01"></i>
-                                    {{ CommandeStatus::Facturee->label() }}
-                                </flux:button>
-
-                            @elseif($commande->status === CommandeStatus::Facturee)
-                                <div class="flex items-center gap-2">
-                                    <button
-                                        wire:click="toggleCloture({{ $commande->id }})"
-                                        type="button"
-                                        role="switch"
-                                        aria-checked="false"
-                                        class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-zinc-300 transition-colors hover:bg-zinc-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:bg-zinc-600 dark:hover:bg-zinc-500"
-                                    >
-                                        <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform translate-x-1"></span>
-                                        <span class="sr-only">Clôturer la commande</span>
-                                    </button>
-                                    <span class="text-xs text-zinc-500 dark:text-zinc-400">Clôturer</span>
-                                </div>
-
-                            @else
-                                <span class="text-zinc-400 text-xs">—</span>
-                            @endif
                         </flux:table.cell>
 
                         <flux:table.cell class="hidden sm:table-cell text-zinc-400 text-sm whitespace-nowrap">
@@ -675,7 +623,7 @@ new class extends Component
 
                 @empty
                     <flux:table.row>
-                        <flux:table.cell colspan="8">
+                        <flux:table.cell colspan="6">
                             <div class="flex flex-col items-center justify-center py-12 text-center">
                                 <i class="hgi-stroke hgi-shopping-cart-01 text-5xl text-zinc-400 mb-3"></i>
                                 <p class="text-zinc-400 font-medium text-sm">

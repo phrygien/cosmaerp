@@ -92,35 +92,30 @@ new class extends Component
 };
 ?>
 
-<div class="max-w-5xl mx-auto">
+<div class="max-w-7xl mx-auto">
     <flux:breadcrumbs class="mb-5">
         <flux:breadcrumbs.item href="{{ route('orders.list') }}" wire:navigate>Commande</flux:breadcrumbs.item>
         <flux:breadcrumbs.item>Détails</flux:breadcrumbs.item>
     </flux:breadcrumbs>
 
-    {{-- En-tête façon "Order #3001" --}}
-    <div class="flex flex-col gap-4 mb-1 lg:flex-row lg:items-start lg:justify-between">
-        <div class="flex flex-wrap items-center gap-3">
-            <flux:heading size="xl" level="1" class="break-words">
-                Commande {{ $this->commande->libelle ?? '#'.$this->commande->id }}
-            </flux:heading>
-            <flux:badge size="sm" color="lime">
-                {{ $this->commande->status?->label() ?? $this->commande->status }}
-            </flux:badge>
-        </div>
+    <div class="flex items-center justify-between mb-6">
+        <flux:heading size="xl" level="1">{{ __('Commande') }}</flux:heading>
 
-        <div class="flex flex-wrap items-center gap-2">
-            <flux:button variant="danger" wire:click="delete" wire:confirm="Êtes-vous sûr de vouloir supprimer cette commande ?" :disabled="!$this->isEditable" title="Supprimer">
+        <div class="flex items-center gap-2">
+            <flux:button variant="danger" wire:click="delete" wire:confirm="Êtes-vous sûr de vouloir supprimer cette commande ?" :disabled="!$this->isEditable">
                 <i class="hgi-stroke hgi-delete-02"></i>
+                Supprimer
             </flux:button>
 
             @if($this->isEditable)
-                <flux:button variant="primary" href="{{ route('orders.edit', ['commande_id' => $this->commandeId]) }}" wire:navigate title="Modifier">
+                <flux:button variant="primary" href="{{ route('orders.edit', ['commande_id' => $this->commandeId]) }}" wire:navigate>
                     <i class="hgi-stroke hgi-pencil-edit-01"></i>
+                    Modifier
                 </flux:button>
             @else
-                <flux:button variant="primary" disabled title="Modifier">
+                <flux:button variant="primary" disabled>
                     <i class="hgi-stroke hgi-pencil-edit-01"></i>
+                    Modifier
                 </flux:button>
             @endif
 
@@ -139,14 +134,15 @@ new class extends Component
                     color="violet"
                     wire:click="updateStatus"
                     wire:confirm="Passer le statut à « {{ $nextStatus->label() }} » ?"
-                    title="{{ $nextStatus->label() }}"
                 >
                     <i class="hgi-stroke hgi-arrow-right-02"></i>
+                    {{ $nextStatus->label() }}
                 </flux:button>
             @endif
 
-            <flux:button href="{{ route('bon-commande.pdf', $commandeId) }}" target="_blank" title="Bon de commande">
+            <flux:button href="{{ route('bon-commande.pdf', $commandeId) }}" target="_blank">
                 <i class="hgi-stroke hgi-pdf-01"></i>
+                Bon de commande
             </flux:button>
 
             @if($this->commande->status === \App\Enums\CommandeStatus::Cloturee)
@@ -155,132 +151,188 @@ new class extends Component
                     color="lime"
                     href="{{ route('reception_commande.create', ['commande' => $this->commandeId]) }}"
                     wire:navigate
-                    title="Passer à la réception"
                 >
                     <i class="hgi-stroke hgi-truck-01"></i>
+                    Passer à la réception
                 </flux:button>
             @endif
-        </div>
-    </div>
 
-    {{-- Ligne d'infos rapides façon icônes --}}
-    <div class="flex flex-wrap items-center gap-x-6 gap-y-2 mb-8 mt-2 text-sm text-zinc-600 dark:text-zinc-300">
-        <div class="flex items-center gap-1.5">
-            <i class="hgi-stroke hgi-money-bag-01 text-zinc-400"></i>
-            {{ $this->formatCurrency($this->commande->montant_total) }}
-        </div>
-        <div class="flex items-center gap-1.5">
-            <i class="hgi-stroke hgi-building-01 text-zinc-400"></i>
-            {{ $this->commande->fournisseur?->name ?? '—' }}
-        </div>
-        <div class="flex items-center gap-1.5">
-            <i class="hgi-stroke hgi-calendar-03 text-zinc-400"></i>
-            {{ $this->commande->created_at?->format('d M Y') }}
         </div>
     </div>
+    {{-- Informations générales de la commande --}}
+    <flux:card class="mt-5 bg-zinc-50 dark:bg-zinc-800/50">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-    {{-- Résumé --}}
-    <flux:heading size="sm" class="mb-2">Résumé</flux:heading>
-    <div class="mb-8">
-        <div class="flex justify-between items-center py-3 border-b border-zinc-200 dark:border-zinc-700">
-            <flux:subheading>Référence</flux:subheading>
-            <span class="font-medium text-zinc-800 dark:text-zinc-100">{{ $this->commande->libelle ?? '—' }}</span>
-        </div>
-        <div class="flex justify-between items-center py-3 border-b border-zinc-200 dark:border-zinc-700">
-            <flux:subheading>Fournisseur</flux:subheading>
-            <span class="font-medium text-zinc-800 dark:text-zinc-100">{{ $this->commande->fournisseur?->name ?? '—' }}</span>
-        </div>
-        <div class="flex justify-between items-center py-3 border-b border-zinc-200 dark:border-zinc-700">
-            <flux:subheading>Statut</flux:subheading>
-            <span class="font-medium text-zinc-800 dark:text-zinc-100">{{ $this->commande->status?->label() ?? $this->commande->status }}</span>
-        </div>
-        <div class="flex justify-between items-center py-3 border-b border-zinc-200 dark:border-zinc-700">
-            <flux:subheading>État</flux:subheading>
-            <span class="font-medium text-zinc-800 dark:text-zinc-100">{{ $this->commande->etat?->label() ?? $this->commande->etat }}</span>
-        </div>
-        <div class="flex justify-between items-center py-3 border-b border-zinc-200 dark:border-zinc-700">
-            <flux:subheading>Remise facture</flux:subheading>
-            <span class="font-medium text-zinc-800 dark:text-zinc-100">{{ $this->commande->remise_facture ?? '0' }} %</span>
-        </div>
-        <div class="flex justify-between items-center py-3 border-b border-zinc-200 dark:border-zinc-700">
-            <flux:subheading>Montant minimum</flux:subheading>
-            <span class="font-medium text-zinc-800 dark:text-zinc-100">{{ $this->formatCurrency($this->commande->montant_minimum) }}</span>
-        </div>
-        <div class="flex justify-between items-center py-3">
-            <flux:subheading>Montant total</flux:subheading>
-            <span class="font-bold text-zinc-900 dark:text-white">{{ $this->formatCurrency($this->commande->montant_total) }}</span>
-        </div>
-    </div>
+            {{-- Infos commande --}}
+            <div class="space-y-4">
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="hgi-stroke hgi-clipboard text-xl text-zinc-400"></i>
+                    <flux:heading size="sm">Commande</flux:heading>
+                </div>
 
-    {{-- Fournisseur --}}
-    <flux:heading size="sm" class="mb-2">Fournisseur</flux:heading>
-    <div class="mb-8">
-        <div class="flex justify-between items-center py-3 border-b border-zinc-200 dark:border-zinc-700">
-            <flux:subheading>Nom</flux:subheading>
-            <span class="font-medium text-zinc-800 dark:text-zinc-100">{{ $this->commande->fournisseur?->name ?? '—' }}</span>
-        </div>
-        <div class="flex justify-between items-center py-3 border-b border-zinc-200 dark:border-zinc-700">
-            <flux:subheading>Code</flux:subheading>
-            <span class="font-medium text-zinc-800 dark:text-zinc-100">{{ $this->commande->fournisseur?->code ?? '—' }}</span>
-        </div>
-        <div class="flex justify-between items-center py-3 border-b border-zinc-200 dark:border-zinc-700">
-            <flux:subheading>Raison sociale</flux:subheading>
-            <span class="font-medium text-zinc-800 dark:text-zinc-100">{{ $this->commande->fournisseur?->raison_social ?? '—' }}</span>
-        </div>
-        <div class="flex justify-between items-center py-3 border-b border-zinc-200 dark:border-zinc-700">
-            <flux:subheading>Adresse</flux:subheading>
-            <span class="font-medium text-zinc-800 dark:text-zinc-100 text-right">
-                {{ $this->commande->fournisseur?->adresse_siege ?? '—' }}
-                @if($this->commande->fournisseur?->code_postal || $this->commande->fournisseur?->ville)
-                    <br>
-                    <span class="text-sm text-zinc-500">{{ $this->commande->fournisseur?->code_postal }} {{ $this->commande->fournisseur?->ville }}</span>
-                @endif
-            </span>
-        </div>
-        <div class="flex justify-between items-center py-3 border-b border-zinc-200 dark:border-zinc-700">
-            <flux:subheading>Téléphone</flux:subheading>
-            <span class="font-medium text-zinc-800 dark:text-zinc-100">{{ $this->commande->fournisseur?->telephone ?? '—' }}</span>
-        </div>
-        <div class="flex justify-between items-center py-3">
-            <flux:subheading>Email</flux:subheading>
-            <span class="font-medium text-zinc-800 dark:text-zinc-100">{{ $this->commande->fournisseur?->mail ?? '—' }}</span>
-        </div>
-    </div>
+                <div class="bg-white dark:bg-zinc-900 rounded-lg p-4 space-y-3">
+                    <div class="flex justify-between items-center">
+                        <flux:subheading>Référence</flux:subheading>
+                        <span class="font-semibold text-zinc-800 dark:text-zinc-100">
+                        {{ $this->commande->libelle ?? '—' }}
+                    </span>
+                    </div>
+                    <flux:separator />
+                    <div class="flex justify-between items-center">
+                        <flux:subheading>Statut</flux:subheading>
+                        <flux:badge size="sm" color="blue">
+                            {{ $this->commande->status?->label() ?? $this->commande->status }}
+                        </flux:badge>
+                    </div>
+                    <flux:separator />
+                    <div class="flex justify-between items-center">
+                        <flux:subheading>État</flux:subheading>
+                        <flux:badge size="sm" color="zinc">
+                            {{ $this->commande->etat?->label() ?? $this->commande->etat }}
+                        </flux:badge>
+                    </div>
+                    <flux:separator />
+                    <div class="flex justify-between items-center">
+                        <flux:subheading>Remise facture</flux:subheading>
+                        <span class="font-semibold text-zinc-800 dark:text-zinc-100">
+                        {{ $this->commande->remise_facture ?? '0' }} %
+                    </span>
+                    </div>
+                    <flux:separator />
+                    <div class="flex justify-between items-center">
+                        <flux:subheading>Montant minimum</flux:subheading>
+                        <span class="font-semibold text-zinc-800 dark:text-zinc-100">
+                        {{ $this->formatCurrency($this->commande->montant_minimum) }}
+                    </span>
+                    </div>
+                    <flux:separator />
+                    <div class="flex justify-between items-center">
+                        <flux:subheading>Montant total</flux:subheading>
+                        <span class="font-bold text-lg text-zinc-900 dark:text-white">
+                        {{ $this->formatCurrency($this->commande->montant_total) }}
+                    </span>
+                    </div>
+                </div>
+            </div>
 
-    {{-- Magasin de livraison --}}
-    <flux:heading size="sm" class="mb-2">Magasin de livraison</flux:heading>
-    <div class="mb-8">
-        <div class="flex justify-between items-center py-3 border-b border-zinc-200 dark:border-zinc-700">
-            <flux:subheading>Nom</flux:subheading>
-            <span class="font-medium text-zinc-800 dark:text-zinc-100">{{ $this->commande->magasinLivraison?->name ?? '—' }}</span>
+            {{-- Infos fournisseur --}}
+            <div class="space-y-4">
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="hgi-stroke hgi-building-01 text-xl text-zinc-400"></i>
+                    <flux:heading size="sm">Fournisseur</flux:heading>
+                </div>
+
+                <div class="bg-white dark:bg-zinc-900 rounded-lg p-4 space-y-3">
+                    <div class="flex justify-between items-center">
+                        <flux:subheading>Nom</flux:subheading>
+                        <span class="font-semibold text-zinc-800 dark:text-zinc-100">
+                        {{ $this->commande->fournisseur?->name ?? '—' }}
+                    </span>
+                    </div>
+                    <flux:separator />
+                    <div class="flex justify-between items-center">
+                        <flux:subheading>Code</flux:subheading>
+                        <span class="font-semibold text-zinc-800 dark:text-zinc-100">
+                        {{ $this->commande->fournisseur?->code ?? '—' }}
+                    </span>
+                    </div>
+                    <flux:separator />
+                    <div class="flex justify-between items-center">
+                        <flux:subheading>Raison sociale</flux:subheading>
+                        <span class="font-semibold text-zinc-800 dark:text-zinc-100">
+                        {{ $this->commande->fournisseur?->raison_social ?? '—' }}
+                    </span>
+                    </div>
+                    <flux:separator />
+                    <div class="flex justify-between items-center">
+                        <flux:subheading>Adresse</flux:subheading>
+                        <span class="font-semibold text-zinc-800 dark:text-zinc-100 text-right">
+                        {{ $this->commande->fournisseur?->adresse_siege ?? '—' }}
+                            @if($this->commande->fournisseur?->code_postal || $this->commande->fournisseur?->ville)
+                                <br>
+                                <span class="text-sm text-zinc-500">
+                                {{ $this->commande->fournisseur?->code_postal }} {{ $this->commande->fournisseur?->ville }}
+                            </span>
+                            @endif
+                    </span>
+                    </div>
+                    <flux:separator />
+                    <div class="flex justify-between items-center">
+                        <flux:subheading>Téléphone</flux:subheading>
+                        <span class="font-semibold text-zinc-800 dark:text-zinc-100">
+                        {{ $this->commande->fournisseur?->telephone ?? '—' }}
+                    </span>
+                    </div>
+                    <flux:separator />
+                    <div class="flex justify-between items-center">
+                        <flux:subheading>Email</flux:subheading>
+                        <span class="font-semibold text-zinc-800 dark:text-zinc-100">
+                        {{ $this->commande->fournisseur?->mail ?? '—' }}
+                    </span>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Infos magasin --}}
+            <div class="space-y-4">
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="hgi-stroke hgi-location-01 text-xl text-zinc-400"></i>
+                    <flux:heading size="sm">Magasin de livraison</flux:heading>
+                </div>
+
+                <div class="bg-white dark:bg-zinc-900 rounded-lg p-4 space-y-3">
+                    <div class="flex justify-between items-center">
+                        <flux:subheading>Nom</flux:subheading>
+                        <span class="font-semibold text-zinc-800 dark:text-zinc-100">
+                        {{ $this->commande->magasinLivraison?->name ?? '—' }}
+                    </span>
+                    </div>
+                    <flux:separator />
+                    <div class="flex justify-between items-center">
+                        <flux:subheading>Type</flux:subheading>
+                        <span class="font-semibold text-zinc-800 dark:text-zinc-100">
+                        {{ $this->commande->magasinLivraison?->type ?? '—' }}
+                    </span>
+                    </div>
+                    <flux:separator />
+                    <div class="flex justify-between items-center">
+                        <flux:subheading>Adresse</flux:subheading>
+                        <span class="font-semibold text-zinc-800 dark:text-zinc-100">
+                        {{ $this->commande->magasinLivraison?->adress ?? '—' }}
+                    </span>
+                    </div>
+                    <flux:separator />
+                    <div class="flex justify-between items-center">
+                        <flux:subheading>Téléphone</flux:subheading>
+                        <span class="font-semibold text-zinc-800 dark:text-zinc-100">
+                        {{ $this->commande->magasinLivraison?->telephone ?? '—' }}
+                    </span>
+                    </div>
+                    <flux:separator />
+                    <div class="flex justify-between items-center">
+                        <flux:subheading>Email</flux:subheading>
+                        <span class="font-semibold text-zinc-800 dark:text-zinc-100">
+                        {{ $this->commande->magasinLivraison?->email ?? '—' }}
+                    </span>
+                    </div>
+                    <flux:separator />
+                    <div class="flex justify-between items-center">
+                        <flux:subheading>URL Store</flux:subheading>
+                        @if($this->commande->magasinLivraison?->store_url)
+                            <a href="{{ $this->commande->magasinLivraison->store_url }}"
+                               target="_blank"
+                               class="text-blue-500 hover:underline text-sm font-medium">
+                                Voir le store
+                            </a>
+                        @else
+                            <span class="text-zinc-400">—</span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
         </div>
-        <div class="flex justify-between items-center py-3 border-b border-zinc-200 dark:border-zinc-700">
-            <flux:subheading>Type</flux:subheading>
-            <span class="font-medium text-zinc-800 dark:text-zinc-100">{{ $this->commande->magasinLivraison?->type ?? '—' }}</span>
-        </div>
-        <div class="flex justify-between items-center py-3 border-b border-zinc-200 dark:border-zinc-700">
-            <flux:subheading>Adresse</flux:subheading>
-            <span class="font-medium text-zinc-800 dark:text-zinc-100">{{ $this->commande->magasinLivraison?->adress ?? '—' }}</span>
-        </div>
-        <div class="flex justify-between items-center py-3 border-b border-zinc-200 dark:border-zinc-700">
-            <flux:subheading>Téléphone</flux:subheading>
-            <span class="font-medium text-zinc-800 dark:text-zinc-100">{{ $this->commande->magasinLivraison?->telephone ?? '—' }}</span>
-        </div>
-        <div class="flex justify-between items-center py-3 border-b border-zinc-200 dark:border-zinc-700">
-            <flux:subheading>Email</flux:subheading>
-            <span class="font-medium text-zinc-800 dark:text-zinc-100">{{ $this->commande->magasinLivraison?->email ?? '—' }}</span>
-        </div>
-        <div class="flex justify-between items-center py-3">
-            <flux:subheading>URL Store</flux:subheading>
-            @if($this->commande->magasinLivraison?->store_url)
-                <a href="{{ $this->commande->magasinLivraison->store_url }}" target="_blank" class="text-blue-500 hover:underline text-sm font-medium">
-                    Voir le store
-                </a>
-            @else
-                <span class="text-zinc-400">—</span>
-            @endif
-        </div>
-    </div>
+    </flux:card>
 
     {{-- Tableau des lignes de commande --}}
     <flux:card class="mt-5">
