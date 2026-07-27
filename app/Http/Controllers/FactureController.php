@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Facture;
 use App\Models\Magasin;
+use App\Services\CurrencyService;
 use Illuminate\Http\Request;
 use LaravelDaily\Invoices\Invoice;
 use LaravelDaily\Invoices\Classes\Party;
 use LaravelDaily\Invoices\Classes\InvoiceItem;
+use NumberFormatter;
 
 class FactureController extends Controller
 {
@@ -19,7 +21,7 @@ class FactureController extends Controller
      * Nécessite : composer require laraveldaily/laravel-invoices
      *             php artisan invoices:install
      */
-    public function __invoke(Request $request, Facture $facture)
+    public function __invoke(Request $request, Facture $facture, CurrencyService $currencyService)
     {
         $facture->load([
             'forfaisseur',
@@ -32,29 +34,36 @@ class FactureController extends Controller
         $fournisseur = $commande?->fournisseur ?? $facture->forfaisseur;
         $magasin     = $commande?->magasinLivraison;
 
-        // Magasin émetteur (base_stock en priorité)
-        $magasinEmetteur = Magasin::where('base_stock', true)->first() ?? $magasin;
+        // Magasin de stockage (base_stock en priorité) → émetteur de la facture
+        $magasinStockage = Magasin::where('base_stock', true)->first() ?? $magasin;
 
-        // ── Vendeur (seller) ────────────────────────────────────────────
+        // ── Vendeur (seller) = magasin de stockage ──────────────────────
         $seller = new Party([
-            'name'          => $magasinEmetteur?->nom ?? 'Ma Société',
-            'address'       => $magasinEmetteur?->adresse ?? '',
-            'code'          => $magasinEmetteur?->code_fiscal ?? '',
-            'phone'         => $magasinEmetteur?->telephone ?? '',
-            'custom_fields' => [
-                'RC'  => $magasinEmetteur?->registre_commerce ?? '',
-                'NIF' => $magasinEmetteur?->nif ?? '',
-            ],
+            'name'          => $magasinStockage?->name ?? 'Ma Société',
+            'address'       => $magasinStockage?->adress ?? '',
+            'phone'         => $magasinStockage?->telephone ?? '',
+            'custom_fields' => array_filter([
+                'Email' => $magasinStockage?->email,
+                'Site'  => $magasinStockage?->store_url,
+            ]),
         ]);
 
-        // ── Acheteur (buyer) ────────────────────────────────────────────
+        // ── Acheteur (buyer) = fournisseur ───────────────────────────────
+        $adresseFournisseur = trim(implode(' ', array_filter([
+            $fournisseur?->adresse_siege,
+            $fournisseur?->code_postal,
+            $fournisseur?->ville,
+        ])));
+
         $buyer = new Party([
-            'name'          => $fournisseur?->nom ?? '—',
-            'address'       => $fournisseur?->adresse ?? '',
-            'code'          => $fournisseur?->code_fiscal ?? '',
-            'custom_fields' => [
-                'N° commande' => $commande?->numero ?? '',
-            ],
+            'name'          => $fournisseur?->raison_social ?? $fournisseur?->name ?? '—',
+            'address'       => $adresseFournisseur,
+            'code'          => $fournisseur?->code ?? '',
+            'phone'         => $fournisseur?->telephone ?? '',
+            'custom_fields' => array_filter([
+                'Email'       => $fournisseur?->mail,
+                'N° commande' => $commande?->numero,
+            ]),
         ]);
 
         // ── Lignes de facture ────────────────────────────────────────────
@@ -93,6 +102,10 @@ class FactureController extends Controller
             $items->push($item);
         }
 
+        // ── Devise via CurrencyService ────────────────────────────────────
+        $currencyCode   = $facture->devise ?? $currencyService->getCurrency();
+        $currencySymbol = $this->resolveCurrencySymbol($currencyCode);
+
         // ── Construction de la facture ───────────────────────────────────
         $invoice = Invoice::make('facture')
             ->series($facture->serie ?? 'FA')
@@ -103,8 +116,8 @@ class FactureController extends Controller
             ->date($facture->date_facture ?? $facture->created_at)
             ->dateFormat('d/m/Y')
             ->payUntilDays(0)
-            ->currencySymbol('EUR') // adapter selon votre devise (ex: '€', '$', 'MRU')
-            ->currencyCode($facture->devise ?? 'XOF')
+            ->currencySymbol($currencySymbol)
+            ->currencyCode($currencyCode)
             ->currencyFormat('{VALUE} {SYMBOL}')
             ->currencyThousandsSeparator(' ')
             ->currencyDecimalPoint(',')
@@ -144,6 +157,24 @@ class FactureController extends Controller
         // $url = $invoice->url();
 
         return $invoice->stream(); // ou ->download()
+    }
+
+    /**
+     * Résout le symbole monétaire (ex: '€', '$', 'FCFA') à partir d'un code
+     * ISO (ex: 'EUR', 'USD', 'XOF') via l'extension intl, avec repli sur le
+     * code lui-même si la résolution échoue.
+     */
+    private function resolveCurrencySymbol(string $currencyCode): string
+    {
+        try {
+            $formatter = new NumberFormatter('fr_FR', NumberFormatter::CURRENCY);
+            $symbol    = $formatter->formatCurrency(0, $currencyCode);
+            $symbol    = trim(preg_replace('/[0-9\s,.]/', '', $symbol));
+
+            return $symbol !== '' ? $symbol : $currencyCode;
+        } catch (\Throwable $e) {
+            return $currencyCode;
+        }
     }
 
     /**
