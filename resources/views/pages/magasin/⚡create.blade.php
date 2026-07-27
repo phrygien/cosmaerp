@@ -1,6 +1,6 @@
 <?php
 use Livewire\Component;
-use App\Models\Dépôt;
+use App\Models\Magasin;
 
 new class extends Component
 {
@@ -24,7 +24,7 @@ new class extends Component
             'state'     => 'required|boolean',
         ]);
 
-        Dépôt::create([
+        Magasin::create([
             'name'      => $this->name,
             'type'      => $this->type,
             'store_url' => $this->store_url ?: null,

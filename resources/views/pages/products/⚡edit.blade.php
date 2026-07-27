@@ -175,6 +175,7 @@ new class extends Component
 
             $this->reset();
         } catch (\Exception $e) {
+            dd($e);
             DB::rollBack();
 
             Flux::toast(
