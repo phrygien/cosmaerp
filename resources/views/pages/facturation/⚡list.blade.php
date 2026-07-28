@@ -5,12 +5,25 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
 use App\Models\Facture;
+use App\Services\CurrencyService;
 use Flux\Flux;
 use Illuminate\Support\Facades\DB;
 
 new class extends Component
 {
     use WithPagination;
+
+    protected CurrencyService $currency;
+
+    public function boot(CurrencyService $currency): void
+    {
+        $this->currency = $currency;
+    }
+
+    public function money(?float $amount): string
+    {
+        return $this->currency->format($amount);
+    }
 
     #[Url(as: 'tri')]
     public string $sortBy        = 'created_at';
@@ -204,7 +217,7 @@ new class extends Component
                 <i class="hgi-stroke hgi-money-bag-01 text-2xl text-blue-400"></i>
             </div>
             <p class="text-3xl font-bold mt-1 text-blue-500">
-                {{ number_format($this->stats['montant'], 2, ',', ' ') }} €
+                {{ $this->money($this->stats['montant']) }}
             </p>
         </flux:card>
 
@@ -294,17 +307,15 @@ new class extends Component
             </div>
         @endif
 
-        <flux:table :paginate="$this->factures" variant="bordered">
+        <flux:table :paginate="$this->factures">
             <flux:table.columns>
                 <flux:table.column sortable :sorted="$sortBy === 'numero'" :direction="$sortDirection" wire:click="sort('numero')">N° Facture</flux:table.column>
-                <flux:table.column sortable :sorted="$sortBy === 'libelle'" :direction="$sortDirection" wire:click="sort('libelle')">Libellé</flux:table.column>
                 <flux:table.column class="hidden sm:table-cell">Fournisseur</flux:table.column>
                 <flux:table.column class="hidden md:table-cell" sortable :sorted="$sortBy === 'date_commande'" :direction="$sortDirection" wire:click="sort('date_commande')">Date</flux:table.column>
-                <flux:table.column class="hidden md:table-cell" sortable :sorted="$sortBy === 'montant'" :direction="$sortDirection" wire:click="sort('montant')">Montant</flux:table.column>
-                <flux:table.column class="hidden sm:table-cell">Lignes</flux:table.column>
                 <flux:table.column class="text-center">Type</flux:table.column>
                 <flux:table.column class="text-center">État</flux:table.column>
-                <flux:table.column class="text-right">Actions</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'montant'" :direction="$sortDirection" wire:click="sort('montant')">Montant</flux:table.column>
+                <flux:table.column></flux:table.column>
             </flux:table.columns>
 
             <flux:table.rows>
@@ -312,150 +323,93 @@ new class extends Component
                     <flux:table.row :key="$facture->id" wire:key="facture-{{ $facture->id }}">
 
                         <flux:table.cell>
-                            <flux:badge size="sm" color="zinc" inset="top bottom">
-                                {{ $facture->numero ?? '—' }}
-                            </flux:badge>
-                        </flux:table.cell>
-
-                        <flux:table.cell>
-                            <p class="font-medium text-sm">{{ $facture->libelle ?? '—' }}</p>
+                            <p class="font-medium text-sm">{{ $facture->numero ?? '—' }}</p>
+                            <p class="text-xs text-zinc-400 mt-0.5">{{ $facture->libelle ?? '—' }}</p>
                             {{-- Mobile: infos condensées --}}
                             <p class="text-xs text-zinc-400 mt-0.5 sm:hidden">
                                 {{ $facture->forfaisseur?->name ?? '—' }}
                             </p>
-                            <p class="text-xs text-zinc-400 sm:hidden">
-                                {{ $facture->date_commande ? \Carbon\Carbon::parse($facture->date_commande)->format('d/m/Y') : '—' }}
-                            </p>
                         </flux:table.cell>
 
                         <flux:table.cell class="hidden sm:table-cell">
-                            <p class="text-sm">{{ $facture->forfaisseur?->name ?? '—' }}</p>
+                            <div class="flex items-center gap-3">
+                                <flux:avatar size="xs" :name="$facture->forfaisseur?->name" />
+                                <span class="text-sm">{{ $facture->forfaisseur?->name ?? '—' }}</span>
+                            </div>
                         </flux:table.cell>
 
-                        <flux:table.cell class="hidden md:table-cell">
-                            <p class="text-sm text-zinc-500">
-                                {{ $facture->date_commande ? \Carbon\Carbon::parse($facture->date_commande)->format('d/m/Y') : '—' }}
-                            </p>
+                        <flux:table.cell class="hidden md:table-cell whitespace-nowrap">
+                            {{ $facture->date_commande ? \Carbon\Carbon::parse($facture->date_commande)->format('d/m/Y') : '—' }}
                         </flux:table.cell>
 
-                        <flux:table.cell class="hidden md:table-cell">
-                            <p class="text-sm font-medium">
-                                {{ number_format($facture->montant ?? 0, 2, ',', ' ') }} €
-                            </p>
-                            @if($facture->remise)
-                                <p class="text-xs text-zinc-400">Remise : {{ $facture->remise }} %</p>
-                            @endif
-                        </flux:table.cell>
-
-                        <flux:table.cell class="hidden sm:table-cell">
-                            <flux:badge size="sm" color="blue" inset="top bottom">
-                                {{ $facture->details_facture_count }} ligne{{ $facture->details_facture_count > 1 ? 's' : '' }}
-                            </flux:badge>
-                        </flux:table.cell>
-
-                        <flux:table.cell class="text-center">
-                            <flux:badge
-                                size="sm"
-                                :color="$facture->type === 'avoir' ? 'orange' : 'indigo'"
-                                inset="top bottom"
-                            >
+                        <flux:table.cell class="py-0 text-center">
+                            <flux:badge size="sm" :color="$facture->type === 'avoir' ? 'orange' : 'indigo'">
                                 {{ ucfirst($facture->type ?? '—') }}
                             </flux:badge>
                         </flux:table.cell>
 
                         {{-- État avec Toggle --}}
-                        <flux:table.cell class="text-center">
-                            <div class="flex flex-col items-center justify-center gap-1">
-                                @if(isset($updatingStates[$facture->id]))
-                                    <div class="flex items-center justify-center">
-                                        <svg class="animate-spin h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                                        </svg>
-                                    </div>
-                                @elseif($facture->state == 0)
-                                    <button
-                                        wire:click="toggleValidate({{ $facture->id }})"
-                                        type="button"
-                                        role="switch"
-                                        aria-checked="false"
-                                        class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 hover:opacity-80"
-                                        style="background-color: #d1d5db"
-                                    >
-                                        <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-1" />
-                                        <span class="sr-only">Valider la facture</span>
-                                    </button>
-                                    <span class="text-xs text-zinc-400">Valider</span>
-                                @else
-                                    <flux:badge size="sm" color="green" class="gap-1">
-                                        <flux:icon name="check-circle" class="size-3" />
-                                        Validée
-                                    </flux:badge>
-                                    @if($facture->validatedBy)
-                                        <p class="text-xs text-zinc-400">{{ $facture->validatedBy->name }}</p>
-                                    @endif
-                                    @if($facture->date_validation)
-                                        <p class="text-xs text-zinc-400">
-                                            {{ \Carbon\Carbon::parse($facture->date_validation)->format('d/m/Y H:i') }}
-                                        </p>
-                                    @endif
-                                @endif
-                            </div>
+                        <flux:table.cell class="py-0 text-center">
+                            @if(isset($updatingStates[$facture->id]))
+                                <div class="flex items-center justify-center">
+                                    <svg class="animate-spin h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                                    </svg>
+                                </div>
+                            @elseif($facture->state == 0)
+                                <flux:button
+                                    wire:click="toggleValidate({{ $facture->id }})"
+                                    size="xs"
+                                    variant="ghost"
+                                    title="Marquer comme validée"
+                                >
+                                    <flux:badge size="sm" color="zinc">En cours</flux:badge>
+                                </flux:button>
+                            @else
+                                <flux:badge size="sm" color="green">Validée</flux:badge>
+                            @endif
                         </flux:table.cell>
-                        {{-- Actions --}}
-                        <flux:table.cell class="text-right">
-                            <div class="flex items-center justify-end gap-1">
-                                @if($facture->state == 0)
-                                    <flux:button
-                                        size="sm"
-                                        variant="ghost"
-                                        wire:navigate
-                                        inset="top bottom"
-                                        :href="route('facturation.edit', $facture->id)"
-                                        title="Modifier"
-                                    >
-                                        <i class="hgi-stroke hgi-pencil-edit-01 text-indigo-400"></i>
-                                    </flux:button>
-                                @else
-                                    <flux:button
-                                        size="sm"
-                                        variant="ghost"
-                                        inset="top bottom"
-                                        disabled
-                                        title="Facture validée — modification impossible"
-                                    >
-                                        <i class="hgi-stroke hgi-pencil-edit-01 text-zinc-300 dark:text-zinc-600"></i>
-                                    </flux:button>
-                                @endif
 
-                                {{-- Télécharger PDF --}}
-                                <flux:button
-                                    size="sm"
-                                    variant="ghost"
-                                    inset="top bottom"
-                                    :href="route('facture.pdf', $facture->id)"
-                                    target="_blank"
-                                    title="Télécharger la facture PDF"
-                                >
-                                    <i class="hgi-stroke hgi-file-download text-emerald-400"></i>
-                                </flux:button>
+                        <flux:table.cell variant="strong">
+                            {{ $this->money($facture->montant) }}
+                            @if($facture->remise)
+                                <p class="text-xs text-zinc-400 font-normal">Remise {{ $facture->remise }} %</p>
+                            @endif
+                        </flux:table.cell>
 
-                                <flux:button
-                                    size="sm"
-                                    variant="ghost"
-                                    inset="top bottom"
-                                    wire:click="confirmDelete({{ $facture->id }})"
-                                    title="Supprimer"
-                                >
-                                    <i class="hgi-stroke hgi-delete-02 text-red-400"></i>
-                                </flux:button>
-                            </div>
+                        <flux:table.cell class="py-0 text-right">
+                            <flux:dropdown position="bottom" align="end">
+                                <flux:button variant="ghost" size="sm" icon="ellipsis-horizontal" inset="top bottom" />
+
+                                <flux:menu>
+                                    @if($facture->state == 0)
+                                        <flux:menu.item icon="pencil-square" :href="route('facturation.edit', $facture->id)" wire:navigate>
+                                            Modifier
+                                        </flux:menu.item>
+                                    @else
+                                        <flux:menu.item icon="pencil-square" disabled>
+                                            Modifier
+                                        </flux:menu.item>
+                                    @endif
+
+                                    <flux:menu.item icon="arrow-down-tray" :href="route('facture.pdf', $facture->id)" target="_blank">
+                                        Télécharger le PDF
+                                    </flux:menu.item>
+
+                                    <flux:menu.separator />
+
+                                    <flux:menu.item icon="trash" variant="danger" wire:click="confirmDelete({{ $facture->id }})">
+                                        Supprimer
+                                    </flux:menu.item>
+                                </flux:menu>
+                            </flux:dropdown>
                         </flux:table.cell>
                     </flux:table.row>
 
                 @empty
                     <flux:table.row>
-                        <flux:table.cell colspan="9">
+                        <flux:table.cell colspan="7">
                             <div class="flex flex-col items-center justify-center py-12 text-center">
                                 <i class="hgi-stroke hgi-invoice-01 text-5xl text-zinc-400 mb-3"></i>
                                 <p class="text-zinc-400 font-medium text-sm">
