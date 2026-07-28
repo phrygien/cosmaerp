@@ -233,37 +233,38 @@ new class extends Component
 };
 ?>
 
-<div class="max-w-7xl mx-auto">
+<div class="max-w-5xl mx-auto">
 
     <flux:breadcrumbs class="mb-5">
         <flux:breadcrumbs.item href="#">Factures</flux:breadcrumbs.item>
         <flux:breadcrumbs.item>Créer</flux:breadcrumbs.item>
     </flux:breadcrumbs>
 
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center justify-between mb-8">
         <flux:heading size="xl" level="1">Nouvelle Facture</flux:heading>
 
         <div class="flex items-center gap-2">
             <flux:button wire:click="resetForm">Réinitialiser</flux:button>
-            <flux:button wire:click="save" variant="primary">Enregistrer</flux:button>
             <flux:button variant="danger" href="{{ route('facturation.list') }}" wire:navigate>Annuler</flux:button>
+            <flux:button wire:click="save" variant="primary">Enregistrer</flux:button>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="space-y-10">
 
-        {{-- ── Colonne principale (2/3) ────────────────────────── --}}
-        <div class="lg:col-span-2 flex flex-col gap-6">
+        {{-- ── Informations générales ──────────────────────────── --}}
+        <flux:card class="p-0 overflow-hidden">
+            <div class="px-6 pt-6">
+                <flux:heading size="lg">Informations générales</flux:heading>
+                <flux:subheading class="mt-1">Ces informations permettent d'identifier la facture et la commande associée.</flux:subheading>
+            </div>
 
-            {{-- Informations générales --}}
-            <flux:card class="p-5">
-                <flux:heading size="lg" class="mb-4">Informations générales</flux:heading>
+            <div class="mt-6 divide-y divide-zinc-200 dark:divide-zinc-700 border-t border-zinc-200 dark:border-zinc-700">
 
-                <div class="flex flex-col gap-4">
-
-                    {{-- Commande en premier --}}
-                    <flux:field>
-                        <flux:label>Commande</flux:label>
+                {{-- Commande --}}
+                <div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 px-6 py-6">
+                    <flux:label class="sm:pt-1.5">Commande</flux:label>
+                    <div class="mt-2 sm:col-span-2 sm:mt-0 max-w-md">
                         <flux:select wire:model.live="commande_id" placeholder="Sélectionner une commande">
                             <flux:select.option value="">— Choisir une commande —</flux:select.option>
                             @foreach($this->commandes as $c)
@@ -274,76 +275,97 @@ new class extends Component
                             @endforeach
                         </flux:select>
                         <flux:error name="commande_id" />
-                    </flux:field>
+                    </div>
+                </div>
 
-                    {{-- Fournisseur déduit (lecture seule) --}}
-                    @if($fournisseurNom)
-                        <div class="flex items-center gap-3 p-3 rounded-lg bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700">
-                            <i class="hgi-stroke hgi-building-04 text-xl text-indigo-400"></i>
-                            <div>
-                                <p class="text-xs text-zinc-500">Fournisseur (déduit de la commande)</p>
-                                <p class="text-sm font-medium">{{ $fournisseurNom }}</p>
-                                @if($fournisseurCode)
-                                    <p class="text-xs text-zinc-400">Code : {{ $fournisseurCode }}</p>
-                                @endif
+                {{-- Fournisseur déduit (lecture seule) --}}
+                @if($fournisseurNom)
+                    <div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 px-6 py-6">
+                        <flux:label class="sm:pt-1.5">Fournisseur</flux:label>
+                        <div class="mt-2 sm:col-span-2 sm:mt-0">
+                            <div class="flex items-center gap-3 p-3 rounded-lg bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 max-w-md">
+                                <i class="hgi-stroke hgi-building-04 text-xl text-indigo-400"></i>
+                                <div>
+                                    <p class="text-sm font-medium">{{ $fournisseurNom }}</p>
+                                    @if($fournisseurCode)
+                                        <p class="text-xs text-zinc-400">Code : {{ $fournisseurCode }}</p>
+                                    @endif
+                                </div>
                             </div>
+                            <flux:description class="mt-2">Déduit automatiquement de la commande sélectionnée.</flux:description>
                         </div>
-                    @endif
+                    </div>
+                @endif
 
-                    <flux:input
-                        wire:model="numero"
-                        label="N° Facture"
-                        placeholder="FAC-2024-001"
-                        description="Identifiant unique de la facture."
-                    />
-                    <flux:error name="numero" />
+                {{-- N° Facture --}}
+                <div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 px-6 py-6">
+                    <flux:label class="sm:pt-1.5">N° Facture</flux:label>
+                    <div class="mt-2 sm:col-span-2 sm:mt-0 max-w-md">
+                        <flux:input wire:model="numero" placeholder="FAC-2024-001" />
+                        <flux:description class="mt-2">Identifiant unique de la facture.</flux:description>
+                        <flux:error name="numero" />
+                    </div>
+                </div>
 
-                    <flux:field>
-                        <flux:label>Type</flux:label>
-                        <flux:radio.group wire:model="type" variant="segmented" class="mt-1">
+                {{-- Type --}}
+                <div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 px-6 py-6">
+                    <flux:label class="sm:pt-1.5">Type</flux:label>
+                    <div class="mt-2 sm:col-span-2 sm:mt-0">
+                        <flux:radio.group wire:model="type" variant="segmented">
                             @foreach(\App\Enums\TypeFacture::cases() as $case)
                                 <flux:radio :label="$case->label()" :value="$case->value" />
                             @endforeach
                         </flux:radio.group>
                         <flux:error name="type" />
-                    </flux:field>
-
-                    <flux:input
-                        wire:model="libelle"
-                        label="Libellé"
-                        placeholder="Description de la facture"
-                    />
-                    <flux:error name="libelle" />
-
-                    <flux:input
-                        wire:model="date_commande"
-                        type="date"
-                        label="Date de commande"
-                    />
-                    <flux:error name="date_commande" />
-
-                    <flux:input
-                        wire:model="date_reception"
-                        type="date"
-                        label="Date de réception"
-                        description="Optionnel."
-                    />
-                    <flux:error name="date_reception" />
-
+                    </div>
                 </div>
-            </flux:card>
 
-            {{-- Lignes de détail (lecture seule) --}}
-            <flux:card class="p-5">
-                <div class="flex items-center justify-between mb-4">
+                {{-- Libellé --}}
+                <div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 px-6 py-6">
+                    <flux:label class="sm:pt-1.5">Libellé</flux:label>
+                    <div class="mt-2 sm:col-span-2 sm:mt-0 max-w-md">
+                        <flux:input wire:model="libelle" placeholder="Description de la facture" />
+                        <flux:error name="libelle" />
+                    </div>
+                </div>
+
+                {{-- Date de commande --}}
+                <div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 px-6 py-6">
+                    <flux:label class="sm:pt-1.5">Date de commande</flux:label>
+                    <div class="mt-2 sm:col-span-2 sm:mt-0 max-w-xs">
+                        <flux:input wire:model="date_commande" type="date" />
+                        <flux:error name="date_commande" />
+                    </div>
+                </div>
+
+                {{-- Date de réception --}}
+                <div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 px-6 py-6">
+                    <flux:label class="sm:pt-1.5">Date de réception</flux:label>
+                    <div class="mt-2 sm:col-span-2 sm:mt-0 max-w-xs">
+                        <flux:input wire:model="date_reception" type="date" />
+                        <flux:description class="mt-2">Optionnel.</flux:description>
+                        <flux:error name="date_reception" />
+                    </div>
+                </div>
+
+            </div>
+        </flux:card>
+
+        {{-- ── Lignes de facture ───────────────────────────────── --}}
+        <flux:card class="p-0 overflow-hidden">
+            <div class="px-6 pt-6 flex items-center justify-between">
+                <div>
                     <flux:heading size="lg">Lignes de facture</flux:heading>
-                    @if(count($lignes) > 0)
-                        <flux:badge size="sm" color="blue">
-                            {{ count($lignes) }} ligne{{ count($lignes) > 1 ? 's' : '' }}
-                        </flux:badge>
-                    @endif
+                    <flux:subheading class="mt-1">Chargées automatiquement depuis les détails de la commande sélectionnée.</flux:subheading>
                 </div>
+                @if(count($lignes) > 0)
+                    <flux:badge size="sm" color="blue">
+                        {{ count($lignes) }} ligne{{ count($lignes) > 1 ? 's' : '' }}
+                    </flux:badge>
+                @endif
+            </div>
 
+            <div class="px-6 pb-6 pt-6 border-t border-zinc-200 dark:border-zinc-700 mt-6">
                 @if(count($lignes) > 0)
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
@@ -390,41 +412,37 @@ new class extends Component
                         <p class="text-xs text-zinc-400 mt-1">Les lignes seront chargées automatiquement depuis la commande sélectionnée</p>
                     </div>
                 @endif
-            </flux:card>
+            </div>
+        </flux:card>
 
-        </div>
+        {{-- ── Récapitulatif financier ─────────────────────────── --}}
+        <flux:card class="p-0 overflow-hidden">
+            <div class="px-6 pt-6">
+                <flux:heading size="lg">Récapitulatif financier</flux:heading>
+                <flux:subheading class="mt-1">Appliquez une remise et/ou une taxe globale à la facture.</flux:subheading>
+            </div>
 
-        {{-- ── Colonne latérale (1/3) ──────────────────────────── --}}
-        <div class="flex flex-col gap-6">
+            <div class="mt-6 divide-y divide-zinc-200 dark:divide-zinc-700 border-t border-zinc-200 dark:border-zinc-700">
 
-            {{-- Récapitulatif financier --}}
-            <flux:card class="p-5">
-                <flux:heading size="lg" class="mb-4">Récapitulatif</flux:heading>
+                <div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 px-6 py-6">
+                    <flux:label class="sm:pt-1.5">Remise globale (%)</flux:label>
+                    <div class="mt-2 sm:col-span-2 sm:mt-0 max-w-xs">
+                        <flux:input wire:model.live="remise" type="number" min="0" max="100" step="0.01" placeholder="0" />
+                        <flux:error name="remise" />
+                    </div>
+                </div>
 
-                <div class="space-y-3">
+                <div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 px-6 py-6">
+                    <flux:label class="sm:pt-1.5">Taxe (%)</flux:label>
+                    <div class="mt-2 sm:col-span-2 sm:mt-0 max-w-xs">
+                        <flux:input wire:model.live="tax" type="number" min="0" step="0.01" placeholder="0" />
+                        <flux:error name="tax" />
+                    </div>
+                </div>
 
-                    <flux:input
-                        wire:model.live="remise"
-                        type="number"
-                        min="0"
-                        max="100"
-                        step="0.01"
-                        label="Remise globale (%)"
-                        placeholder="0"
-                    />
-                    <flux:error name="remise" />
-
-                    <flux:input
-                        wire:model.live="tax"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        label="Taxe (%)"
-                        placeholder="0"
-                    />
-                    <flux:error name="tax" />
-
-                    <div class="border-t border-zinc-200 dark:border-zinc-700 pt-3 mt-3 space-y-2 text-sm">
+                <div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 px-6 py-6">
+                    <flux:label class="sm:pt-1.5">Totaux</flux:label>
+                    <div class="mt-2 sm:col-span-2 sm:mt-0 max-w-xs space-y-2 text-sm">
                         <div class="flex justify-between text-zinc-500">
                             <span>Total HT</span>
                             <span>{{ number_format($this->totalHT, 2, ',', ' ') }} €</span>
@@ -448,22 +466,36 @@ new class extends Component
                             </span>
                         </div>
                     </div>
-
                 </div>
-            </flux:card>
 
-            {{-- État --}}
-            <flux:card class="p-5">
-                <flux:heading size="lg" class="mb-4">État</flux:heading>
+            </div>
+        </flux:card>
 
-                <flux:radio.group wire:model="state" variant="segmented" class="w-full">
-                    <flux:radio label="En cours" value="0" />
-                    <flux:radio label="Validée"  value="1" />
-                </flux:radio.group>
-            </flux:card>
+        {{-- ── État ─────────────────────────────────────────────── --}}
+        <flux:card class="p-0 overflow-hidden">
+            <div class="px-6 pt-6">
+                <flux:heading size="lg">État</flux:heading>
+                <flux:subheading class="mt-1">Définissez si la facture est finalisée ou encore en cours.</flux:subheading>
+            </div>
 
-        </div>
+            <div class="mt-6 border-t border-zinc-200 dark:border-zinc-700">
+                <div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 px-6 py-6">
+                    <flux:label class="sm:pt-1.5">Statut</flux:label>
+                    <div class="mt-2 sm:col-span-2 sm:mt-0 max-w-xs">
+                        <flux:radio.group wire:model="state" variant="segmented" class="w-full">
+                            <flux:radio label="En cours" value="0" />
+                            <flux:radio label="Validée"  value="1" />
+                        </flux:radio.group>
+                    </div>
+                </div>
+            </div>
+        </flux:card>
 
+    </div>
+
+    <div class="mt-8 flex items-center justify-end gap-x-3">
+        <flux:button wire:click="resetForm">Annuler les modifications</flux:button>
+        <flux:button wire:click="save" variant="primary">Enregistrer la facture</flux:button>
     </div>
 
 </div>
