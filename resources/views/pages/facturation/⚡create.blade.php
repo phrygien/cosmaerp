@@ -7,11 +7,24 @@ use App\Models\Facture;
 use App\Models\Commande;
 use App\Models\DetailCommande;
 use App\Enums\TypeFacture;
+use App\Services\CurrencyService;
 use Flux\Flux;
 use Illuminate\Support\Facades\DB;
 
 new class extends Component
 {
+    protected CurrencyService $currency;
+
+    public function boot(CurrencyService $currency): void
+    {
+        $this->currency = $currency;
+    }
+
+    public function money(?float $amount): string
+    {
+        return $this->currency->format($amount);
+    }
+
     // ─── Champs facture ──────────────────────────────────────────
     #[Validate('required|string|max:100')]
     public string $numero         = '';
@@ -318,7 +331,7 @@ new class extends Component
                                             {{ $ligne['quantite_commande'] }}
                                         </td>
                                         <td class="py-2.5 pr-3 text-right text-zinc-600 dark:text-zinc-400">
-                                            {{ number_format($ligne['montant_HT'] ?? 0, 4, ',', ' ') }} €
+                                            {{ $this->money($ligne['montant_HT'] ?? 0) }}
                                         </td>
                                         <td class="py-2.5 pr-3 text-right">
                                             @if(($ligne['taux_remise'] ?? 0) > 0)
@@ -328,7 +341,7 @@ new class extends Component
                                             @endif
                                         </td>
                                         <td class="py-2.5 text-right font-medium">
-                                            {{ number_format($ligne['montant_final_net'] ?? 0, 2, ',', ' ') }} €
+                                            {{ $this->money($ligne['montant_final_net'] ?? 0) }}
                                         </td>
                                     </tr>
                                 @endforeach
@@ -456,24 +469,24 @@ new class extends Component
                     <div class="border-t border-zinc-200 dark:border-zinc-700 pt-4 space-y-2 text-sm">
                         <div class="flex justify-between text-zinc-500">
                             <span>Total HT</span>
-                            <span>{{ number_format($this->totalHT, 2, ',', ' ') }} €</span>
+                            <span>{{ $this->money($this->totalHT) }}</span>
                         </div>
                         @if(($remise ?? 0) > 0)
                             <div class="flex justify-between text-orange-500">
                                 <span>Remise ({{ $remise }} %)</span>
-                                <span>− {{ number_format($this->totalRemise, 2, ',', ' ') }} €</span>
+                                <span>− {{ $this->money($this->totalRemise) }}</span>
                             </div>
                         @endif
                         @if(($tax ?? 0) > 0)
                             <div class="flex justify-between text-zinc-500">
                                 <span>Taxe ({{ $tax }} %)</span>
-                                <span>+ {{ number_format($this->totalTax, 2, ',', ' ') }} €</span>
+                                <span>+ {{ $this->money($this->totalTax) }}</span>
                             </div>
                         @endif
                         <div class="flex justify-between font-bold text-base pt-2 border-t border-zinc-200 dark:border-zinc-700">
                             <span>Total Net</span>
                             <span class="text-indigo-600 dark:text-indigo-400">
-                            {{ number_format($this->totalNet, 2, ',', ' ') }} €
+                            {{ $this->money($this->totalNet) }}
                         </span>
                         </div>
                     </div>
