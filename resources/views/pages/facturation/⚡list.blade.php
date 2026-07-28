@@ -206,7 +206,9 @@ new class extends Component
         <flux:card class="p-5">
             <div class="flex items-center justify-between">
                 <p class="text-sm text-zinc-500">Total Factures</p>
-                <i class="hgi-stroke hgi-invoice-01 text-2xl text-zinc-400"></i>
+                <span class="flex items-center justify-center size-9 rounded-full bg-zinc-100 dark:bg-zinc-800">
+                    <i class="hgi-stroke hgi-invoice-01 text-lg text-zinc-500 dark:text-zinc-400"></i>
+                </span>
             </div>
             <p class="text-3xl font-bold mt-1">{{ $this->stats['total'] }}</p>
         </flux:card>
@@ -214,7 +216,9 @@ new class extends Component
         <flux:card class="p-5">
             <div class="flex items-center justify-between">
                 <p class="text-sm text-zinc-500">Montant Total</p>
-                <i class="hgi-stroke hgi-money-bag-01 text-2xl text-blue-400"></i>
+                <span class="flex items-center justify-center size-9 rounded-full bg-blue-50 dark:bg-blue-500/10">
+                    <i class="hgi-stroke hgi-coins-01 text-lg text-blue-500"></i>
+                </span>
             </div>
             <p class="text-3xl font-bold mt-1 text-blue-500">
                 {{ $this->money($this->stats['montant']) }}
@@ -224,7 +228,9 @@ new class extends Component
         <flux:card class="p-5">
             <div class="flex items-center justify-between">
                 <p class="text-sm text-zinc-500">Validées</p>
-                <i class="hgi-stroke hgi-checkmark-circle-01 text-2xl text-green-400"></i>
+                <span class="flex items-center justify-center size-9 rounded-full bg-green-50 dark:bg-green-500/10">
+                    <i class="hgi-stroke hgi-checkmark-badge-01 text-lg text-green-500"></i>
+                </span>
             </div>
             <p class="text-3xl font-bold mt-1 text-green-500">{{ $this->stats['valides'] }}</p>
         </flux:card>
@@ -232,7 +238,9 @@ new class extends Component
         <flux:card class="p-5">
             <div class="flex items-center justify-between">
                 <p class="text-sm text-zinc-500">En cours</p>
-                <i class="hgi-stroke hgi-clock-01 text-2xl text-zinc-400"></i>
+                <span class="flex items-center justify-center size-9 rounded-full bg-amber-50 dark:bg-amber-500/10">
+                    <i class="hgi-stroke hgi-time-04 text-lg text-amber-500"></i>
+                </span>
             </div>
             <p class="text-3xl font-bold mt-1 text-zinc-400">{{ $this->stats['en_cours'] }}</p>
         </flux:card>
