@@ -252,16 +252,14 @@ new class extends Component
 
     <div class="space-y-10">
 
-        {{-- ── Informations générales ──────────────────────────── --}}
+        {{-- ── Sélection de la commande ─────────────────────────── --}}
         <flux:card class="p-0 overflow-hidden">
             <div class="px-6 pt-6">
-                <flux:heading size="lg">Informations générales</flux:heading>
-                <flux:subheading class="mt-1">Ces informations permettent d'identifier la facture et la commande associée.</flux:subheading>
+                <flux:heading size="lg">Commande</flux:heading>
+                <flux:subheading class="mt-1">Sélectionnez la commande reçue à facturer. Les lignes et le fournisseur seront chargés automatiquement.</flux:subheading>
             </div>
 
-            <div class="mt-6 divide-y divide-zinc-200 dark:divide-zinc-700 border-t border-zinc-200 dark:border-zinc-700">
-
-                {{-- Commande --}}
+            <div class="mt-6 border-t border-zinc-200 dark:border-zinc-700">
                 <div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 px-6 py-6">
                     <flux:label class="sm:pt-1.5">Commande</flux:label>
                     <div class="mt-2 sm:col-span-2 sm:mt-0 max-w-md">
@@ -277,6 +275,81 @@ new class extends Component
                         <flux:error name="commande_id" />
                     </div>
                 </div>
+            </div>
+        </flux:card>
+
+        {{-- ── Lignes de facture ───────────────────────────────── --}}
+        <flux:card class="p-0 overflow-hidden">
+            <div class="px-6 pt-6 flex items-center justify-between">
+                <div>
+                    <flux:heading size="lg">Lignes de facture</flux:heading>
+                    <flux:subheading class="mt-1">Chargées automatiquement depuis les détails de la commande sélectionnée.</flux:subheading>
+                </div>
+                @if(count($lignes) > 0)
+                    <flux:badge size="sm" color="blue">
+                        {{ count($lignes) }} ligne{{ count($lignes) > 1 ? 's' : '' }}
+                    </flux:badge>
+                @endif
+            </div>
+
+            <div class="px-6 pb-6 pt-6 border-t border-zinc-200 dark:border-zinc-700 mt-6">
+                @if(count($lignes) > 0)
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                            <tr class="border-b border-zinc-200 dark:border-zinc-700 text-left">
+                                <th class="pb-2 font-medium text-zinc-500 text-xs pr-3">Désignation</th>
+                                <th class="pb-2 font-medium text-zinc-500 text-xs pr-3 w-20 text-right">Qté</th>
+                                <th class="pb-2 font-medium text-zinc-500 text-xs pr-3 w-28 text-right">PU HT</th>
+                                <th class="pb-2 font-medium text-zinc-500 text-xs pr-3 w-24 text-right">Remise %</th>
+                                <th class="pb-2 font-medium text-zinc-500 text-xs w-28 text-right">Total net</th>
+                            </tr>
+                            </thead>
+                            <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
+                            @foreach($lignes as $i => $ligne)
+                                <tr wire:key="ligne-{{ $i }}">
+                                    <td class="py-2.5 pr-3">
+                                        <p class="font-medium text-sm">{{ $ligne['designation'] }}</p>
+                                    </td>
+                                    <td class="py-2.5 pr-3 text-right text-zinc-600 dark:text-zinc-400">
+                                        {{ $ligne['quantite_commande'] }}
+                                    </td>
+                                    <td class="py-2.5 pr-3 text-right text-zinc-600 dark:text-zinc-400">
+                                        {{ number_format($ligne['montant_HT'] ?? 0, 4, ',', ' ') }} €
+                                    </td>
+                                    <td class="py-2.5 pr-3 text-right">
+                                        @if(($ligne['taux_remise'] ?? 0) > 0)
+                                            <flux:badge size="sm" color="orange">{{ $ligne['taux_remise'] }} %</flux:badge>
+                                        @else
+                                            <span class="text-zinc-400">—</span>
+                                        @endif
+                                    </td>
+                                    <td class="py-2.5 text-right font-medium">
+                                        {{ number_format($ligne['montant_final_net'] ?? 0, 2, ',', ' ') }} €
+                                    </td>
+                                </tr>
+                            @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @else
+                    <div class="flex flex-col items-center justify-center py-10 text-center border-2 border-dashed border-zinc-200 dark:border-zinc-700 rounded-lg">
+                        <i class="hgi-stroke hgi-invoice-02 text-4xl text-zinc-300 mb-2"></i>
+                        <p class="text-sm text-zinc-400">Aucune ligne</p>
+                        <p class="text-xs text-zinc-400 mt-1">Les lignes seront chargées automatiquement depuis la commande sélectionnée</p>
+                    </div>
+                @endif
+            </div>
+        </flux:card>
+
+        {{-- ── Informations générales ──────────────────────────── --}}
+        <flux:card class="p-0 overflow-hidden">
+            <div class="px-6 pt-6">
+                <flux:heading size="lg">Informations générales</flux:heading>
+                <flux:subheading class="mt-1">Complétez les informations de la facture.</flux:subheading>
+            </div>
+
+            <div class="mt-6 divide-y divide-zinc-200 dark:divide-zinc-700 border-t border-zinc-200 dark:border-zinc-700">
 
                 {{-- Fournisseur déduit (lecture seule) --}}
                 @if($fournisseurNom)
@@ -348,70 +421,6 @@ new class extends Component
                     </div>
                 </div>
 
-            </div>
-        </flux:card>
-
-        {{-- ── Lignes de facture ───────────────────────────────── --}}
-        <flux:card class="p-0 overflow-hidden">
-            <div class="px-6 pt-6 flex items-center justify-between">
-                <div>
-                    <flux:heading size="lg">Lignes de facture</flux:heading>
-                    <flux:subheading class="mt-1">Chargées automatiquement depuis les détails de la commande sélectionnée.</flux:subheading>
-                </div>
-                @if(count($lignes) > 0)
-                    <flux:badge size="sm" color="blue">
-                        {{ count($lignes) }} ligne{{ count($lignes) > 1 ? 's' : '' }}
-                    </flux:badge>
-                @endif
-            </div>
-
-            <div class="px-6 pb-6 pt-6 border-t border-zinc-200 dark:border-zinc-700 mt-6">
-                @if(count($lignes) > 0)
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead>
-                            <tr class="border-b border-zinc-200 dark:border-zinc-700 text-left">
-                                <th class="pb-2 font-medium text-zinc-500 text-xs pr-3">Désignation</th>
-                                <th class="pb-2 font-medium text-zinc-500 text-xs pr-3 w-20 text-right">Qté</th>
-                                <th class="pb-2 font-medium text-zinc-500 text-xs pr-3 w-28 text-right">PU HT</th>
-                                <th class="pb-2 font-medium text-zinc-500 text-xs pr-3 w-24 text-right">Remise %</th>
-                                <th class="pb-2 font-medium text-zinc-500 text-xs w-28 text-right">Total net</th>
-                            </tr>
-                            </thead>
-                            <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
-                            @foreach($lignes as $i => $ligne)
-                                <tr wire:key="ligne-{{ $i }}">
-                                    <td class="py-2.5 pr-3">
-                                        <p class="font-medium text-sm">{{ $ligne['designation'] }}</p>
-                                    </td>
-                                    <td class="py-2.5 pr-3 text-right text-zinc-600 dark:text-zinc-400">
-                                        {{ $ligne['quantite_commande'] }}
-                                    </td>
-                                    <td class="py-2.5 pr-3 text-right text-zinc-600 dark:text-zinc-400">
-                                        {{ number_format($ligne['montant_HT'] ?? 0, 4, ',', ' ') }} €
-                                    </td>
-                                    <td class="py-2.5 pr-3 text-right">
-                                        @if(($ligne['taux_remise'] ?? 0) > 0)
-                                            <flux:badge size="sm" color="orange">{{ $ligne['taux_remise'] }} %</flux:badge>
-                                        @else
-                                            <span class="text-zinc-400">—</span>
-                                        @endif
-                                    </td>
-                                    <td class="py-2.5 text-right font-medium">
-                                        {{ number_format($ligne['montant_final_net'] ?? 0, 2, ',', ' ') }} €
-                                    </td>
-                                </tr>
-                            @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                @else
-                    <div class="flex flex-col items-center justify-center py-10 text-center border-2 border-dashed border-zinc-200 dark:border-zinc-700 rounded-lg">
-                        <i class="hgi-stroke hgi-invoice-02 text-4xl text-zinc-300 mb-2"></i>
-                        <p class="text-sm text-zinc-400">Aucune ligne</p>
-                        <p class="text-xs text-zinc-400 mt-1">Les lignes seront chargées automatiquement depuis la commande sélectionnée</p>
-                    </div>
-                @endif
             </div>
         </flux:card>
 
