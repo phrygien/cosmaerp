@@ -74,7 +74,7 @@ new class extends Component
 };
 ?>
 
-<div class="max-w-6xl mx-auto">
+<div class="max-w-5xl mx-auto">
 
     <flux:breadcrumbs class="mb-5">
         <flux:breadcrumbs.item href="{{ route('catalogue.products') }}" wire:navigate>Produit</flux:breadcrumbs.item>

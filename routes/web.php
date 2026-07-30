@@ -13,7 +13,7 @@ use App\Models\User;
 use App\Models\Fournisseur;
 use App\Models\Magasin;
 use App\Models\Marque;
-use App\Models\Categorie;
+use App\Models\Category;
 use App\Models\Parkod;
 use App\Models\Product;
 use App\Models\Commande;
@@ -94,8 +94,18 @@ Route::middleware(["auth", "verified", \App\Http\Middleware\TrackLastSee::class]
             ->name("marques.view");
 
         Route::livewire("/categories", "pages::categories.page")
-            ->middleware("permission:" . Permissions::viewAny(Categorie::class))
+            ->middleware("permission:" . Permissions::viewAny(Category::class))
             ->name("categories");
+        Route::livewire("/categories/create", "pages::categories.create")
+            ->middleware("permission:" . Permissions::create(Category::class))
+            ->name("categories.create");
+        Route::livewire("/categories/{categorie}/edit", "pages::categories.edit")
+            ->middleware("permission:" . Permissions::edit(Category::class))
+            ->name("categories.edit");
+        Route::livewire("/categories/{categorie}/show", "pages::categories.view")
+            ->middleware("permission:" . Permissions::view(Category::class))
+            ->name("categories.view");
+
 
         Route::livewire("/parkod", "pages::parkod.page")
             ->middleware("permission:" . Permissions::viewAny(Product::class))
