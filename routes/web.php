@@ -83,6 +83,15 @@ Route::middleware(["auth", "verified", \App\Http\Middleware\TrackLastSee::class]
         Route::livewire("/marques", "pages::marques.page")
             ->middleware("permission:" . Permissions::viewAny(Marque::class))
             ->name("marques");
+        Route::livewire("/marques/create", "pages::marques.create")
+            ->middleware("permission:" . Permissions::create(Marque::class))
+            ->name("marques.create");
+        Route::livewire("/marques/{marque}/edit", "pages::marques.edit")
+            ->middleware("permission:" . Permissions::edit(Marque::class))
+            ->name("marques.edit");
+        Route::livewire("/marques/{marque}/show", "pages::marques.view")
+            ->middleware("permission:" . Permissions::view(Marque::class))
+            ->name("marques.view");
 
         Route::livewire("/categories", "pages::categories.page")
             ->middleware("permission:" . Permissions::viewAny(Categorie::class))

@@ -152,7 +152,7 @@ new class extends Component
 };
 ?>
 
-<div>
+<div class="max-w-5xl mx-auto">
     <flux:breadcrumbs class="mb-5">
         <flux:breadcrumbs.item href="#">Marque</flux:breadcrumbs.item>
         <flux:breadcrumbs.item>Liste</flux:breadcrumbs.item>
@@ -313,6 +313,18 @@ new class extends Component
                         {{-- Actions directes --}}
                         <flux:table.cell class="text-right">
                             <div class="flex items-center justify-end gap-1">
+
+                                {{-- Détails --}}
+                                <flux:button
+                                    size="sm"
+                                    variant="ghost"
+                                    inset="top bottom"
+                                    href="{{ route('catalogue.marques.view', $marque->code) }}"
+                                    wire:navigate
+                                    title="Détails"
+                                >
+                                    <i class="hgi-stroke hgi-eye text-blue-400"></i>
+                                </flux:button>
 
                                 {{-- Modifier --}}
                                 <flux:button
