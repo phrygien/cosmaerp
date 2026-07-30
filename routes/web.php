@@ -50,6 +50,15 @@ Route::middleware(["auth", "verified", \App\Http\Middleware\TrackLastSee::class]
     Route::livewire("/users", "pages::users.page")
         ->middleware("permission:" . Permissions::viewAny(User::class))
         ->name("users");
+    Route::livewire("/users/create", "pages::users.create")
+        ->middleware("permission:" . Permissions::create(User::class))
+        ->name("users.create");
+    Route::livewire("/users/{user}/edit", "pages::users.edit")
+        ->middleware("permission:" . Permissions::edit(User::class))
+        ->name("users.edit");
+    Route::livewire("/users/{user}/show", "pages::users.view")
+        ->middleware("permission:" . Permissions::view(User::class))
+        ->name("users.view");
 
     // Fournisseurs
     Route::livewire("/fournisseurs", "pages::fournisseurs.page")

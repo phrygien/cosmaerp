@@ -124,7 +124,7 @@ new class extends Component {
 };
 ?>
 
-<div>
+<div class="max-w-5xl mx-auto">
     <flux:breadcrumbs class="mb-5">
         <flux:breadcrumbs.item href="#">Permissions</flux:breadcrumbs.item>
         <flux:breadcrumbs.item>Liste</flux:breadcrumbs.item>
