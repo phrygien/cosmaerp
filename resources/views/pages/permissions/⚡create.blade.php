@@ -40,57 +40,54 @@ new class extends Component {
 };
 ?>
 
-<flux:modal name="create-permission" focusable class="max-w-lg">
-    <div class="space-y-6">
+<flux:modal name="create-permission" flyout>
+    <form wire:submit="save" class="space-y-6">
 
-        <!-- Header -->
         <div>
             <flux:heading size="lg">Ajouter une permission</flux:heading>
             <flux:text class="mt-2">Remplissez les informations de la nouvelle permission.</flux:text>
         </div>
 
-        <!-- Nom -->
         <flux:input
-            wire:model.live="name"
             label="Nom"
+            wire:model.live="name"
             placeholder="Ex: Voir les utilisateurs"
             required
         />
 
-        <!-- Slug (auto-généré) -->
         <flux:input
-            wire:model="slug"
             label="Slug"
+            wire:model="slug"
             placeholder="Ex: users.index"
             description="Généré automatiquement depuis le nom."
             required
         />
 
-        <!-- Groupe -->
         <flux:input
-            wire:model="group"
             label="Groupe"
+            wire:model="group"
             placeholder="Ex: Utilisateurs"
         />
 
-        <!-- Actions -->
-        <div class="flex gap-2">
+        <div class="flex">
             <flux:spacer />
             <flux:button
+                type="button"
                 variant="ghost"
                 x-on:click="$flux.modal('create-permission').close()"
             >
                 Annuler
             </flux:button>
             <flux:button
+                type="submit"
                 variant="primary"
-                wire:click="save"
                 wire:loading.attr="disabled"
+                wire:target="save"
+                class="ml-2"
             >
                 <span wire:loading.remove wire:target="save">Créer</span>
                 <span wire:loading wire:target="save">Création...</span>
             </flux:button>
         </div>
-
-    </div>
+    </form>
 </flux:modal>

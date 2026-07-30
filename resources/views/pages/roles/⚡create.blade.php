@@ -3,45 +3,107 @@ use Livewire\Component;
 use Livewire\Attributes\Computed;
 use App\Models\Role;
 use App\Models\Permission;
+use App\Support\ModelFinder;
+use App\Support\Permissions;
 use Illuminate\Support\Str;
 
 new class extends Component
 {
-    public string $name              = '';
-    public string $slug              = '';
-    public string $description       = '';
-    public string $searchPermission  = '';
-    public array  $selectedPermissions = [];
+    public string $name        = '';
+    public string $slug        = '';
+    public string $description = '';
+    public string $searchModel = '';
+
+    /**
+     * Sélection courante, sous forme de clés "ability:Model"
+     * ex: "view_any:User", "create:Post"
+     *
+     * @var array<int, string>
+     */
+    public array $selected = [];
+
+    /**
+     * Capacités disponibles pour chaque modèle (centralisées dans App\Support\Permissions).
+     */
+    public array $abilities = [];
+
+    public function mount(): void
+    {
+        $this->abilities = Permissions::ABILITIES;
+    }
 
     public function updatedName(string $value): void
     {
         $this->slug = Str::slug($value);
     }
 
-    public function toggleAll(string $group): void
+    protected function allModels(): array
     {
-        $ids = Permission::where('group', $group)->pluck('id')->toArray();
-        $allSelected = count(array_intersect($ids, $this->selectedPermissions)) === count($ids);
-
-        if ($allSelected) {
-            $this->selectedPermissions = array_values(array_diff($this->selectedPermissions, $ids));
-        } else {
-            $this->selectedPermissions = array_values(array_unique(array_merge($this->selectedPermissions, $ids)));
-        }
+        return ModelFinder::names();
     }
 
-    public function isGroupFullySelected(string $group): bool
+    #[Computed]
+    public function models()
     {
-        $ids = Permission::where('group', $group)->pluck('id')->toArray();
-        return count($ids) > 0 &&
-            count(array_intersect($ids, $this->selectedPermissions)) === count($ids);
+        return collect($this->allModels())
+            ->when($this->searchModel, fn ($collection) =>
+            $collection->filter(fn ($model) =>
+            str_contains(Str::lower($model), Str::lower($this->searchModel))
+            )
+            )
+            ->values();
     }
 
-    public function isGroupPartiallySelected(string $group): bool
+    #[Computed]
+    public function selectedCount(): int
     {
-        $ids = Permission::where('group', $group)->pluck('id')->toArray();
-        $intersect = count(array_intersect($ids, $this->selectedPermissions));
-        return $intersect > 0 && $intersect < count($ids);
+        return count($this->selected);
+    }
+
+    public function isModelFullySelected(string $model): bool
+    {
+        $keys = collect($this->abilities)->keys()->map(fn ($a) => "{$a}:{$model}")->all();
+
+        return count($keys) > 0
+            && count(array_intersect($keys, $this->selected)) === count($keys);
+    }
+
+    public function isModelPartiallySelected(string $model): bool
+    {
+        $keys      = collect($this->abilities)->keys()->map(fn ($a) => "{$a}:{$model}")->all();
+        $intersect = count(array_intersect($keys, $this->selected));
+
+        return $intersect > 0 && $intersect < count($keys);
+    }
+
+    public function isAbilitySelectedForAll(string $ability): bool
+    {
+        $models = $this->allModels();
+        $keys   = collect($models)->map(fn ($m) => "{$ability}:{$m}")->all();
+
+        return count($keys) > 0
+            && count(array_intersect($keys, $this->selected)) === count($keys);
+    }
+
+    public function toggleModel(string $model): void
+    {
+        $keys        = collect($this->abilities)->keys()->map(fn ($a) => "{$a}:{$model}")->all();
+        $allSelected = count(array_intersect($keys, $this->selected)) === count($keys);
+
+        $this->selected = $allSelected
+            ? array_values(array_diff($this->selected, $keys))
+            : array_values(array_unique(array_merge($this->selected, $keys)));
+    }
+
+    public function toggleAbility(string $ability): void
+    {
+        $models      = $this->allModels();
+        $keys        = collect($models)->map(fn ($m) => "{$ability}:{$m}")->all();
+        $allSelected = count($keys) > 0 && count(array_intersect($keys, $this->selected)) === count($keys);
+
+        $this->selected = $allSelected
+            ? array_values(array_diff($this->selected, $keys))
+            : array_values(array_unique(array_merge($this->selected, $keys)));
     }
 
     public function save(): void
@@ -58,9 +120,25 @@ new class extends Component
             'description' => $this->description,
         ]);
 
-        $role->permissions()->sync($this->selectedPermissions);
+        $permissionIds = collect($this->selected)
+            ->map(function (string $key) {
+                [$ability, $model] = explode(':', $key, 2);
 
-        $this->reset(['name', 'slug', 'description', 'selectedPermissions', 'searchPermission']);
+                $permission = Permission::firstOrCreate(
+                    ['slug' => Permissions::slug($ability, $model)],
+                    [
+                        'name'  => Permissions::name($ability, $model),
+                        'group' => Permissions::group($model),
+                    ]
+                );
+
+                return $permission->id;
+            })
+            ->all();
+
+        $role->permissions()->sync($permissionIds);
+
+        $this->reset(['name', 'slug', 'description', 'selected', 'searchModel']);
 
         $this->dispatch('role-created');
         $this->modal('create-role')->close();
@@ -70,23 +148,11 @@ new class extends Component
             variant: 'success'
         );
     }
-
-    #[Computed]
-    public function groupedPermissions()
-    {
-        return Permission::query()
-            ->when($this->searchPermission, fn($query) =>
-            $query->where('name', 'like', "%{$this->searchPermission}%")
-                ->orWhere('slug', 'like', "%{$this->searchPermission}%")
-            )
-            ->get()
-            ->groupBy('group');
-    }
 };
 ?>
 
 <div>
-    <flux:modal name="create-role" class="md:w-[600px]" :dismissible="false">
+    <flux:modal name="create-role" class="md:w-[640px] lg:w-[900px]" :dismissible="false">
         <div class="space-y-5">
 
             <!-- Header -->
@@ -119,90 +185,97 @@ new class extends Component
                 rows="2"
             />
 
-            <!-- Permissions -->
+            <!-- Permissions (matrice auto-générée depuis les modèles) -->
             <div>
                 <div class="flex items-center justify-between mb-3">
                     <flux:label>Permissions</flux:label>
-                    @if (count($selectedPermissions) > 0)
+                    @if ($this->selectedCount > 0)
                         <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400">
-                            {{ count($selectedPermissions) }} sélectionnée{{ count($selectedPermissions) > 1 ? 's' : '' }}
+                            {{ $this->selectedCount }} sélectionnée{{ $this->selectedCount > 1 ? 's' : '' }}
                         </span>
                     @endif
                 </div>
 
-                <!-- Recherche permission -->
+                <!-- Recherche modèle -->
                 <flux:input
-                    wire:model.live.debounce="searchPermission"
-                    placeholder="Rechercher une permission..."
+                    wire:model.live.debounce="searchModel"
+                    placeholder="Rechercher un modèle..."
                     icon="magnifying-glass"
                     class="mb-3"
                 />
 
-                <div class="space-y-2 max-h-80 overflow-y-auto">
-                    @forelse ($this->groupedPermissions as $group => $permissions)
-                        <flux:card class="p-0 overflow-hidden">
-
-                            <!-- Group header -->
-                            <button
-                                type="button"
-                                wire:click="toggleAll('{{ $group }}')"
-                                class="w-full flex items-center justify-between px-3 py-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-700/80 transition-colors duration-150"
-                            >
-                                <div class="flex items-center gap-2.5">
-                                    <span class="w-1.5 h-1.5 rounded-full
-                                        @if($this->isGroupFullySelected($group)) bg-blue-400
-                                        @elseif($this->isGroupPartiallySelected($group)) bg-blue-400/50
-                                        @else bg-zinc-400
-                                        @endif
-                                    "></span>
-                                    <span class="text-sm font-medium">{{ $group }}</span>
-                                    <span class="text-xs text-zinc-500">{{ $permissions->count() }}</span>
-                                </div>
-
-                                <div class="flex items-center gap-2">
-                                    @if($this->isGroupFullySelected($group))
-                                        <span class="text-xs text-blue-400">Tout décocher</span>
-                                    @elseif($this->isGroupPartiallySelected($group))
-                                        <span class="text-xs text-zinc-400">Partiel</span>
-                                    @else
-                                        <span class="text-xs text-zinc-400">Tout cocher</span>
-                                    @endif
-                                    <flux:checkbox
-                                        :checked="$this->isGroupFullySelected($group)"
-                                        wire:click.stop="toggleAll('{{ $group }}')"
-                                    />
-                                </div>
-                            </button>
-
-                            <!-- Permissions list -->
-                            <div class="divide-y divide-zinc-100 dark:divide-zinc-700/50">
-                                @foreach ($permissions as $permission)
-                                    <label class="flex items-center justify-between px-4 py-2 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 cursor-pointer transition-colors duration-100 gap-4">
-                                        <div class="min-w-0">
-                                            <p class="text-sm truncate">{{ $permission->name }}</p>
-                                            <p class="text-xs text-zinc-500 font-mono">{{ $permission->slug }}</p>
-                                        </div>
-                                        <flux:checkbox
-                                            wire:model="selectedPermissions"
-                                            value="{{ $permission->id }}"
-                                        />
-                                    </label>
+                <div class="border border-zinc-200 dark:border-zinc-700 rounded-lg overflow-hidden">
+                    <div class="max-h-80 overflow-y-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-zinc-50 dark:bg-zinc-800/60 sticky top-0 z-10">
+                            <tr>
+                                <th class="text-left px-4 py-2.5 font-medium">Modèle</th>
+                                @foreach ($abilities as $key => $label)
+                                    <th class="px-3 py-2.5 text-center font-medium">
+                                        <button
+                                            type="button"
+                                            wire:click="toggleAbility('{{ $key }}')"
+                                            class="flex flex-col items-center gap-1 mx-auto"
+                                        >
+                                            <span>{{ $label }}</span>
+                                            <flux:checkbox
+                                                :checked="$this->isAbilitySelectedForAll($key)"
+                                                wire:click.stop="toggleAbility('{{ $key }}')"
+                                            />
+                                        </button>
+                                    </th>
                                 @endforeach
-                            </div>
-
-                        </flux:card>
-
-                    @empty
-                        <div class="flex flex-col items-center justify-center py-8 text-center">
-                            <flux:icon name="magnifying-glass" class="text-zinc-400 mb-2" style="width: 32px; height: 32px;" />
-                            <p class="text-sm text-zinc-400">
-                                Aucune permission trouvée pour "{{ $searchPermission }}"
-                            </p>
-                            <flux:button variant="ghost" size="sm" wire:click="$set('searchPermission', '')" class="mt-2">
-                                Réinitialiser
-                            </flux:button>
-                        </div>
-                    @endforelse
+                            </tr>
+                            </thead>
+                            <tbody class="divide-y divide-zinc-100 dark:divide-zinc-700/50">
+                            @forelse ($this->models as $model)
+                                <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/40" wire:key="model-{{ $model }}">
+                                    <td class="px-4 py-2">
+                                        <button
+                                            type="button"
+                                            wire:click="toggleModel('{{ $model }}')"
+                                            class="flex items-center gap-2.5"
+                                        >
+                                                <span class="w-1.5 h-1.5 rounded-full
+                                                    @if($this->isModelFullySelected($model)) bg-blue-400
+                                                    @elseif($this->isModelPartiallySelected($model)) bg-blue-400/50
+                                                    @else bg-zinc-400
+                                                    @endif
+                                                "></span>
+                                            <span class="font-medium">{{ $model }}</span>
+                                        </button>
+                                    </td>
+                                    @foreach ($abilities as $key => $label)
+                                        <td class="px-3 py-2 text-center">
+                                            <flux:checkbox
+                                                wire:model="selected"
+                                                value="{{ $key }}:{{ $model }}"
+                                            />
+                                        </td>
+                                    @endforeach
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="{{ count($abilities) + 1 }}" class="text-center py-8">
+                                        <flux:icon name="magnifying-glass" class="text-zinc-400 mx-auto mb-2" style="width: 32px; height: 32px;" />
+                                        <p class="text-sm text-zinc-400">
+                                            @if ($searchModel)
+                                                Aucun modèle trouvé pour "{{ $searchModel }}"
+                                            @else
+                                                Aucun modèle trouvé dans app/Models
+                                            @endif
+                                        </p>
+                                        @if ($searchModel)
+                                            <flux:button variant="ghost" size="sm" wire:click="$set('searchModel', '')" class="mt-2">
+                                                Réinitialiser
+                                            </flux:button>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforelse
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 

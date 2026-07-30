@@ -73,13 +73,21 @@ class User extends Authenticatable
 
     public function hasPermission(string $slug): bool
     {
+        if ($this->hasRole("super-admin")) {
+            return true;
+        }
+
         return $this->roles()
-            ->whereHas("permissions", fn($q) => $q->whereIn("slug", $slugs))
+            ->whereHas("permissions", fn($q) => $q->where("slug", $slug))
             ->exists();
     }
 
     public function hasAnyPermission(array $slugs): bool
     {
+        if ($this->hasRole("super-admin")) {
+            return true;
+        }
+
         return $this->roles()
             ->whereHas("permissions", fn($q) => $q->whereIn("slug", $slugs))
             ->exists();

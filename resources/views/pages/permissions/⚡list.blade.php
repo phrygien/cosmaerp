@@ -143,26 +143,17 @@ new class extends Component {
     <!-- Stat Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <flux:card class="p-5">
-            <div class="flex items-center justify-between">
-                <p class="text-sm text-zinc-500">Total Permissions</p>
-                <i class="hgi-stroke hgi-license text-2xl text-zinc-400"></i>
-            </div>
+            <p class="text-sm text-zinc-500">Total Permissions</p>
             <p class="text-3xl font-bold mt-1">{{ $this->stats['total'] }}</p>
         </flux:card>
 
         <flux:card class="p-5">
-            <div class="flex items-center justify-between">
-                <p class="text-sm text-zinc-500">Groupes distincts</p>
-                <i class="hgi-stroke hgi-folder-01 text-2xl text-blue-400"></i>
-            </div>
+            <p class="text-sm text-zinc-500">Groupes distincts</p>
             <p class="text-3xl font-bold mt-1 text-blue-500">{{ $this->stats['groups'] }}</p>
         </flux:card>
 
         <flux:card class="p-5">
-            <div class="flex items-center justify-between">
-                <p class="text-sm text-zinc-500">Sans rôle assigné</p>
-                <i class="hgi-stroke hgi-alert-02 text-2xl text-zinc-400"></i>
-            </div>
+            <p class="text-sm text-zinc-500">Sans rôle assigné</p>
             <p class="text-3xl font-bold mt-1 text-zinc-400">{{ $this->stats['no_role'] }}</p>
         </flux:card>
     </div>
@@ -228,7 +219,6 @@ new class extends Component {
         <flux:table :paginate="$this->permissions" variant="bordered">
             <flux:table.columns>
                 <flux:table.column sortable :sorted="$sortBy === 'name'" :direction="$sortDirection" wire:click="sort('name')">Nom</flux:table.column>
-                <flux:table.column sortable :sorted="$sortBy === 'slug'" :direction="$sortDirection" wire:click="sort('slug')" class="hidden sm:table-cell">Slug</flux:table.column>
                 <flux:table.column sortable :sorted="$sortBy === 'group'" :direction="$sortDirection" wire:click="sort('group')" class="hidden md:table-cell">Groupe</flux:table.column>
                 <flux:table.column class="hidden lg:table-cell">Rôles</flux:table.column>
                 <flux:table.column class="text-right">Actions</flux:table.column>
@@ -240,9 +230,6 @@ new class extends Component {
 
                         <flux:table.cell>
                             <p class="font-medium text-sm">{{ $permission->name }}</p>
-                            <p class="mt-0.5 sm:hidden">
-                                <flux:badge size="sm" color="zinc" inset="top bottom">{{ $permission->slug }}</flux:badge>
-                            </p>
                             <p class="text-xs text-zinc-400 mt-0.5 md:hidden">{{ $permission->group ?? '—' }}</p>
                             <div class="flex flex-wrap gap-1 mt-1 lg:hidden">
                                 @forelse ($permission->roles as $role)
@@ -251,10 +238,6 @@ new class extends Component {
                                     <span class="text-zinc-400 text-xs">Aucun rôle</span>
                                 @endforelse
                             </div>
-                        </flux:table.cell>
-
-                        <flux:table.cell class="hidden sm:table-cell whitespace-nowrap">
-                            <flux:badge size="sm" color="zinc" inset="top bottom">{{ $permission->slug }}</flux:badge>
                         </flux:table.cell>
 
                         <flux:table.cell class="hidden md:table-cell text-zinc-400">
@@ -304,7 +287,7 @@ new class extends Component {
 
                 @empty
                     <flux:table.row>
-                        <flux:table.cell colspan="5">
+                        <flux:table.cell colspan="4">
                             <div class="flex flex-col items-center justify-center py-12 text-center">
                                 <i class="hgi-stroke hgi-license text-5xl text-zinc-400 mb-3"></i>
                                 <p class="text-zinc-400 font-medium text-sm">
