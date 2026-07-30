@@ -161,11 +161,9 @@ new class extends Component
     <div class="flex items-center justify-between mb-6">
         <flux:heading size="xl" level="1">{{ __('Marques') }}</flux:heading>
 
-        <flux:modal.trigger name="create-marque">
-            <flux:button variant="primary" class="w-full sm:w-auto">
+            <flux:button href="{{ route('catalogue.marques.create') }}" wire:navigate variant="primary" class="w-full sm:w-auto">
                 Ajouter une marque
             </flux:button>
-        </flux:modal.trigger>
     </div>
 
     <!-- Stat Cards -->
@@ -331,7 +329,8 @@ new class extends Component
                                     size="sm"
                                     variant="ghost"
                                     inset="top bottom"
-                                    wire:click="edit('{{ $marque->code }}')"
+                                    href="{{ route('catalogue.marques.edit', $marque->code) }}"
+                                    wire:navigate
                                     title="Modifier"
                                 >
                                     <i class="hgi-stroke hgi-pencil-edit-01 text-indigo-400"></i>
@@ -378,8 +377,5 @@ new class extends Component
         </flux:table>
 
     </flux:card>
-
-    <livewire:pages::marques.create />
-    <livewire:pages::marques.edit />
     <livewire:pages::marques.delete />
 </div>
