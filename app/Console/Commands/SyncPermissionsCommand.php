@@ -11,7 +11,7 @@ class SyncPermissions extends Command
 {
     protected $signature = 'permissions:sync';
 
-    protected $description = "Génère automatiquement les permissions (Any/View/Create/Delete) pour chaque modèle du projet";
+    protected $description = "Génère automatiquement les permissions (Any/View/Edit/Create/Delete) pour chaque modèle du projet";
 
     public function handle(): int
     {

@@ -9,6 +9,8 @@ class Permissions
     public const VIEW_ANY = 'view_any';
     public const VIEW     = 'view';
     public const CREATE   = 'create';
+
+    public const EDIT   = 'edit';
     public const DELETE   = 'delete';
 
     /**
@@ -19,6 +21,7 @@ class Permissions
         self::VIEW_ANY => 'Any',
         self::VIEW     => 'View',
         self::CREATE   => 'Create',
+        self::EDIT     => 'Edit',
         self::DELETE   => 'Delete',
     ];
 
@@ -62,6 +65,10 @@ class Permissions
         return self::slug(self::CREATE, $model);
     }
 
+    public static function edit(string $model): string
+    {
+        return self::slug(self::EDIT, $model);
+    }
     public static function delete(string $model): string
     {
         return self::slug(self::DELETE, $model);

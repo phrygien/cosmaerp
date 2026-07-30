@@ -33,6 +33,15 @@ Route::middleware(["auth", "verified", \App\Http\Middleware\TrackLastSee::class]
     Route::livewire("/roles", "pages::roles.page")
         ->middleware("permission:" . Permissions::viewAny(Role::class))
         ->name("roles");
+    Route::livewire("/roles/create", "pages::roles.create")
+        ->middleware("permission:" . Permissions::create(Role::class))
+        ->name("roles.create");
+    Route::livewire("/roles/{role}/edit", "pages::roles.edit")
+        ->middleware("permission:" . Permissions::edit(Role::class))
+        ->name("roles.edit");
+    Route::livewire("/roles/{role}/show", "pages::roles.view")
+        ->middleware("permission:" . Permissions::view(Role::class))
+        ->name("roles.view");
 
     Route::livewire("/permissions", "pages::permissions.page")
         ->middleware("permission:" . Permissions::viewAny(Permission::class))

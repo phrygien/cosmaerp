@@ -70,11 +70,6 @@ new class extends Component
         $this->dispatch('view-role', id: $id);
     }
 
-    public function edit(int $id): void
-    {
-        $this->dispatch('edit-role', id: $id);
-    }
-
     public function confirmDelete(int $id): void
     {
         $this->dispatch('delete-role', id: $id);
@@ -114,12 +109,9 @@ new class extends Component
 
     <div class="flex items-center justify-between mb-6">
         <flux:heading size="xl" level="1">{{ __('Rôles') }}</flux:heading>
-
-        <flux:modal.trigger name="create-role">
-            <flux:button variant="primary" class="w-full sm:w-auto">
-                Ajouter un rôle
-            </flux:button>
-        </flux:modal.trigger>
+        <flux:button href="{{ route('roles.create') }}" wire:navigate variant="primary" class="w-full sm:w-auto">
+            Ajouter un rôle
+        </flux:button>
     </div>
 
     <!-- Stat Cards -->
@@ -243,10 +235,21 @@ new class extends Component
                 </ul>
 
                 <div class="flex gap-2 mt-5">
-                    <flux:button variant="ghost" size="sm" wire:click="show({{ $role->id }})" class="flex-1">
+                    <flux:button
+                        variant="ghost"
+                        size="sm"
+                        href="{{ route('roles.view', $role) }}"
+                        wire:navigate
+                        class="flex-1">
                         Voir le rôle
                     </flux:button>
-                    <flux:button variant="ghost" size="sm" wire:click="edit({{ $role->id }})" class="flex-1">
+                    <flux:button
+                        variant="ghost"
+                        size="sm"
+                        href="{{ route('roles.edit', $role) }}"
+                        wire:navigate
+                        class="flex-1"
+                    >
                         Modifier
                     </flux:button>
                 </div>
@@ -272,22 +275,10 @@ new class extends Component
                 </flux:card>
             </div>
         @endforelse
-
-        <!-- Carte "Ajouter un rôle" -->
-        <flux:modal.trigger name="create-role">
-            <flux:card class="p-5 flex flex-col items-center justify-center text-center cursor-pointer border-2 border-dashed border-zinc-200 dark:border-zinc-700 hover:border-primary-400 transition min-h-[260px]">
-                <i class="hgi-stroke hgi-add-square text-4xl text-zinc-400 mb-3"></i>
-                <p class="text-zinc-500 font-medium">Ajouter un nouveau rôle</p>
-            </flux:card>
-        </flux:modal.trigger>
     </div>
 
     <div class="mt-6">
         <flux:pagination :paginator="$this->roles" />
     </div>
-
-    <livewire:pages::roles.create />
-    <livewire:pages::roles.edit />
     <livewire:pages::roles.delete />
-    <livewire:pages::roles.view />
 </div>
